@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단기투자 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117; --bg2:#161b27; --bg3:#1c2333;
+  --border:rgba(255,255,255,0.09); --border2:rgba(255,255,255,0.18);
+  --text:#cdd9ea; --muted:#637080; --subtle:#2d3a4a;
+  /* 메인 액센트: 밝은 스카이블루 */
+  --acc:#22d3ee; --acc2:#a5f3fc; --acc-bg:rgba(34,211,238,0.1); --acc-border:rgba(34,211,238,0.28);
+  /* 수익/양수: 밝은 라임-에메랄드 */
+  --up:#4ade80; --up-bg:rgba(74,222,128,0.1); --up-border:rgba(74,222,128,0.28);
+  /* 손실/음수: 밝은 오렌지-레드 */
+  --dn:#fb7185; --dn-bg:rgba(251,113,133,0.1); --dn-border:rgba(251,113,133,0.28);
+  /* 보조: 밝은 바이올렛 */
+  --pu:#c084fc; --pu-bg:rgba(192,132,252,0.1); --pu-border:rgba(192,132,252,0.28);
+  /* 코스피: 선명한 앰버 */
+  --am:#fde047; --am-bg:rgba(253,224,71,0.09); --am-border:rgba(253,224,71,0.25);
+}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;font-size:14px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:#2d3a4a;border-radius:3px}
+
+/* HDR */
+.hdr{background:rgba(13,17,23,0.97);border-bottom:1px solid rgba(34,211,238,0.15);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;backdrop-filter:blur(20px)}
+.hdr-title{font-size:16px;font-weight:700;color:#e8f0fc;letter-spacing:-0.3px}
+.hdr-sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.hdr-badge{background:linear-gradient(135deg,rgba(34,211,238,0.18),rgba(74,222,128,0.14));border:1px solid rgba(34,211,238,0.4);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:700;color:var(--acc2);font-family:'JetBrains Mono',monospace}
+
+/* TABS */
+.tabs{display:flex;gap:2px;padding:12px 28px 0;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--bg2)}
+.tab{background:transparent;border:none;border-bottom:2px solid transparent;padding:9px 16px 11px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;color:var(--muted);white-space:nowrap;transition:all 0.18s;border-radius:4px 4px 0 0}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--acc2);border-bottom-color:var(--acc);background:rgba(34,211,238,0.08)}
+/* 수익률 서브탭 */
+.subtabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.stab{background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:6px 14px;font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all 0.18s}
+.stab:hover{color:var(--text);border-color:var(--border2)}
+.stab.active{background:rgba(34,211,238,0.12);border-color:rgba(34,211,238,0.35);color:var(--acc2)}
+
+/* LAYOUT */
+.content{padding:22px 28px;max-width:1440px;margin:0 auto}
+.panel{display:none;flex-direction:column;gap:16px}
+.panel.active{display:flex}
+.g2{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.g11{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:860px){.g2,.g11{grid-template-columns:1fr}}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:11px}
+.kpi{background:linear-gradient(145deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:14px;padding:16px 20px;position:relative;overflow:hidden;transition:all 0.22s}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:0;transition:opacity 0.22s}
+.kpi:hover{border-color:rgba(34,211,238,0.25);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.kpi:hover::after{opacity:1}
+.kpi-icon{position:absolute;top:12px;right:14px;font-size:20px;opacity:0.15}
+.kpi-lbl{font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase}
+.kpi-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:5px;letter-spacing:-0.5px}
+.kpi-sub{font-size:11px;color:var(--subtle);margin-top:3px}
+
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;transition:border-color 0.2s}
+.card:hover{border-color:rgba(255,255,255,0.13)}
+.sec{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:8px 12px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:0.8px;text-transform:uppercase}
+th:not(:first-child){text-align:right}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04)}
+td:not(:first-child){text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px}
+tr:hover td{background:rgba(34,211,238,0.04)}
+.tr-sum td{background:rgba(34,211,238,0.06);border-top:1px solid rgba(34,211,238,0.2);font-weight:700}
+
+/* PILL */
+.pill{display:inline-block;font-size:10px;padding:2px 9px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-weight:700}
+.p-up{background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.35);color:#4ade80}
+.p-dn{background:rgba(251,113,133,0.15);border:1px solid rgba(251,113,133,0.35);color:#fb7185}
+.p-nu{background:rgba(45,58,74,0.5);border:1px solid rgba(45,58,74,0.8);color:var(--muted)}
+.p-acc{background:rgba(34,211,238,0.12);border:1px solid rgba(34,211,238,0.3);color:var(--acc2)}
+
+/* DOT */
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:7px}
+
+/* PROGRESS */
+.pbar{background:rgba(255,255,255,0.05);border-radius:3px;height:6px;overflow:hidden;margin-top:5px}
+.pbar-fill{height:100%;border-radius:3px;transition:width 0.5s}
+
+/* MONTHLY ROW */
+.mrow{margin-bottom:10px}
+.mrow-meta{display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px}
+
+/* SUM BOX */
+.sbox{padding:13px 16px;border-radius:10px;margin-top:14px}
+.sbox .sl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.sbox .sv{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:3px}
+
+/* FORM */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:11px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:11px;color:var(--muted);letter-spacing:0.3px}
+.fi{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color 0.18s;width:100%}
+.fi:focus{border-color:var(--acc-border);background:rgba(56,189,248,0.04)}
+.fi::placeholder{color:var(--subtle)}
+.btn{background:var(--acc-bg);border:1px solid var(--acc-border);border-radius:8px;color:var(--acc);padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.18s}
+.btn:hover{background:rgba(56,189,248,0.18);color:var(--acc2)}
+.btn-sm{padding:5px 13px;font-size:12px}
+.btn-red{background:var(--dn-bg);border-color:var(--dn-border);color:var(--dn)}
+.btn-red:hover{background:rgba(248,113,113,0.18)}
+
+.elist{display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;margin-top:8px}
+.eitem{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;border:1px solid var(--border);font-size:12px;gap:8px;flex-wrap:wrap}
+.edel{background:none;border:none;color:var(--subtle);cursor:pointer;padding:0 3px;font-size:15px;transition:color 0.15s;line-height:1;flex-shrink:0}
+.edel:hover{color:var(--dn)}
+
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--acc-border);border-radius:10px;padding:11px 18px;font-size:13px;color:var(--acc2);z-index:999;opacity:0;transform:translateY(8px);transition:all 0.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* LIFE GAME */
+.life-row{margin-bottom:13px}
+.lrow-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.lrow-name{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px}
+.lrow-amt{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted)}
+.lrow-amt span{color:var(--text);font-weight:600}
+
+/* CALC PREVIEW */
+.calc-box{background:var(--bg3);border-radius:10px;border:1px solid var(--border);padding:14px;margin-top:14px}
+.calc-grid{display:flex;gap:24px;flex-wrap:wrap;margin-top:8px}
+.calc-item .cl{font-size:10px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:3px}
+.calc-item .cv{font-size:17px;font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* LIFE INPUT TABLE */
+.life-tbl{width:100%;border-collapse:collapse;margin-top:8px}
+.life-tbl th{padding:7px 10px;font-size:10px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left}
+.life-tbl th:not(:first-child){text-align:right}
+.life-tbl td{padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.life-tbl td input{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;width:100%;transition:border-color 0.15s}
+.life-tbl td input:focus{border-color:var(--acc-border)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">📊 단기투자 대시보드</div>
+    <div class="hdr-sub" id="hdr-sub">로딩 중...</div>
+  </div>
+  <div class="hdr-badge" id="hdr-badge">—</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="sw('overview',this)">전체 현황</button>
+  <button class="tab" onclick="sw('performance',this)">수익률 분석</button>
+  <button class="tab" onclick="sw('accounts',this)">계좌 현황</button>
+  <button class="tab" onclick="sw('life',this)">🎮 생활비 게임</button>
+  <button class="tab" onclick="sw('entry',this)">✏️ 데이터 입력</button>
+</div>
+
+<div class="content">
+
+<!-- ══ OVERVIEW ══ -->
+<div id="panel-overview" class="panel active">
+  <div class="kpi-grid" id="kpi-ov"></div>
+  <div class="g2">
+    <div class="card">
+      <div class="sec">2026년 누적수익률 vs 코스피</div>
+      <div style="height:240px"><canvas id="ch-ov-main"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="sec">2026 월별 수익</div>
+      <div id="mth-bars"></div>
+      <div class="sbox" style="background:var(--acc-bg);border:1px solid var(--acc-border)">
+        <div class="sl">26년 실현손익 합계</div>
+        <div class="sv" id="yr-sum" style="color:var(--acc2)"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec" id="daily-title">이번달 일별 손익</div>
+    <div style="height:160px"><canvas id="ch-ov-daily"></canvas></div>
+  </div>
+</div>
+
+<!-- ══ PERFORMANCE ══ -->
+<div id="panel-performance" class="panel">
+  <div class="kpi-grid" id="kpi-pf"></div>
+  <div class="card">
+    <div class="sec">누적 수익률 차트</div>
+    <div class="subtabs">
+      <button class="stab active" onclick="setRange('all',this)">전체</button>
+      <button class="stab" onclick="setRange('2024',this)">2024년</button>
+      <button class="stab" onclick="setRange('2025',this)">2025년</button>
+      <button class="stab" onclick="setRange('2026',this)">2026년</button>
+    </div>
+    <div style="height:320px"><canvas id="ch-full"></canvas></div>
+  </div>
+  <!-- 수익금 히스토리 -->
+  <div class="card">
+    <div class="sec">수익금 히스토리</div>
+    <div class="subtabs" id="pnl-subtabs">
+      <button class="stab active" onclick="setPnlView('monthly',this)">월별</button>
+      <button class="stab" onclick="setPnlView('daily',this)">일별</button>
+    </div>
+    <div class="g11" style="margin-bottom:16px">
+      <div>
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px" id="pnl-chart-title">월별 수익금</div>
+        <div style="height:200px"><canvas id="ch-pnl"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">누적 손익 (평가포함)</div>
+        <div style="height:200px"><canvas id="ch-pnl-cum"></canvas></div>
+      </div>
+    </div>
+    <!-- 표 -->
+    <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="pnl-tbl-title">수익금 내역</div>
+    <div style="max-height:340px;overflow-y:auto">
+      <table id="pnl-table">
+        <thead id="pnl-thead"></thead>
+        <tbody id="pnl-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ACCOUNTS ══ -->
+<div id="panel-accounts" class="panel">
+  <div class="kpi-grid" id="kpi-ac"></div>
+  <div class="g2">
+    <div class="card">
+      <div class="sec">계좌별 현재 잔고</div>
+      <table>
+        <thead><tr><th style="text-align:left">계좌</th><th>현재 잔고</th><th>비중</th><th>상태</th></tr></thead>
+        <tbody id="acc-tbody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="sec">잔고 분포</div>
+      <div style="height:240px"><canvas id="ch-acc"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LIFE GAME ══ -->
+<div id="panel-life" class="panel">
+  <div style="background:var(--acc-bg);border:1px solid var(--acc-border);border-radius:10px;padding:13px 16px;font-size:12px;color:var(--muted);line-height:1.75">
+    🎮 <strong style="color:var(--acc2)">생활비 게임</strong> — 이번달 매매 수익으로 생활비를 순서대로 커버해나가서 <strong id="life-goal-txt" style="color:var(--acc)">500만원</strong> 달성 시 생활비 전부 해결!
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="sec">생활비 커버 현황</div>
+      <div id="life-items"></div>
+    </div>
+    <div class="card">
+      <div class="sec">이번달 요약</div>
+      <div style="text-align:center;padding:18px 0">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">이번달 수익</div>
+        <div style="font-size:34px;font-weight:700;color:var(--acc);font-family:'JetBrains Mono',monospace" id="life-val">—</div>
+        <div style="font-size:11px;color:var(--subtle);margin-top:4px" id="life-lbl"></div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;border:1px solid var(--border);padding:14px">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">목표 달성률</div>
+        <div class="pbar" style="height:10px;margin-bottom:8px">
+          <div class="pbar-fill" id="life-prog" style="background:linear-gradient(90deg,var(--pu),var(--acc))"></div>
+        </div>
+        <div style="font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--acc2)" id="life-pct">0%</div>
+      </div>
+      <div id="life-verdict" style="margin-top:12px;text-align:center;padding:13px;border-radius:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ENTRY ══ -->
+<div id="panel-entry" class="panel">
+
+  <!-- 1. 계좌 잔고 먼저 -->
+  <div class="card">
+    <div class="sec">계좌 잔고 입력</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">잔고 입력 시 아래 계좌 총액에 자동 반영됩니다.</div>
+    <div class="fgrid" id="acc-inputs"></div>
+    <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid var(--acc-border)">
+      <span style="font-size:12px;color:var(--muted)">계좌 합산 총액</span>
+      <span style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--acc2)" id="acc-sum-display">—</span>
+    </div>
+    <div style="margin-top:10px"><button class="btn btn-sm" onclick="saveAcc()">잔고 저장</button></div>
+  </div>
+
+  <!-- 2. 일별 기록 입력 -->
+  <div class="card">
+    <div class="sec">일별 기록 입력</div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:11px 14px;font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px">
+      📌 위에서 계좌 잔고를 입력하면 <strong style="color:var(--acc2)">계좌 총액</strong>이 자동으로 채워집니다.
+      입출금 없는 날은 0 또는 비워두기 · 입금 양수(+) · 출금 음수(-)
+    </div>
+    <div class="fgrid">
+      <div class="fg"><label class="fl">날짜</label><input type="date" id="in-d" class="fi"></div>
+      <div class="fg"><label class="fl">계좌 총액 (원) — 자동 또는 직접 입력</label><input type="number" id="in-end" class="fi" placeholder="예) 37531240"></div>
+      <div class="fg"><label class="fl">입출금 (원) — 없으면 0</label><input type="number" id="in-io" class="fi" placeholder="입금 +, 출금 -, 없으면 0"></div>
+      <div class="fg"><label class="fl">실현손익 (원) — 매도 확정 수익만</label><input type="number" id="in-realized" class="fi" placeholder="매도 없으면 0 또는 비워두기"></div>
+      <div class="fg"><label class="fl">코스피 지수 (포인트)</label><input type="number" step="0.01" id="in-kp" class="fi" placeholder="예) 5277.30"></div>
+      <div class="fg" style="justify-content:flex-end">
+        <label class="fl">&nbsp;</label>
+        <button class="btn" onclick="addEntry()">+ 추가 &amp; 수익률 계산</button>
+      </div>
+    </div>
+    <div class="calc-box">
+      <div class="sec" style="margin-bottom:4px">자동 계산 결과 미리보기</div>
+      <div class="calc-grid">
+        <div class="calc-item"><div class="cl">NAV (기준가)</div><div class="cv" id="c-nav" style="color:var(--acc2)">—</div></div>
+        <div class="calc-item"><div class="cl">일별 수익률</div><div class="cv" id="c-day" style="color:var(--text)">—</div></div>
+        <div class="calc-item"><div class="cl">누적 수익률</div><div class="cv" id="c-cum" style="color:var(--acc)">—</div></div>
+        <div class="calc-item"><div class="cl">당일 손익 (전체)</div><div class="cv" id="c-pnl">—</div></div>
+        <div class="calc-item"><div class="cl">실현손익</div><div class="cv" id="c-realized" style="color:var(--up)">—</div></div>
+        <div class="calc-item"><div class="cl">코스피 수익률</div><div class="cv" id="c-kp" style="color:var(--am)">—</div></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="sec">입력 내역 (최근 30일)</div>
+    <div class="elist" id="entry-list"></div>
+  </div>
+
+  <!-- 3. 생활비 설정 -->
+  <div class="card">
+    <div class="sec">생활비 게임 설정</div>
+    <div class="fgrid" style="margin-bottom:16px">
+      <div class="fg"><label class="fl">월 목표 수익 (원)</label><input type="number" id="in-goal" class="fi" placeholder="5000000"></div>
+    </div>
+    <div class="sec" style="margin-bottom:8px">생활비 항목 &amp; 실제 달성</div>
+    <table class="life-tbl" id="life-tbl">
+      <thead>
+        <tr>
+          <th style="width:110px">항목명</th>
+          <th style="text-align:right;width:140px">목표 금액</th>
+          <th style="text-align:right;width:140px">이번달 달성</th>
+          <th style="width:36px"></th>
+        </tr>
+      </thead>
+      <tbody id="life-tbody"></tbody>
+    </table>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="addLifeRow()">+ 항목 추가</button>
+      <button class="btn btn-sm" onclick="saveLife()">저장</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <button class="btn btn-sm" onclick="exportData()">📥 데이터 내보내기</button>
+    <button class="btn btn-red btn-sm" onclick="if(confirm('전체 초기화할까요?'))resetAll()">⚠ 전체 초기화</button>
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  SEED DATA  (엑셀 추출)
+// ═══════════════════════════════════════════════
+const SEED26 = [{"d":"2026-01-01","end":69374425,"io":69374425,"pnl":0,"realized":0,"nav":1000.0,"shares":69374.425,"ret":0.0,"kospi":0.0,"kospiVal":4214.17},{"d":"2026-01-02","end":72303005,"io":-352155,"pnl":3280735,"realized":637905,"nav":1047.531543,"shares":69022.27,"ret":4.7532,"kospi":2.2652,"kospiVal":4309.63},{"d":"2026-01-05","end":73472520,"io":-47785,"pnl":1217300,"realized":567748,"nav":1065.179543,"shares":68976.653235,"ret":6.518,"kospi":5.7746,"kospiVal":4457.52},{"d":"2026-01-06","end":57636575,"io":-16104575,"pnl":268630,"realized":219464,"nav":1070.167332,"shares":53857.535431,"ret":7.0167,"kospi":7.3872,"kospiVal":4525.48},{"d":"2026-01-07","end":46049635,"io":-10954965,"pnl":-631975,"realized":0,"nav":1055.679421,"shares":43620.851248,"ret":5.5679,"kospi":7.9942,"kospiVal":4551.06},{"d":"2026-01-08","end":57000985,"io":11025700,"pnl":-74350,"realized":0,"nav":1054.304225,"shares":54065.025662,"ret":5.4304,"kospi":8.0253,"kospiVal":4552.37},{"d":"2026-01-09","end":57141530,"io":null,"pnl":140545,"realized":50895,"nav":1056.90378,"shares":54065.025662,"ret":5.6904,"kospi":8.8309,"kospiVal":4586.32},{"d":"2026-01-12","end":68682915,"io":12011560,"pnl":-470175,"realized":0,"nav":1049.717843,"shares":65429.882354,"ret":4.9718,"kospi":9.7438,"kospiVal":4624.79},{"d":"2026-01-13","end":65774520,"io":-3072285,"pnl":163890,"realized":0,"nav":1052.339953,"shares":62503.110156,"ret":5.234,"kospi":11.3538,"kospiVal":4692.64},{"d":"2026-01-14","end":76499400,"io":12037560,"pnl":-1312680,"realized":0,"nav":1034.58711,"shares":73941.961229,"ret":3.4587,"kospi":12.0766,"kospiVal":4723.1},{"d":"2026-01-15","end":77729600,"io":null,"pnl":1230200,"realized":137220,"nav":1051.224483,"shares":73941.961229,"ret":5.1224,"kospi":13.8433,"kospiVal":4797.55},{"d":"2026-01-16","end":79093820,"io":null,"pnl":1364220,"realized":359198,"nav":1069.674359,"shares":73941.961229,"ret":6.9674,"kospi":14.8682,"kospiVal":4840.74},{"d":"2026-01-19","end":67774800,"io":-12168280,"pnl":849260,"realized":1355409,"nav":1083.248126,"shares":62566.274886,"ret":8.3248,"kospi":16.385,"kospiVal":4904.66},{"d":"2026-01-20","end":46395825,"io":-21551860,"pnl":172885,"realized":716854,"nav":1087.299736,"shares":42670.685418,"ret":8.73,"kospi":16.385,"kospiVal":4904.66},{"d":"2026-01-21","end":26111330,"io":-19510155,"pnl":-774340,"realized":50520,"nav":1055.984181,"shares":24727.008666,"ret":5.5984,"kospi":16.51,"kospiVal":4909.93},{"d":"2026-01-22","end":26822070,"io":null,"pnl":710740,"realized":401877,"nav":1084.72765,"shares":24727.008666,"ret":8.4728,"kospi":17.5209,"kospiVal":4952.53},{"d":"2026-01-23","end":20027155,"io":-8022050,"pnl":1227135,"realized":871409,"nav":1155.531153,"shares":17331.557835,"ret":15.5531,"kospi":18.4117,"kospiVal":4990.07},{"d":"2026-01-26","end":12640975,"io":-8342640,"pnl":956460,"realized":730049,"nav":1250.119531,"shares":10111.813061,"ret":25.012,"kospi":17.4511,"kospiVal":4949.59},{"d":"2026-01-27","end":6918520,"io":-6062705,"pnl":340250,"realized":641680,"nav":1314.77987,"shares":5262.112812,"ret":31.478,"kospi":20.6608,"kospiVal":5084.85},{"d":"2026-01-28","end":6021035,"io":-1080245,"pnl":182760,"realized":280270,"nav":1355.937433,"shares":4440.496187,"ret":35.5937,"kospi":22.7006,"kospiVal":5170.81},{"d":"2026-01-29","end":2714365,"io":-3357805,"pnl":51135,"realized":166850,"nav":1381.971933,"shares":1964.12455,"ret":38.1972,"kospi":23.8975,"kospiVal":5221.25},{"d":"2026-01-30","end":6440955,"io":3736970,"pnl":-10380,"realized":28124,"nav":1379.748382,"shares":4668.209859,"ret":37.9748,"kospi":23.9713,"kospiVal":5224.36},{"d":"2026-02-02","end":16769580,"io":11068730,"pnl":-740105,"realized":0,"nav":1321.428734,"shares":12690.491416,"ret":32.1429,"kospi":17.453,"kospiVal":4949.67},{"d":"2026-02-03","end":18463865,"io":null,"pnl":1694285,"realized":725738,"nav":1454.93696,"shares":12690.491416,"ret":45.4937,"kospi":25.4833,"kospiVal":5288.08},{"d":"2026-02-04","end":18837535,"io":407640,"pnl":-33970,"realized":151025,"nav":1452.317974,"shares":12970.668503,"ret":45.2318,"kospi":27.4533,"kospiVal":5371.1},{"d":"2026-02-05","end":28470830,"io":11012400,"pnl":-1379105,"realized":0,"nav":1385.219034,"shares":20553.305501,"ret":38.5219,"kospi":22.5288,"kospiVal":5163.57},{"d":"2026-02-06","end":44989840,"io":18070100,"pnl":-1551090,"realized":0,"nav":1339.053232,"shares":33598.246085,"ret":33.9053,"kospi":20.7626,"kospiVal":5089.14},{"d":"2026-02-09","end":49675230,"io":null,"pnl":4685390,"realized":1693361,"nav":1478.506642,"shares":33598.246085,"ret":47.8507,"kospi":25.7197,"kospiVal":5298.04},{"d":"2026-02-10","end":48664260,"io":117365,"pnl":-1128335,"realized":340677,"nav":1445.002648,"shares":33677.626857,"ret":44.5003,"kospi":25.8063,"kospiVal":5301.69},{"d":"2026-02-11","end":37749770,"io":-10848445,"pnl":-66045,"realized":49798,"nav":1442.478964,"shares":26170.066223,"ret":44.2479,"kospi":27.0592,"kospiVal":5354.49},{"d":"2026-02-12","end":33928860,"io":-4819880,"pnl":998970,"realized":370225,"nav":1486.238393,"shares":22828.679539,"ret":48.6238,"kospi":31.0173,"kospiVal":5521.29},{"d":"2026-02-13","end":35140615,"io":2191405,"pnl":-979650,"realized":0,"nav":1445.928793,"shares":24303.143535,"ret":44.5929,"kospi":30.6784,"kospiVal":5507.01},{"d":"2026-02-16","end":35140615,"io":null,"pnl":0,"realized":0,"nav":1445.928793,"shares":24303.143535,"ret":44.5929,"kospi":30.6784,"kospiVal":5507.01},{"d":"2026-02-17","end":35140615,"io":null,"pnl":0,"realized":0,"nav":1445.928793,"shares":24303.143535,"ret":44.5929,"kospi":30.6784,"kospiVal":5507.01},{"d":"2026-02-18","end":35140615,"io":null,"pnl":0,"realized":0,"nav":1445.928793,"shares":24303.143535,"ret":44.5929,"kospi":30.6784,"kospiVal":5507.01},{"d":"2026-02-19","end":39894145,"io":-136650,"pnl":4890180,"realized":1961418,"nav":1647.930254,"shares":24208.636806,"ret":64.793,"kospi":34.7181,"kospiVal":5677.25},{"d":"2026-02-20","end":39787620,"io":null,"pnl":-106525,"realized":106406,"nav":1643.529965,"shares":24208.636806,"ret":64.353,"kospi":37.8333,"kospiVal":5808.53},{"d":"2026-02-23","end":36390830,"io":-2727770,"pnl":-669020,"realized":59278,"nav":1613.860271,"shares":22548.934788,"ret":61.386,"kospi":38.7246,"kospiVal":5846.09},{"d":"2026-02-24","end":36101485,"io":-939680,"pnl":650335,"realized":521440,"nav":1643.465793,"shares":21966.67868,"ret":64.3466,"kospi":41.6564,"kospiVal":5969.64},{"d":"2026-02-25","end":35670325,"io":-475915,"pnl":44755,"realized":250666,"nav":1645.530414,"shares":21677.098573,"ret":64.553,"kospi":44.3667,"kospiVal":6083.86},{"d":"2026-02-26","end":16688745,"io":-19511380,"pnl":529800,"realized":551307,"nav":1699.482081,"shares":9819.900536,"ret":69.9482,"kospi":49.6681,"kospiVal":6307.27},{"d":"2026-02-27","end":8588695,"io":-8111670,"pnl":11620,"realized":126490,"nav":1701.784496,"shares":5046.875807,"ret":70.1784,"kospi":48.1699,"kospiVal":6244.13},{"d":"2026-03-02","end":8588695,"io":null,"pnl":0,"realized":0,"nav":1701.784496,"shares":5046.875807,"ret":70.1784,"kospi":48.1699,"kospiVal":6244.13},{"d":"2026-03-03","end":17185140,"io":9156149,"pnl":-559704,"realized":0,"nav":1648.10718,"shares":10427.198065,"ret":64.8107,"kospi":37.4389,"kospiVal":5791.91},{"d":"2026-03-04","end":28243200,"io":15534800,"pnl":-4476740,"realized":0,"nav":1422.613266,"shares":19853.041352,"ret":42.2613,"kospi":20.867,"kospiVal":5093.54},{"d":"2026-03-05","end":34688430,"io":null,"pnl":6445230,"realized":2340462,"nav":1747.26025,"shares":19853.041352,"ret":74.726,"kospi":32.503,"kospiVal":5583.9},{"d":"2026-03-06","end":35885380,"io":484610,"pnl":712340,"realized":724725,"nav":1782.646539,"shares":20130.39557,"ret":78.2647,"kospi":32.526,"kospiVal":5584.87},{"d":"2026-03-09","end":35057765,"io":1708340,"pnl":-2535955,"realized":0,"nav":1662.394769,"shares":21088.712299,"ret":66.2395,"kospi":24.6241,"kospiVal":5251.87},{"d":"2026-03-10","end":38301045,"io":null,"pnl":3243280,"realized":866851,"nav":1816.186994,"shares":21088.712299,"ret":81.6187,"kospi":31.2854,"kospiVal":5532.59},{"d":"2026-03-11","end":38281760,"io":null,"pnl":-19285,"realized":364486,"nav":1815.272524,"shares":21088.712299,"ret":81.5273,"kospi":33.1211,"kospiVal":5609.95},{"d":"2026-03-12","end":27619075,"io":-10662155,"pnl":-530,"realized":27300,"nav":1815.23769,"shares":15215.128658,"ret":81.5238,"kospi":32.4875,"kospiVal":5583.25},{"d":"2026-03-13","end":35030225,"io":7787150,"pnl":-376000,"realized":0,"nav":1795.960589,"shares":19505.007632,"ret":79.5961,"kospi":30.2093,"kospiVal":5487.24},{"d":"2026-03-16","end":39368875,"io":4008520,"pnl":330130,"realized":162293,"nav":1811.148077,"shares":21736.971977,"ret":81.1148,"kospi":31.695,"kospiVal":5549.85},{"d":"2026-03-17","end":37804350,"io":-4277965,"pnl":2713440,"realized":326423,"nav":1951.196929,"shares":19374.953623,"ret":95.1197,"kospi":40.5978,"kospiVal":5925.03},{"d":"2026-03-18","end":32778790,"io":-4304200,"pnl":-721360,"realized":902676,"nav":1909.181731,"shares":17169.025591,"ret":90.9182,"kospi":36.7581,"kospiVal":5763.22},{"d":"2026-03-19","end":32778790,"io":null,"pnl":0,"realized":0,"nav":1909.181731,"shares":17169.025591,"ret":90.9182,"kospi":36.7581,"kospiVal":5763.22},{"d":"2026-03-20","end":33266820,"io":null,"pnl":488030,"realized":236843,"nav":1937.606757,"shares":17169.025591,"ret":93.7607,"kospi":37.1848,"kospiVal":5781.2},{"d":"2026-03-23","end":31827660,"io":798320,"pnl":-2237480,"realized":0,"nav":1810.340104,"shares":17581.039018,"ret":81.034,"kospi":28.2756,"kospiVal":5405.75},{"d":"2026-03-24","end":33570830,"io":null,"pnl":1743170,"realized":426860,"nav":1909.490671,"shares":17581.039018,"ret":90.9491,"kospi":31.7916,"kospiVal":5553.92},{"d":"2026-03-25","end":34652090,"io":null,"pnl":1081260,"realized":732533,"nav":1970.992156,"shares":17581.039018,"ret":97.0992,"kospi":33.8866,"kospiVal":5642.21},{"d":"2026-03-26","end":31694950,"io":-2388370,"pnl":-568770,"realized":0,"nav":1936.24597,"shares":16369.278742,"ret":93.6246,"kospi":29.5738,"kospiVal":5460.46},{"d":"2026-03-27","end":24862300,"io":-6795310,"pnl":-37340,"realized":48090,"nav":1933.342337,"shares":12859.750456,"ret":93.3342,"kospi":29.0615,"kospiVal":5438.87},{"d":"2026-03-30","end":37531240,"io":14204280,"pnl":-1535340,"realized":0,"nav":1857.360825,"shares":20206.75762,"ret":85.7361,"kospi":25.2275,"kospiVal":5277.3},{"d":"2026-03-31","end":52153400,"io":18132020,"pnl":-3509860,"realized":0,"nav":1740.2445,"shares":29969.007237,"ret":74.0244,"kospi":19.8922,"kospiVal":5052.46},{"d":"2026-04-01","end":60636940,"io":null,"pnl":8483540,"realized":0,"nav":2023.321611,"shares":29969.007237,"ret":102.3322,"kospi":30.0066,"kospiVal":5478.7},{"d":"2026-04-02","end":60636940,"io":null,"pnl":0,"realized":0,"nav":2023.321611,"shares":29969.007237,"ret":102.3322,"kospi":30.0066,"kospiVal":5478.7}];
+
+// 2024~2025 수익률 데이터 (기준: 2024-01-01 코스피 2655.28)
+const SEED_HIST = [["2024-01-03",0.0,-1.8066],["2024-01-04",-0.5877,-2.5707],["2024-01-05",-0.765,-2.9074],["2024-01-08",-0.4062,-3.2938],["2024-01-09",-0.7169,-3.5416],["2024-01-10",-2.217,-4.267],["2024-01-11",-1.5223,-4.3314],["2024-01-12",-3.2269,-4.9046],["2024-01-15",-2.7284,-4.8692],["2024-01-16",-4.7532,-5.9387],["2024-01-17",-8.4511,-8.262],["2024-01-18",-7.6266,-8.1061],["2024-01-19",-5.8928,-6.8746],["2024-01-22",-6.2674,-7.1906],["2024-01-23",-5.5759,-6.6535],["2024-01-24",-6.4544,-6.9895],["2024-01-25",-7.0884,-6.965],["2024-01-26",-5.4427,-6.6554],["2024-01-29",-5.1925,-5.8235],["2024-01-30",-5.0773,-5.8928],["2024-01-31",-7.1771,-5.8551],["2024-02-01",-4.7567,-4.2489],["2024-02-02",0.731,-1.5053],["2024-02-05",-1.6307,-2.4092],["2024-02-06",-2.3945,-2.9782],["2024-02-07",0.0991,-1.7211],["2024-02-08",1.8065,-1.462],["2024-02-09",1.8065,-1.4243],["2024-02-12",1.8065,-1.3113],["2024-02-13",4.575,-0.2124],["2024-02-14",3.7287,-1.3129],["2024-02-15",3.9802,-1.5622],["2024-02-16",5.4238,-0.2455],["2024-02-19",7.7278,0.9408],["2024-02-20",6.2982,0.0945],["2024-02-21",5.8669,-0.0742],["2024-02-22",7.0597,0.3386],["2024-02-23",7.4643,0.4677],["2024-02-26",6.6825,-0.3088],["2024-02-27",5.3992,-1.1385],["2024-02-28",8.1485,-0.1126],["2024-02-29",7.7473,-0.4866],["2024-03-01",7.7473,-0.4866],["2024-03-04",10.8521,0.7152],["2024-03-05",9.796,-0.2214],["2024-03-06",9.4269,-0.5193],["2024-03-07",9.5612,-0.2885],["2024-03-08",12.783,0.9442],["2024-03-11",11.8049,0.1717],["2024-03-12",13.6163,0.9991],["2024-03-13",14.0943,1.4466],["2024-03-14",14.1139,2.3907],["2024-03-15",12.8081,0.4354],["2024-03-18",16.389,1.1551],["2024-03-19",16.4441,0.0335],["2024-03-20",18.4789,1.3129],["2024-03-21",23.4546,3.7503],["2024-03-22",23.4388,3.513],["2024-03-25",23.1178,3.0991],["2024-03-26",25.3819,3.8342],["2024-03-27",25.363,3.7597],["2024-03-28",25.1699,3.4098],["2024-03-29",24.2202,3.4403],["2024-04-01",24.9278,3.4866],["2024-04-02",20.0261,3.6862],["2024-04-03",17.3934,1.9467],["2024-04-04",17.7671,3.2659],["2024-04-05",15.349,2.2194],["2024-04-08",14.0266,2.3489],["2024-04-09",13.8834,1.8785],["2024-04-10",13.8834,1.8785],["2024-04-11",13.7191,1.9463],["2024-04-12",13.0464,0.9995],["2024-04-15",12.3843,0.5706],["2024-04-16",8.1517,-1.7192],["2024-04-17",6.4921,-2.6777],["2024-04-18",12.2623,-0.7751],["2024-04-19",9.4867,-2.3884],["2024-04-22",11.982,-0.9732],["2024-04-23",11.8404,-1.2149],["2024-04-24",16.7735,0.7709],["2024-04-25",13.6138,-1.004],["2024-04-26",15.0531,0.0395],["2024-04-29",17.9549,1.2112],["2024-04-30",17.9256,1.0086],["2024-05-01",17.9256,1.0086],["2024-05-02",17.14,1.0684],["2024-05-03",16.1743,0.8041],["2024-05-06",16.1743,0.8041],["2024-05-07",17.7609,2.9775],["2024-05-08",18.0071,3.3808],["2024-05-09",16.7042,2.1414],["2024-05-10",15.1015,2.7248],["2024-05-13",11.5418,2.7089],["2024-05-14",13.2273,2.8268],["2024-05-15",13.2273,2.8268],["2024-05-16",14.8176,3.6802],["2024-05-17",5.8071,2.6114],["2024-05-20",6.3092,3.2712],["2024-05-21",6.2316,2.5948],["2024-05-22",6.609,2.5677],["2024-05-23",5.9767,2.5056],["2024-05-24",4.008,1.2172],["2024-05-27",7.3381,2.55],["2024-05-28",7.0624,2.5447],["2024-05-29",3.4269,0.8293],["2024-05-30",1.8785,-0.7472],["2024-05-31",3.7904,-0.7065],["2024-06-03",5.2223,1.0259],["2024-06-04",7.1124,0.2568],["2024-06-05",10.0078,1.2888],["2024-06-06",10.0078,1.2888],["2024-06-07",15.2309,2.538],["2024-06-10",12.9251,1.7283],["2024-06-11",15.444,1.8845],["2024-06-12",15.5399,2.7451],["2024-06-13",15.1268,3.7514],["2024-06-14",11.9409,3.8843],["2024-06-17",11.6702,3.345],["2024-06-18",11.7455,4.0915],["2024-06-19",12.1827,5.3497],["2024-06-20",10.9685,5.7376],["2024-06-21",10.5676,4.8575],["2024-06-24",7.9783,4.122],["2024-06-25",8.7469,4.4858],["2024-06-26",7.7999,5.1509],["2024-06-27",8.0045,4.85],["2024-06-28",8.1087,5.3682],["2024-07-01",11.8427,5.6126],["2024-07-02",6.6181,4.7294],["2024-07-03",11.8468,5.2247],["2024-07-04",13.7349,6.3895],["2024-07-05",17.7066,7.7939],["2024-07-08",20.2669,7.6256],["2024-07-09",20.3963,7.9879],["2024-07-10",19.5732,8.0108],["2024-07-11",17.5376,8.8906],["2024-07-12",16.9188,7.5969],["2024-07-15",17.2721,7.9393],["2024-07-16",13.7237,7.9769],["2024-07-17",10.3197,7.0806],["2024-07-18",9.2785,6.3673],["2024-07-19",10.9785,5.2793],["2024-07-22",5.8641,4.076],["2024-07-23",6.5363,4.482],["2024-07-24",7.3426,3.8953],["2024-07-25",4.2766,2.0853],["2024-07-26",2.9378,2.8856],["2024-07-29",5.6244,4.1521],["2024-07-30",5.7403,3.1225],["2024-07-31",5.39,4.3464],["2024-08-01",8.2889,4.5946],["2024-08-02",-0.703,0.7875],["2024-08-05",-19.422,-8.0492],["2024-08-06",-12.1684,-5.0142],["2024-08-07",-8.7255,-3.2844],["2024-08-08",-10.2856,-3.7115],["2024-08-09",-5.2765,-2.5176],["2024-08-12",-4.1519,-1.3927],["2024-08-13",-5.3574,-1.2722],["2024-08-14",-2.9773,-0.406],["2024-08-15",-2.9773,-0.406],["2024-08-16",0.8977,1.5799],["2024-08-19",-2.165,0.7186],["2024-08-20",-0.1822,1.5573],["2024-08-21",-2.7005,1.7267],["2024-08-22",-3.6308,1.973],["2024-08-23",-2.7245,1.7478],["2024-08-26",-4.5822,1.6092],["2024-08-27",-5.8249,1.2793],["2024-08-28",-5.8601,1.3012],["2024-08-29",-7.3717,0.2636],["2024-08-30",-4.0657,0.7167],["2024-09-02",-2.9696,0.9686],["2024-09-03",-6.0226,0.3521],["2024-09-04",-12.7383,-2.805],["2024-09-05",-13.8872,-3.0046],["2024-09-06",-18.2849,-4.1804],["2024-09-09",-16.842,-4.4948],["2024-09-10",-19.4173,-4.9656],["2024-09-11",-18.9551,-5.3444],["2024-09-12",-13.4606,-3.133],["2024-09-13",-13.2419,-3.008],["2024-09-16",-13.2419,-3.008],["2024-09-17",-13.2419,-3.008],["2024-09-18",-13.2419,-3.008],["2024-09-19",-11.9334,-2.805],["2024-09-20",-9.4355,-2.341],["2024-09-23",-7.43,-2.0062],["2024-09-24",-3.7742,-0.9042],["2024-09-25",-6.7861,-2.2205],["2024-09-26",-1.3687,0.6135],["2024-09-27",-2.8904,-0.2071],["2024-09-30",-5.4645,-2.3353],["2024-10-01",-5.4645,-2.3353],["2024-10-02",-5.1957,-3.5247],["2024-10-03",-5.1957,-3.5247],["2024-10-04",-3.0479,-3.2234],["2024-10-07",-0.501,-1.691],["2024-10-08",-0.7922,-2.2943],["2024-10-09",-0.7922,-2.2943],["2024-10-10",-1.3983,-2.1135],["2024-10-11",-3.16,-2.1983],["2024-10-14",-3.5502,-1.2048],["2024-10-15",-2.3054,-0.8221],["2024-10-16",-4.835,-1.6917],["2024-10-17",-4.9944,-1.7316],["2024-10-18",-8.1698,-2.3146],["2024-10-21",-5.4378,-1.8966],["2024-10-22",-10.9107,-3.1854],["2024-10-23",-8.4849,-2.0962],["2024-10-24",-10.9442,-2.7963],["2024-10-25",-12.3738,-2.712],["2024-10-28",-8.5181,-1.6138],["2024-10-29",-6.9308,-1.4115],["2024-10-30",-9.2618,-2.3158],["2024-10-31",-8.0196,-3.7333],["2024-11-01",-11.9671,-4.2527],["2024-11-04",-3.5639,-2.4973],["2024-11-05",-5.2227,-2.9526],["2024-11-06",-7.9354,-3.4561],["2024-11-07",-8.1495,-3.414],["2024-11-08",-8.9183,-3.545],["2024-11-11",-10.92,-4.6556],["2024-11-12",-13.7606,-6.5044],["2024-11-13",-18.7458,-8.9708],["2024-11-14",-20.8464,-8.9038],["2024-11-15",-19.5395,-8.9791],["2024-11-18",-18.0977,-7.0128],["2024-11-19",-20.7574,-6.9044],["2024-11-20",-22.0042,-6.5149],["2024-11-21",-21.8274,-6.5775],["2024-11-22",-24.454,-5.8013],["2024-11-25",-18.7238,-4.5547],["2024-11-26",-21.5047,-5.0812],["2024-11-27",-22.1663,-5.7327],["2024-11-28",-21.9398,-5.6721],["2024-11-29",-26.1077,-7.5084],["2024-12-02",-25.7068,-7.5623],["2024-12-03",-22.2956,-5.8442],["2024-12-04",-24.5897,-7.2038],["2024-12-05",-25.6316,-8.0379],["2024-12-06",-26.5286,-8.5535],["2024-12-09",-32.7023,-11.0986],["2024-12-10",-27.1778,-8.9422],["2024-12-11",-26.5786,-8.0131],["2024-12-12",-24.2883,-6.5213],["2024-12-13",-23.4664,-6.0566],["2024-12-16",-23.4852,-6.2634],["2024-12-17",-25.0102,-7.4745],["2024-12-18",-23.9671,-6.4343],["2024-12-19",-27.5875,-8.2609],["2024-12-20",-30.6234,-9.4578],["2024-12-23",-28.5138,-8.0319],["2024-12-24",-27.8452,-8.088],["2024-12-25",-27.8452,-8.088],["2024-12-26",-28.3424,-8.4967],["2024-12-27",-29.7057,-9.4344],["2024-12-30",-27.6226,-9.6333],["2024-12-31",-27.6226,-9.6333],["2025-01-01",-27.6226,-9.6333],["2025-01-02",-27.1905,-9.654],["2025-01-03",-22.4101,-8.0353],["2025-01-06",-20.061,-6.2758],["2025-01-07",-19.7617,-6.1455],["2025-01-08",-19.2192,-5.0552],["2025-01-09",-18.9908,-5.0232],["2025-01-10",-20.2107,-5.2537],["2025-01-13",-22.9078,-6.2411],["2025-01-14",-20.2317,-5.9459],["2025-01-15",-21.6648,-5.9459],["2025-01-16",-18.5481,-4.8127],["2025-01-17",-18.4986,-4.9611],["2025-01-20",-17.5616,-5.0929],["2025-01-21",-17.6266,-5.1689],["2025-01-22",-15.9385,-4.0757],["2025-01-23",-17.0113,-5.2646],["2025-01-24",-15.6571,-4.4621],["2025-01-27",-15.6571,-4.4621],["2025-01-28",-15.6571,-4.4621],["2025-01-29",-15.6571,-4.4621],["2025-01-30",-15.6571,-4.4621],["2025-01-31",-15.6563,-5.1938],["2025-02-03",-21.7386,-7.5823],["2025-02-04",-18.1937,-6.5375],["2025-02-05",-15.5518,-5.4989],["2025-02-06",-13.4392,-4.4639],["2025-02-07",-12.8748,-5.0224],["2025-02-10",-11.8571,-5.0481],["2025-02-11",-12.1206,-4.3773],["2025-02-12",-12.5956,-4.0256],["2025-02-13",-11.97,-2.7157],["2025-02-14",-9.6072,-2.419],["2025-02-17",-7.0787,-1.6895],["2025-02-18",-6.0784,-1.0722],["2025-02-19",-4.5548,0.6116],["2025-02-20",-6.8041,-0.0459],["2025-02-21",-4.9028,-0.0264],["2025-02-24",-4.6415,-0.377],["2025-02-25",-5.7386,-0.9411],["2025-02-26",-5.4394,-0.5344],["2025-02-27",-4.4614,-1.2628],["2025-02-28",-11.8816,-4.6134],["2025-03-03",-11.8816,-4.6134],["2025-03-04",-12.8337,-4.7588],["2025-03-05",-11.2962,-3.6587],["2025-03-06",-14.4,-2.9801],["2025-03-07",-16.0578,-3.4573],["2025-03-10",-16.8472,-3.197],["2025-03-11",-18.2739,-4.4319],["2025-03-12",-16.9157,-3.0302],["2025-03-13",-18.5147,-3.0746],["2025-03-14",-16.3714,-3.3488],["2025-03-17",-12.5478,-1.6812],["2025-03-18",-11.8568,-1.6172],["2025-03-19",-13.6396,-1.004],["2025-03-20",-17.1914,-0.6847],["2025-03-21",-19.5581,-0.4576],["2025-03-24",-18.0602,-0.8737],["2025-03-25",-20.4969,-1.4865],["2025-03-26",-19.2749,-0.4271],["2025-03-27",-21.4508,-1.8126],["2025-03-28",-24.4076,-3.6644],["2025-03-31",-28.556,-6.559],["2025-04-01",-24.6717,-5.0424],["2025-04-02",-26.5501,-5.6273],["2025-04-03",-26.9482,-6.3489],["2025-04-04",-26.0162,-7.1503],["2025-04-07",-33.8138,-12.3181],["2025-04-08",-32.1922,-12.091],["2025-04-09",-35.4182,-13.6174],["2025-04-10",-27.6484,-7.9171],["2025-04-11",-25.602,-8.3818],["2025-04-14",-22.9966,-7.5092],["2025-04-15",-22.8476,-6.6987],["2025-04-16",-26.6883,-7.8278],["2025-04-17",-23.5994,-6.9624],["2025-04-18",-22.1026,-6.4724],["2025-04-21",-22.9287,-6.2841],["2025-04-22",-23.0603,-6.3511],["2025-04-23",-19.7578,-4.8854],["2025-04-24",-20.068,-5.007],["2025-04-25",-19.6747,-4.1043],["2025-04-28",-21.7452,-4.0079],["2025-04-29",-20.3695,-3.3842],["2025-04-30",-22.3546,-3.716],["2025-05-01",-22.3546,-3.716],["2025-05-02",-20.8701,-3.5962],["2025-05-05",-20.8701,-3.5962],["2025-05-06",-20.8701,-3.5962],["2025-05-07",-21.6185,-3.0686],["2025-05-08",-20.5016,-2.8547],["2025-05-09",-22.2088,-2.9379],["2025-05-12",-21.9472,-1.8058],["2025-05-13",-20.3333,-1.7648],["2025-05-14",-19.4483,-0.554],["2025-05-15",-20.6347,-1.2775],["2025-05-16",-22.5985,-1.0699],["2025-05-19",-24.8694,-1.9531],["2025-05-20",-25.4662,-2.0141],["2025-05-21",-23.6715,-1.1185],["2025-05-22",-24.0682,-2.3203],["2025-05-23",-24.4476,-2.3798],["2025-05-26",-22.2876,-0.4482],["2025-05-27",-21.0866,-0.6802],["2025-05-28",-20.6959,0.5604],["2025-05-29",-18.8336,2.4615],["2025-05-30",-19.1033,1.5964],["2025-06-02",-17.5819,1.6454],["2025-06-03",-17.5819,1.6454],["2025-06-04",-16.4039,4.3521],["2025-06-05",-15.3897,5.9041],["2025-06-06",-15.3897,5.9041],["2025-06-09",-13.4088,7.5514],["2025-06-10",-10.7489,8.1562],["2025-06-11",-6.6174,9.4815],["2025-06-12",-5.9383,9.8295],["2025-06-13",-11.3416,9.0137],["2025-06-16",-10.1997,10.9736],["2025-06-17",-11.0254,11.1107],["2025-06-18",-10.5122,11.9351],["2025-06-19",-9.6736,12.1441],["2025-06-20",-6.8393,13.8049],["2025-06-23",-8.9919,13.5274],["2025-06-24",-4.9536,16.8856],["2025-06-25",-5.3941,17.0592],["2025-06-26",-7.6399,15.9787],["2025-06-27",-8.8914,15.0892],["2025-06-30",-9.1975,15.6827],["2025-07-01",-9.3606,16.3587],["2025-07-02",-8.3498,15.8093],["2025-07-03",-5.3542,17.3613],["2025-07-04",-10.3286,15.0643],["2025-07-07",-9.0867,15.2221],["2025-07-08",-7.9718,17.3115],["2025-07-09",-7.0094,18.0192],["2025-07-10",-4.2245,19.883],["2025-07-11",-3.5423,19.6021],["2025-07-14",-3.5407,20.591],["2025-07-15",1.1082,21.0901],["2025-07-16",1.375,20.0017],["2025-07-17",4.7753,20.2242],["2025-07-18",6.6886,20.0653],["2025-07-21",6.374,20.9217],["2025-07-22",3.6382,19.3825],["2025-07-23",4.5457,19.9034],["2025-07-24",4.2174,20.1549],["2025-07-25",2.7893,20.3658],["2025-07-28",3.2437,20.8731],["2025-07-29",2.3196,21.6659],["2025-07-30",1.8805,22.566],["2025-07-31",2.6141,22.2259],["2025-08-01",-6.4269,17.4795],["2025-08-04",-3.6289,18.5468],["2025-08-05",0.594,20.4393],["2025-08-06",2.0691,20.4445],["2025-08-07",1.7609,21.557],["2025-08-08",2.5439,20.8916],["2025-08-11",4.0397,20.7696],["2025-08-12",2.7897,20.1346],["2025-08-13",6.2959,21.4324],["2025-08-14",6.6309,21.4527],["2025-08-15",6.6309,21.4527],["2025-08-18",1.9004,19.6589],["2025-08-19",-0.2524,18.6903],["2025-08-20",-1.5991,17.8817],["2025-08-21",-2.535,18.3205],["2025-08-22",-1.3047,19.3369],["2025-08-25",2.0991,20.8859],["2025-08-26",3.0813,20.8859],["2025-08-27",3.0882,20.031],["2025-08-28",1.5056,20.376],["2025-08-29",0.5427,19.9877],["2025-09-01",-1.3034,18.3653],["2025-09-02",0.4491,19.4733],["2025-09-03",0.7234,19.9278],["2025-09-04",2.2987,20.5459],["2025-09-05",4.2902,20.7074],["2025-09-08",6.0736,21.2524],["2025-09-09",7.2275,22.7761],["2025-09-10",8.9032,24.8279],["2025-09-11",9.1648,25.9453],["2025-09-12",12.7798,27.8788],["2025-09-15",13.891,28.3221],["2025-09-16",14.1214,29.9155],["2025-09-17",12.0319,28.5514],["2025-09-18",14.2282,30.3554],["2025-09-19",16.2133,29.7513],["2025-09-22",20.8562,30.6322],["2025-09-23",19.6322,31.2927],["2025-09-24",16.1295,30.7636],["2025-09-25",13.6752,30.7248],["2025-09-26",9.613,27.5214],["2025-09-29",12.5389,29.2222],["2025-09-30",11.4091,28.9732],["2025-10-01",11.9708,30.1494],["2025-10-02",13.7869,33.3249],["2025-10-03",13.7869,33.3249],["2025-10-06",13.7869,33.3249],["2025-10-07",13.7869,33.3249],["2025-10-08",13.7869,33.3249],["2025-10-09",13.7869,33.3249],["2025-10-10",14.8692,35.9781],["2025-10-13",14.8047,34.9971],["2025-10-14",11.5047,34.1407],["2025-10-15",14.5815,37.7361],["2025-10-16",15.6283,41.1667],["2025-10-17",17.1223,41.1862],["2025-10-20",22.4843,43.6643],["2025-10-21",21.8005,44.0089],["2025-10-22",24.4656,46.2625],["2025-10-23",22.1667,44.8269],["2025-10-24",25.7896,48.4435],["2025-10-27",34.7002,52.2563],["2025-10-28",34.6925,51.0353],["2025-10-29",33.7261,53.6994],["2025-10-30",31.3103,53.9563],["2025-10-31",34.2558,54.7573],["2025-11-03",39.6146,58.9991],["2025-11-04",45.5031,55.2281],["2025-11-05",37.8418,50.8097],["2025-11-06",37.5755,51.6394],["2025-11-07",30.5118,48.9018],["2025-11-10",32.9145,53.4015],["2025-11-11",31.7668,54.65],["2025-11-12",40.9393,56.3044],["2025-11-13",45.7682,57.2572],["2025-11-14",39.9105,51.079],["2025-11-17",41.6095,54.0045],["2025-11-18",35.9699,48.8965],["2025-11-19",32.5211,47.9885],["2025-11-20",39.5092,50.8259],["2025-11-21",31.7363,45.1169],["2025-11-24",27.8414,44.8457],["2025-11-25",26.9869,45.2871],["2025-11-26",33.7414,49.1684],["2025-11-27",33.991,50.1503],["2025-11-28",46.173,47.8786],["2025-12-01",49.6775,47.6443],["2025-12-02",51.0848,50.4523],["2025-12-03",51.1179,52.0103],["2025-12-04",49.855,51.717],["2025-12-05",47.3988,51.717],["2025-12-08",50.4929,56.475],["2025-12-09",50.7348,56.0495],["2025-12-10",51.7627,55.7275],["2025-12-11",49.9586,54.8093],["2025-12-12",50.276,56.9386],["2025-12-15",49.3839,54.0549],["2025-12-16",43.3246,50.6105],["2025-12-17",43.7092,52.7677],["2025-12-18",40.0775,50.4365],["2025-12-19",43.7222,51.4172],["2025-12-22",46.9718,54.6327],["2025-12-23",45.4633,55.0616],["2025-12-24",44.6322,54.734],["2025-12-25",44.6322,54.734],["2025-12-26",46.6845,55.5271],["2025-12-29",49.2629,58.9497],["2025-12-30",46.8948,58.7091],["2025-12-31",46.8948,58.7091]];
+
+const SEED_ACC = [{name:'1계좌',balance:13752630},{name:'2계좌',balance:7069790},{name:'3계좌',balance:4039880},{name:'4계좌',balance:0},{name:'5계좌',balance:0},{name:'6계좌',balance:0},{name:'7계좌',balance:0},{name:'8계좌',balance:0}];
+const SEED_LIFE = {goal:5000000,items:[
+  {name:'생활비',target:2000000,actual:2715216},{name:'월세',target:1500000,actual:1736843},
+  {name:'식비',target:900000,actual:1326860},{name:'관리비',target:300000,actual:1032533},
+  {name:'교통비',target:200000,actual:248090},{name:'통신비',target:100000,actual:100000},
+]};
+
+// 코스피 기준값
+const KOSPI_BASE_26  = 4214.17;  // 2026-01-01
+const KOSPI_BASE_ALL = 2655.28;  // 2024-01-01
+
+// ═══════════════════════════════════════════════
+//  STATE
+//  시드 데이터는 항상 고정 베이스, 사용자 추가분만 localStorage
+// ═══════════════════════════════════════════════
+function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+// 사용자가 추가한 항목만 별도 저장 (시드와 key 충돌 방지)
+let userEntries = ld('inv_user_entries', []);
+
+// 전체 entries26 = 시드 + 사용자 추가 (날짜 기준 병합, 중복 날짜는 사용자 항목 우선)
+function buildEntries26(){
+  const seedDates = new Set(SEED26.map(e=>e.d));
+  const merged = [...SEED26];
+  userEntries.forEach(e=>{
+    // 같은 날짜 시드가 있으면 덮어쓰기, 없으면 추가
+    const idx = merged.findIndex(s=>s.d===e.d);
+    if(idx>=0) merged[idx]=e;
+    else merged.push(e);
+  });
+  return merged.sort((a,b)=>a.d>b.d?1:-1);
+}
+let entries26 = buildEntries26();
+
+let accounts  = ld('inv_acc', SEED_ACC);
+let lifeCfg   = ld('inv_life', SEED_LIFE);
+let pfRange   = 'all';
+
+// ═══════════════════════════════════════════════
+//  KOSPI % CALC
+// ═══════════════════════════════════════════════
+function kospiPct(val, base){ return ((val - base) / base * 100); }
+
+// ═══════════════════════════════════════════════
+//  NAV CALC (좌수법)
+// ═══════════════════════════════════════════════
+function calcNav(prev, io, endAmt){
+  let shares = prev.shares;
+  const nav   = prev.nav;
+  if(io !== 0){ shares = shares + io / nav; }
+  const newNav   = endAmt / shares;
+  const dailyRet = (newNav - nav) / nav;
+  const cumRet   = (newNav / 1000) - 1;
+  // 실제 당일 손익 = 기말자산 - 기초자산 - 입출금
+  const prevEnd  = (prev.end != null) ? prev.end : endAmt - io;
+  const pnl      = Math.round(endAmt - prevEnd - io);
+  return {nav:newNav, shares, pnl, dailyRet, cumRet};
+}
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+const fmt = n=>{const a=Math.abs(n);if(a>=100000000)return (n/100000000).toFixed(2)+'억';if(a>=10000)return Math.round(n/10000).toLocaleString()+'만';return n.toLocaleString();};
+const fmtW = n=>fmt(n)+'원';
+const sgn  = n=>n>=0?'+':'';
+const gc   = 'rgba(255,255,255,0.06)';
+const TT   = {backgroundColor:'#0f1420',borderColor:'rgba(56,189,248,0.2)',borderWidth:1,padding:11,titleColor:'#5c6b7e',bodyColor:'#c2cedf',cornerRadius:8};
+Chart.defaults.color='#5c6b7e';
+Chart.defaults.font.family="'JetBrains Mono',monospace";
+Chart.defaults.font.size=11;
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+function getMonthlyPnl(){
+  const m={};
+  entries26.forEach(e=>{const ym=e.d.slice(0,7);m[ym]=(m[ym]||0)+(e.pnl||0);});
+  return m;
+}
+function get26Monthly(){
+  const m=getMonthlyPnl();
+  return Object.keys(m).filter(k=>k.startsWith('2026')).sort().map(k=>({month:k.slice(5)+'월',key:k,profit:m[k]}));
+}
+function getLatest(){
+  // 항상 시드 데이터 중 가장 최신을 기준으로 삼고, 사용자 추가 entry는 그 이후만 유효
+  const seedLatest = [...SEED26].sort((a,b)=>a.d>b.d?1:-1).slice(-1)[0];
+  const userLatest = [...userEntries].sort((a,b)=>a.d>b.d?1:-1).slice(-1)[0];
+
+  // userEntry가 seedLatest보다 나중 날짜면 그걸 사용, 아니면 seed 기준
+  if(userLatest && userLatest.d > seedLatest.d){
+    return userLatest;
+  }
+  return seedLatest || {};
+}
+function getThisMonthPnl(){
+  const now=new Date();
+  const ym=now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0');
+  // 생활비 게임은 실현손익 기준
+  return entries26.filter(e=>e.d.startsWith(ym)).reduce((s,e)=>s+(e.realized||0),0);
+}
+
+// ═══════════════════════════════════════════════
+//  TAB
+// ═══════════════════════════════════════════════
+let pfInit=false, acInit=false;
+function sw(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='performance'&&!pfInit){buildPf();pfInit=true;}
+  if(id==='accounts'&&!acInit){buildAc();acInit=true;}
+  if(id==='life')buildLife();
+  if(id==='entry')buildEntry();
+}
+
+// ═══════════════════════════════════════════════
+//  OVERVIEW
+// ═══════════════════════════════════════════════
+let chOvMain=null, chOvDaily=null;
+function buildOv(){
+  const lat=getLatest();
+  const cur=lat.ret||0, kp=lat.kospi||0, alpha=(cur-kp).toFixed(2);
+  const totalBal=accounts.reduce((s,a)=>s+a.balance,0);
+  const months=get26Monthly();
+
+  // 월별 실현손익 집계
+  const realizedMap={};
+  entries26.forEach(e=>{
+    const ym=e.d.slice(0,7);
+    realizedMap[ym]=(realizedMap[ym]||0)+(e.realized||0);
+  });
+  const yrRealized = Object.values(realizedMap).reduce((s,v)=>s+v,0);
+  const thisMonthRealized = realizedMap[new Date().toISOString().slice(0,7)]||0;
+
+  document.getElementById('hdr-sub').textContent='최종 업데이트 '+(lat.d||'—');
+  document.getElementById('hdr-badge').textContent='26년 '+sgn(cur)+cur.toFixed(2)+'%';
+
+  document.getElementById('kpi-ov').innerHTML=`
+    <div class="kpi"><div class="kpi-icon">🏦</div><div class="kpi-lbl">현재 잔액 합계</div><div class="kpi-val" style="color:var(--acc2)">${fmt(totalBal)}</div><div class="kpi-sub">운용 중 계좌 합산</div></div>
+    <div class="kpi"><div class="kpi-icon">📈</div><div class="kpi-lbl">26년 누적 수익률</div><div class="kpi-val" style="color:var(--up)">${sgn(cur)}${cur.toFixed(2)}%</div><div class="kpi-sub">좌수법 기준</div></div>
+    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-lbl">코스피 수익률</div><div class="kpi-val" style="color:var(--am)">${sgn(kp)}${kp.toFixed(2)}%</div></div>
+    <div class="kpi"><div class="kpi-icon">⚡</div><div class="kpi-lbl">초과 수익 (α)</div><div class="kpi-val" style="color:${+alpha>=0?'var(--acc)':'var(--dn)'}">${sgn(+alpha)}${alpha}%p</div></div>
+    <div class="kpi"><div class="kpi-icon">💰</div><div class="kpi-lbl">26년 실현손익</div><div class="kpi-val" style="color:var(--up)">${fmt(yrRealized)}</div><div class="kpi-sub">확정된 수익 합계</div></div>
+  `;
+
+  // 월별 실현손익 바 — 금액 수준에 따라 색상 스펙트럼 변화 (히트맵 스타일)
+  const realizedMonths = months.map(m=>({...m, realized: realizedMap[m.key]||0}));
+  const maxR = Math.max(...realizedMonths.map(m=>m.realized), 1);
+
+  // 색상 스펙트럼: 낮음(파랑) → 중간(바이올렛/핑크) → 높음(옐로/라임)
+  function heatColor(ratio) {
+    // ratio: 0~1
+    if (ratio < 0.33) {
+      // 파랑 → 시안
+      const t = ratio / 0.33;
+      const r = Math.round(96  + t * (34  - 96));   // 96→34
+      const g = Math.round(165 + t * (211 - 165));  // 165→211
+      const b = Math.round(250 + t * (238 - 250));  // 250→238
+      const a = 0.55 + t * 0.2;
+      return { color:`rgb(${r},${g},${b})`, bar:`rgba(${r},${g},${b},${a})`, glow:`rgba(${r},${g},${b},0.35)` };
+    } else if (ratio < 0.66) {
+      // 시안 → 바이올렛/핑크
+      const t = (ratio - 0.33) / 0.33;
+      const r = Math.round(34  + t * (192 - 34));
+      const g = Math.round(211 + t * (132 - 211));
+      const b = Math.round(238 + t * (252 - 238));
+      const a = 0.65 + t * 0.15;
+      return { color:`rgb(${r},${g},${b})`, bar:`rgba(${r},${g},${b},${a})`, glow:`rgba(${r},${g},${b},0.4)` };
+    } else {
+      // 바이올렛 → 옐로/라임
+      const t = (ratio - 0.66) / 0.34;
+      const r = Math.round(192 + t * (163 - 192));
+      const g = Math.round(132 + t * (230 - 132));
+      const b = Math.round(252 + t * (53  - 252));
+      const a = 0.7 + t * 0.25;
+      return { color:`rgb(${r},${g},${b})`, bar:`rgba(${r},${g},${b},${a})`, glow:`rgba(${r},${g},${b},0.45)` };
+    }
+  }
+
+  document.getElementById('mth-bars').innerHTML = realizedMonths.map(m=>{
+    const ratio = m.realized > 0 ? m.realized / maxR : 0;
+    const hc = heatColor(ratio);
+    const barColor = m.realized > 0 ? hc.bar : 'rgba(251,113,133,0.5)';
+    const textColor = m.realized > 0 ? hc.color : 'var(--dn)';
+    const glowStyle = m.realized > 0 ? `box-shadow:0 0 10px ${hc.glow}` : '';
+    const barW = m.realized > 0 ? m.realized / maxR * 100 : 0;
+    return `
+    <div class="mrow">
+      <div class="mrow-meta">
+        <span style="color:var(--muted)">${m.month}</span>
+        <span style="color:${textColor};font-family:'JetBrains Mono',monospace;font-weight:700;text-shadow:0 0 12px ${textColor}66">${m.realized>0?'+':''}${fmt(m.realized)}</span>
+      </div>
+      <div class="pbar" style="height:9px;border-radius:5px">
+        <div class="pbar-fill" style="width:${barW}%;background:${barColor};border-radius:5px;${glowStyle}"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('yr-sum').textContent = sgn(yrRealized)+fmtW(yrRealized);
+
+  const r26=entries26;
+  if(chOvMain)chOvMain.destroy();
+  chOvMain=new Chart(document.getElementById('ch-ov-main'),{
+    type:'line',
+    data:{labels:r26.map(e=>e.d.slice(5)),datasets:[
+      {label:'내 수익률',data:r26.map(e=>e.ret),borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,0.1)',borderWidth:2.5,fill:true,tension:0.4,pointRadius:0,pointHoverRadius:5},
+      {label:'코스피',data:r26.map(e=>e.kospi),borderColor:'#fde047',backgroundColor:'rgba(253,224,71,0.05)',borderWidth:1.5,fill:true,tension:0.4,pointRadius:0,pointHoverRadius:4,borderDash:[5,3]},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#5c6b7e',boxWidth:12,padding:12}},tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toFixed(2)}%`}}},
+      scales:{x:{grid:{color:gc},ticks:{maxTicksLimit:8}},y:{grid:{color:gc},ticks:{callback:v=>v+'%'}}}
+    }
+  });
+
+  const sorted=[...entries26].sort((a,b)=>a.d>b.d?1:-1);
+  const latM=sorted.length?sorted[sorted.length-1].d.slice(0,7):'';
+  const dayData=sorted.filter(e=>e.d.startsWith(latM));
+  document.getElementById('daily-title').textContent=latM?latM.replace('-','년 ')+'월 일별 손익':'일별 손익';
+  if(chOvDaily)chOvDaily.destroy();
+  chOvDaily=new Chart(document.getElementById('ch-ov-daily'),{
+    type:'bar',
+    data:{labels:dayData.map(e=>e.d.slice(5)),datasets:[{
+      label:'손익',data:dayData.map(e=>e.pnl||0),
+      backgroundColor:dayData.map(e=>(e.pnl||0)>=0?'rgba(74,222,128,0.75)':'rgba(251,113,133,0.75)'),
+      borderRadius:4,borderSkipped:false,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.parsed.y.toLocaleString()}원`}}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  PERFORMANCE  (서브탭: 전체/2024/2025/2026)
+// ═══════════════════════════════════════════════
+let chFull=null, chMBar=null;
+function buildPf(){
+  const lat=getLatest();
+  const cur=lat.ret||0, kp=lat.kospi||0, alpha=(cur-kp).toFixed(2);
+  document.getElementById('kpi-pf').innerHTML=`
+    <div class="kpi"><div class="kpi-icon">📈</div><div class="kpi-lbl">26년 누적 수익률</div><div class="kpi-val" style="color:var(--up)">${sgn(cur)}${cur.toFixed(2)}%</div><div class="kpi-sub">NAV ${(lat.nav||0).toFixed(0)}원</div></div>
+    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-lbl">코스피 수익률</div><div class="kpi-val" style="color:var(--am)">${sgn(kp)}${kp.toFixed(2)}%</div></div>
+    <div class="kpi"><div class="kpi-icon">⚡</div><div class="kpi-lbl">알파 (초과수익)</div><div class="kpi-val" style="color:${+alpha>=0?'var(--acc)':'var(--dn)'}">${sgn(+alpha)}${alpha}%p</div></div>
+    <div class="kpi"><div class="kpi-icon">🏆</div><div class="kpi-lbl">역대 최고 수익률</div><div class="kpi-val" style="color:var(--pu)">+${Math.max(...getFullData().map(e=>e.ret||0)).toFixed(2)}%</div><div class="kpi-sub">2024-01 기준</div></div>
+  `;
+  buildFullChart();
+  buildPnlCharts();
+}
+
+function getFullData(){
+  // SEED_HIST는 [date, myRet, kospiRet] 배열 (2024-01 기준 누적)
+  const hist = SEED_HIST.map(r=>({d:r[0],ret:r[1],kospi:r[2]}));
+
+  // SEED26은 2026-01-01 기준 0% 리셋
+  const lastHist = SEED_HIST[SEED_HIST.length - 1];
+  const baseMe  = lastHist[1];
+  const baseKp  = lastHist[2];
+
+  const e26 = entries26.map(e=>{
+    if(pfRange === '2026'){
+      return {d:e.d, ret:e.ret, kospi:e.kospi};
+    } else {
+      const adjMe  = (1 + baseMe/100) * (1 + e.ret/100) * 100 - 100;
+      const adjKp  = (1 + baseKp/100) * (1 + e.kospi/100) * 100 - 100;
+      return {d:e.d, ret:parseFloat(adjMe.toFixed(2)), kospi:parseFloat(adjKp.toFixed(2))};
+    }
+  });
+
+  let all = [...hist, ...e26].sort((a,b)=>a.d>b.d?1:-1);
+
+  if(pfRange==='2024'){
+    all = all.filter(r=>r.d.startsWith('2024'));
+    // 2024 첫값 기준으로 정규화 (0%에서 시작)
+    all = normalizeToZero(all);
+  } else if(pfRange==='2025'){
+    all = all.filter(r=>r.d.startsWith('2025'));
+    // 2025 첫값 기준으로 정규화
+    all = normalizeToZero(all);
+  } else if(pfRange==='2026'){
+    all = all.filter(r=>r.d.startsWith('2026'));
+    // 2026은 이미 0% 기준
+  }
+  // 전체(all)는 변환 없이 그대로
+  return all;
+}
+
+// 첫 데이터 포인트를 0%로 정규화
+function normalizeToZero(data){
+  if(!data.length) return data;
+  const firstMe  = data[0].ret;
+  const firstKp  = data[0].kospi;
+  return data.map(r=>({
+    d: r.d,
+    ret:   parseFloat(((r.ret  - firstMe)  / (1 + firstMe/100)).toFixed(2)),
+    kospi: parseFloat(((r.kospi - firstKp) / (1 + firstKp/100)).toFixed(2)),
+  }));
+}
+
+function buildFullChart(){
+  const data=getFullData();
+  if(chFull)chFull.destroy();
+  chFull=new Chart(document.getElementById('ch-full'),{
+    type:'line',
+    data:{labels:data.map(r=>r.d.slice(2)),datasets:[
+      {label:'내 수익률',data:data.map(r=>r.ret),borderColor:'#22d3ee',backgroundColor:'rgba(56,189,248,0.06)',borderWidth:2.5,tension:0.4,pointRadius:0,pointHoverRadius:4,fill:true},
+      {label:'코스피',data:data.map(r=>r.kospi),borderColor:'#fde047',backgroundColor:'rgba(251,191,36,0.03)',borderWidth:1.5,tension:0.4,pointRadius:0,pointHoverRadius:3,fill:true,borderDash:[5,3]},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#5c6b7e',boxWidth:12,padding:12}},tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toFixed(2)}%`}}},
+      scales:{x:{grid:{color:gc},ticks:{maxTicksLimit:14}},y:{grid:{color:gc},ticks:{callback:v=>v+'%'}}}
+    }
+  });
+}
+
+function setRange(r, btn){
+  pfRange=r;
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(pfInit) buildFullChart();
+}
+
+function buildMbarChart(){
+  // monthly bar chart is now part of buildPnlCharts
+}
+
+// ═══════════════════════════════════════════════
+//  PROFIT HISTORY (수익금 히스토리)
+// ═══════════════════════════════════════════════
+let chPnl=null, chPnlCum=null, pnlView='monthly';
+
+function setPnlView(v, btn){
+  pnlView=v;
+  document.querySelectorAll('#pnl-subtabs .stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildPnlCharts();
+}
+
+function buildPnlCharts(){
+  if(pnlView==='monthly') buildPnlMonthly();
+  else buildPnlDaily();
+}
+
+function buildPnlMonthly(){
+  const mmap = getMonthlyPnl();
+  const keys  = Object.keys(mmap).filter(k=>k.startsWith('2026')).sort();
+  const labels = keys.map(k=>k.slice(5)+'월');
+  const vals   = keys.map(k=>mmap[k]);
+
+  // 월별 실현손익 집계
+  const realizedMap={};
+  entries26.forEach(e=>{
+    const ym=e.d.slice(0,7);
+    realizedMap[ym]=(realizedMap[ym]||0)+(e.realized||0);
+  });
+  const realizedVals = keys.map(k=>realizedMap[k]||0);
+
+  // 누적
+  const cumVals=[]; let cum=0;
+  vals.forEach(v=>{cum+=v; cumVals.push(cum);});
+
+  document.getElementById('pnl-chart-title').textContent = '월별 수익금 (2026)';
+  document.getElementById('pnl-tbl-title').textContent   = '월별 수익금 내역';
+
+  // 왼쪽 차트: 전체손익 / 실현손익 나란히 막대
+  if(chPnl) chPnl.destroy();
+  chPnl = new Chart(document.getElementById('ch-pnl'),{
+    type:'bar',
+    data:{labels, datasets:[
+      {
+        label:'전체 손익', data:vals,
+        backgroundColor: vals.map(v=>v>=0?'rgba(56,189,248,0.5)':'rgba(248,113,113,0.5)'),
+        borderColor: vals.map(v=>v>=0?'rgba(56,189,248,0.9)':'rgba(248,113,113,0.9)'),
+        borderWidth:1.5, borderRadius:5, borderSkipped:false,
+        barPercentage:0.75, categoryPercentage:0.8,
+      },
+      {
+        label:'실현손익', data:realizedVals,
+        backgroundColor:'rgba(74,222,128,0.75)',
+        borderColor:'rgba(74,222,128,1)',
+        borderWidth:1.5, borderRadius:5, borderSkipped:false,
+        barPercentage:0.75, categoryPercentage:0.8,
+      },
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#5c6b7e',boxWidth:12,padding:12}},
+        tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}원`}}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+    }
+  });
+
+  // 오른쪽 차트: 누적 수익금
+  if(chPnlCum) chPnlCum.destroy();
+  chPnlCum = new Chart(document.getElementById('ch-pnl-cum'),{
+    type:'line',
+    data:{labels, datasets:[{
+      label:'누적 손익 (평가포함)', data:cumVals,
+      borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,0.1)',
+      borderWidth:2.5, tension:0.4, fill:true, pointRadius:3, pointHoverRadius:6,
+      pointBackgroundColor:'#22d3ee',
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.parsed.y.toLocaleString()}원`}}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+    }
+  });
+
+  // 표: 전체손익 / 실현손익 (평가손익 제거)
+  document.getElementById('pnl-thead').innerHTML=`
+    <tr>
+      <th style="text-align:left">월</th>
+      <th>전체 손익</th>
+      <th>실현손익</th>
+      <th>실현 비율</th>
+      <th>누적 손익 (평가포함)</th>
+    </tr>`;
+  let runCum=0;
+  document.getElementById('pnl-tbody').innerHTML = keys.map((k,i)=>{
+    const v=vals[i], rv=realizedVals[i];
+    const ratio = v!==0 ? Math.min(Math.abs(rv/v)*100,999).toFixed(1) : '—';
+    runCum+=v;
+    return `<tr>
+      <td><strong>${labels[i]}</strong></td>
+      <td style="color:${v>=0?'var(--up)':'var(--dn)'};font-weight:700">${sgn(v)}${v.toLocaleString()}원</td>
+      <td style="color:${rv>0?'var(--up)':'var(--subtle)'}">${rv>0?'+'+rv.toLocaleString()+'원':'—'}</td>
+      <td>${rv>0?`<span class="pill p-up">${ratio}%</span>`:'—'}</td>
+      <td style="color:var(--acc2)">${runCum.toLocaleString()}원</td>
+    </tr>`;
+  }).reverse().join('');
+}
+
+function buildPnlDaily(){
+  const data = [...entries26].sort((a,b)=>a.d>b.d?1:-1);
+  const labels = data.map(e=>e.d.slice(5));
+  const vals   = data.map(e=>e.pnl||0);
+  const realizedVals = data.map(e=>e.realized||0);
+
+  // 누적 pnl
+  const cumVals=[]; let cum=0;
+  vals.forEach(v=>{cum+=v; cumVals.push(cum);});
+
+  document.getElementById('pnl-chart-title').textContent = '일별 수익금 (2026)';
+  document.getElementById('pnl-tbl-title').textContent   = '일별 수익금 내역';
+
+  // 왼쪽 차트: 일별 전체손익 막대만
+  if(chPnl) chPnl.destroy();
+  chPnl = new Chart(document.getElementById('ch-pnl'),{
+    type:'bar',
+    data:{labels, datasets:[{
+      label:'전체 손익', data:vals,
+      backgroundColor: vals.map(v=>v>0?'rgba(56,189,248,0.55)':v<0?'rgba(248,113,113,0.55)':'rgba(93,107,126,0.25)'),
+      borderColor: vals.map(v=>v>0?'rgba(56,189,248,0.9)':v<0?'rgba(248,113,113,0.9)':'rgba(93,107,126,0.4)'),
+      borderWidth:1, borderRadius:3, borderSkipped:false,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.parsed.y.toLocaleString()}원`}}},
+      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:14}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+    }
+  });
+
+  // 오른쪽 차트: 누적 수익금
+  if(chPnlCum) chPnlCum.destroy();
+  chPnlCum = new Chart(document.getElementById('ch-pnl-cum'),{
+    type:'line',
+    data:{labels, datasets:[{
+      label:'누적 손익 (평가포함)', data:cumVals,
+      borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,0.1)',
+      borderWidth:2, tension:0.4, fill:true, pointRadius:0, pointHoverRadius:5,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.parsed.y.toLocaleString()}원`}}},
+      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:14}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+    }
+  });
+
+  // 표: 전체손익 / 실현손익 (평가손익 제거)
+  const rows = [...data].reverse();
+  document.getElementById('pnl-thead').innerHTML=`
+    <tr>
+      <th style="text-align:left">날짜</th>
+      <th>전체 손익</th>
+      <th>실현손익</th>
+      <th>누적 손익 (평가포함)</th>
+      <th>계좌 총액</th>
+    </tr>`;
+  const cumByDate={};
+  data.forEach((e,i)=>{ cumByDate[e.d]=cumVals[i]; });
+  document.getElementById('pnl-tbody').innerHTML = rows.map(e=>{
+    const v=e.pnl||0, rv=e.realized||0;
+    const c=cumByDate[e.d]||0;
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--muted)">${e.d}</td>
+      <td style="color:${v>0?'var(--up)':v<0?'var(--dn)':'var(--subtle)'};font-weight:${v!==0?'700':'400'}">${v!==0?sgn(v)+v.toLocaleString()+'원':'—'}</td>
+      <td style="color:${rv>0?'var(--up)':'var(--subtle)'}">${rv>0?'+'+rv.toLocaleString()+'원':'—'}</td>
+      <td style="color:var(--acc2)">${c.toLocaleString()}원</td>
+      <td style="color:var(--text)">${e.end?e.end.toLocaleString()+'원':'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  ACCOUNTS
+// ═══════════════════════════════════════════════
+let chAcc=null;
+function buildAc(){
+  const total=accounts.reduce((s,a)=>s+a.balance,0);
+  const active=accounts.filter(a=>a.balance>0);
+  document.getElementById('kpi-ac').innerHTML=`
+    <div class="kpi"><div class="kpi-icon">🏦</div><div class="kpi-lbl">잔고 합계</div><div class="kpi-val" style="color:var(--acc2)">${fmt(total)}</div></div>
+    <div class="kpi"><div class="kpi-icon">✅</div><div class="kpi-lbl">운용 중</div><div class="kpi-val" style="color:var(--up)">${active.length}개</div></div>
+    <div class="kpi"><div class="kpi-icon">⏸</div><div class="kpi-lbl">대기</div><div class="kpi-val" style="color:var(--muted)">${accounts.length-active.length}개</div></div>
+  `;
+  document.getElementById('acc-tbody').innerHTML=
+    accounts.map(a=>{
+      const pct=total>0?(a.balance/total*100).toFixed(1):'0.0';
+      return `<tr>
+        <td><span class="dot" style="background:${a.balance>0?'var(--up)':'var(--subtle)'}"></span><strong>${a.name}</strong></td>
+        <td style="color:${a.balance>0?'var(--acc2)':'var(--subtle)'}">${a.balance>0?a.balance.toLocaleString()+'원':'—'}</td>
+        <td><span class="pill ${a.balance>0?'p-up':'p-nu'}">${a.balance>0?pct+'%':'—'}</span></td>
+        <td><span class="pill ${a.balance>0?'p-acc':'p-nu'}">${a.balance>0?'운용중':'대기'}</span></td>
+      </tr>`;
+    }).join('')+
+    `<tr class="tr-sum"><td><strong style="color:var(--acc2)">합계</strong></td><td style="color:var(--acc2)">${total.toLocaleString()}원</td><td colspan="2"><span class="pill p-acc">100%</span></td></tr>`;
+
+  const bd=accounts.filter(a=>a.balance>0);
+  if(chAcc)chAcc.destroy();
+  chAcc=new Chart(document.getElementById('ch-acc'),{
+    type:'bar',
+    data:{labels:bd.map(a=>a.name),datasets:[{
+      label:'현재 잔고',data:bd.map(a=>a.balance),
+      backgroundColor:'rgba(56,189,248,0.6)',borderRadius:8,borderSkipped:false,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.parsed.y.toLocaleString()}원`}}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  LIFE GAME
+// ═══════════════════════════════════════════════
+function buildLife(){
+  const thisM = getThisMonthPnl();
+  const goal  = lifeCfg.goal;
+  const now   = new Date();
+  document.getElementById('life-goal-txt').textContent = fmtW(goal);
+  document.getElementById('life-val').textContent = sgn(thisM)+fmt(thisM);
+  document.getElementById('life-lbl').textContent = now.getFullYear()+'년 '+(now.getMonth()+1)+'월 손익';
+  const pct = thisM/goal*100;
+  document.getElementById('life-prog').style.width = Math.min(Math.max(pct,0),100)+'%';
+  document.getElementById('life-pct').textContent = pct.toFixed(1)+'%';
+
+  const vEl = document.getElementById('life-verdict');
+  if(thisM >= goal){
+    vEl.style.cssText='background:var(--up-bg);border:1px solid var(--up-border);border-radius:10px;padding:13px;text-align:center';
+    vEl.innerHTML='<div style="font-size:16px;font-weight:700;color:var(--up)">🎉 목표 달성!</div>';
+  } else {
+    const rem = goal-thisM;
+    vEl.style.cssText='background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px;text-align:center';
+    vEl.innerHTML=`<div style="font-size:13px;color:var(--muted)">목표까지</div><div style="font-size:16px;font-weight:700;color:var(--acc);font-family:'JetBrains Mono',monospace">${fmtW(rem)} 남음</div>`;
+  }
+
+  // 항목별 고유 색상 팔레트
+  const ITEM_COLORS = [
+    {base:'#22d3ee', bg:'rgba(34,211,238,0.12)', border:'rgba(34,211,238,0.35)'},   // 시안
+    {base:'#c084fc', bg:'rgba(192,132,252,0.12)', border:'rgba(192,132,252,0.35)'}, // 바이올렛
+    {base:'#fde047', bg:'rgba(253,224,71,0.12)',  border:'rgba(253,224,71,0.35)'},  // 옐로우
+    {base:'#fb923c', bg:'rgba(251,146,60,0.12)',  border:'rgba(251,146,60,0.35)'},  // 오렌지
+    {base:'#f472b6', bg:'rgba(244,114,182,0.12)', border:'rgba(244,114,182,0.35)'}, // 핑크
+    {base:'#34d3f0', bg:'rgba(52,211,240,0.12)',  border:'rgba(52,211,240,0.35)'},  // 하늘
+    {base:'#a3e635', bg:'rgba(163,230,53,0.12)',  border:'rgba(163,230,53,0.35)'},  // 라임
+    {base:'#60a5fa', bg:'rgba(96,165,250,0.12)',  border:'rgba(96,165,250,0.35)'},  // 블루
+  ];
+
+  // 항목: 이번달 달성액(actual)을 직접 입력한 값 사용
+  document.getElementById('life-items').innerHTML = lifeCfg.items.map((item, idx)=>{
+    const actual = item.actual||0;
+    const p = item.target>0 ? actual/item.target*100 : 0;
+    const ic = ITEM_COLORS[idx % ITEM_COLORS.length];
+    // 완료 여부에 관계없이 항목 고유 색상 사용, 완료시 밝기만 높임
+    const barColor = p>=100 ? ic.base : p>0 ? ic.base : 'rgba(251,113,133,0.4)';
+    const barGlow  = p>0 ? `0 0 10px ${ic.base}55` : 'none';
+    const badgeStyle = p>=100
+      ? `background:${ic.bg};border:1px solid ${ic.border};color:${ic.base}`
+      : p>0
+        ? `background:${ic.bg};border:1px solid ${ic.border};color:${ic.base}`
+        : 'background:rgba(251,113,133,0.12);border:1px solid rgba(251,113,133,0.3);color:var(--dn)';
+    const bdgTxt = p>=100 ? '✓ 완료' : p>0 ? p.toFixed(0)+'%' : '미달';
+    return `<div class="life-row">
+      <div class="lrow-head">
+        <div class="lrow-name">
+          <span class="pill" style="${badgeStyle}">${bdgTxt}</span>
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${ic.base};margin-right:2px;flex-shrink:0;box-shadow:0 0 6px ${ic.base}55"></span>
+          ${item.name}
+        </div>
+        <div class="lrow-amt" style="color:${ic.base}">${actual.toLocaleString()} <span style="color:var(--muted)">/ ${item.target.toLocaleString()}원</span></div>
+      </div>
+      <div class="pbar" style="background:${ic.bg};height:10px;border-radius:6px">
+        <div class="pbar-fill" style="width:${Math.min(p,100)}%;background:${barColor};box-shadow:${barGlow};border-radius:6px;${p>=100?'filter:brightness(1.2)':''}"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  DATA ENTRY
+// ═══════════════════════════════════════════════
+function buildEntry(){
+  document.getElementById('in-d').value = new Date().toISOString().slice(0,10);
+  document.getElementById('in-goal').value = lifeCfg.goal;
+  renderEntryList();
+  renderAccInputs();
+  renderLifeTable();
+  updateAccSum(); // 초기 합산 표시
+}
+
+function renderAccInputs(){
+  document.getElementById('acc-inputs').innerHTML=accounts.map((a,i)=>`
+    <div class="fg">
+      <label class="fl">${a.name} 잔고 (원)</label>
+      <input type="number" id="ai-${i}" class="fi" value="${a.balance||''}" placeholder="0" oninput="updateAccSum()">
+    </div>
+  `).join('');
+}
+
+function updateAccSum(){
+  let total = 0;
+  accounts.forEach((_,i)=>{
+    total += parseInt(document.getElementById('ai-'+i)?.value)||0;
+  });
+  const dispEl = document.getElementById('acc-sum-display');
+  if(dispEl) dispEl.textContent = total > 0 ? total.toLocaleString()+'원' : '—';
+  // 계좌 총액 필드에 자동 반영
+  if(total > 0){
+    document.getElementById('in-end').value = total;
+    previewCalc();
+  }
+}
+
+function renderEntryList(){
+  const sorted=[...entries26].sort((a,b)=>b.d>a.d?-1:1).slice(0,30);
+  const el=document.getElementById('entry-list');
+  if(!sorted.length){el.innerHTML='<div style="color:var(--muted);padding:8px;font-size:12px">입력된 내역 없음</div>';return;}
+  el.innerHTML=sorted.reverse().map(e=>{
+    const isSeed=e._seed!==false;
+    const idx=entries26.findIndex(x=>x.d===e.d&&Math.abs((x.nav||0)-(e.nav||0))<0.01);
+    return `<div class="eitem">
+      <span style="color:var(--muted);font-family:'JetBrains Mono',monospace;flex-shrink:0">${e.d}</span>
+      <span style="color:var(--text);font-family:'JetBrains Mono',monospace">${(e.end||0).toLocaleString()}원</span>
+      <span style="color:${(e.pnl||0)>=0?'var(--up)':'var(--dn)'};font-family:'JetBrains Mono',monospace;font-weight:700">${sgn(e.pnl||0)}${(e.pnl||0).toLocaleString()}</span>
+      <span style="color:var(--acc);font-family:'JetBrains Mono',monospace">${sgn(e.ret||0)}${(e.ret||0).toFixed(2)}%</span>
+      ${isSeed?'<span style="color:var(--subtle);font-size:10px">기본</span>':`<button class="edel" onclick="delEntry(${idx})">✕</button>`}
+    </div>`;
+  }).reverse().join('');
+}
+
+function renderLifeTable(){
+  document.getElementById('life-tbody').innerHTML=lifeCfg.items.map((it,i)=>`
+    <tr>
+      <td><input type="text" id="ln-${i}" value="${it.name}" placeholder="항목명"></td>
+      <td style="text-align:right"><input type="number" id="lt-${i}" value="${it.target}" placeholder="목표금액" style="text-align:right"></td>
+      <td style="text-align:right"><input type="number" id="la-${i}" value="${it.actual||0}" placeholder="달성금액" style="text-align:right"></td>
+      <td style="text-align:center"><button class="edel" onclick="delLifeRow(${i})" style="font-size:17px">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+// Live preview
+['in-d','in-end','in-io','in-realized','in-kp'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('input', previewCalc);
+});
+
+function previewCalc(){
+  const endAmt = parseInt(document.getElementById('in-end').value)||0;
+  const ioRaw  = document.getElementById('in-io').value;
+  const io     = ioRaw===''?0:(parseInt(ioRaw)||0);
+  const realizedRaw = document.getElementById('in-realized').value;
+  const realized = realizedRaw===''?0:(parseInt(realizedRaw)||0);
+  const kpVal  = parseFloat(document.getElementById('in-kp').value)||0;
+  if(!endAmt){ ['c-nav','c-day','c-cum','c-pnl','c-realized','c-unrealized','c-kp'].forEach(id=>document.getElementById(id).textContent='—'); return; }
+  const prev=getLatest();
+  if(!prev||!prev.nav) return;
+  const r=calcNav(prev,io,endAmt);
+  document.getElementById('c-nav').textContent=r.nav.toFixed(2)+'원';
+  document.getElementById('c-day').textContent=sgn(r.dailyRet)+(r.dailyRet*100).toFixed(2)+'%';
+  document.getElementById('c-cum').textContent=sgn(r.cumRet)+(r.cumRet*100).toFixed(2)+'%';
+  const pEl=document.getElementById('c-pnl');
+  pEl.textContent=sgn(r.pnl)+r.pnl.toLocaleString()+'원';
+  pEl.style.color=r.pnl>=0?'var(--up)':'var(--dn)';
+  // 실현손익
+  const rEl=document.getElementById('c-realized');
+  rEl.textContent = realized!==0 ? sgn(realized)+realized.toLocaleString()+'원' : '0원';
+  rEl.style.color = realized>=0?'var(--up)':'var(--dn)';
+  // 코스피 %
+  if(kpVal>0){
+    const kpPct=kospiPct(kpVal, KOSPI_BASE_26);
+    document.getElementById('c-kp').textContent=sgn(kpPct)+kpPct.toFixed(2)+'%  ('+kpVal+')';
+  } else { document.getElementById('c-kp').textContent='—'; }
+}
+
+function addEntry(){
+  const d      = document.getElementById('in-d').value;
+  const endAmt = parseInt(document.getElementById('in-end').value);
+  const ioRaw  = document.getElementById('in-io').value;
+  const io     = ioRaw===''?0:(parseInt(ioRaw)||0);
+  const realizedRaw = document.getElementById('in-realized').value;
+  const realized = realizedRaw===''?0:(parseInt(realizedRaw)||0);
+  const kpVal  = parseFloat(document.getElementById('in-kp').value)||0;
+
+  if(!d){ toast('날짜를 입력해주세요'); return; }
+  if(!endAmt||endAmt<=0){ toast('계좌 총액을 입력해주세요'); return; }
+
+  const prev=getLatest();
+  if(!prev||!prev.nav){ toast('기준 데이터가 없습니다'); return; }
+
+  const r=calcNav(prev,io,endAmt);
+  const kpPct = kpVal>0 ? parseFloat(kospiPct(kpVal, KOSPI_BASE_26).toFixed(4)) : 0;
+
+  // 비정상 수익률 경고 (일별 ±20% 초과 시)
+  if(Math.abs(r.dailyRet) > 0.20){
+    const ok = confirm(
+      `⚠️ 일별 수익률이 ${(r.dailyRet*100).toFixed(1)}%로 비정상적입니다.\n\n` +
+      `기준 날짜: ${prev.d}  NAV: ${prev.nav.toFixed(1)}\n` +
+      `입력 총액: ${endAmt.toLocaleString()}원  입출금: ${io.toLocaleString()}원\n\n` +
+      `입출금 부호(입금+/출금-)를 확인해주세요.\n계속 저장하시겠습니까?`
+    );
+    if(!ok) return;
+  }
+
+  const entry={
+    d, end:endAmt,
+    io: io===0?null:io,
+    pnl:r.pnl,
+    realized: realized||0,
+    nav:parseFloat(r.nav.toFixed(6)),
+    shares:parseFloat(r.shares.toFixed(6)),
+    ret:parseFloat((r.cumRet*100).toFixed(4)),
+    kospi:kpPct,
+    kospiVal:kpVal||null,
+    _seed:false,
+  };
+
+  const existing=userEntries.findIndex(e=>e.d===d);
+  if(existing>=0) userEntries.splice(existing,1);
+  userEntries.push(entry);
+  userEntries.sort((a,b)=>a.d>b.d?1:-1);
+  sv('inv_user_entries', userEntries);
+  entries26 = buildEntries26();
+
+  toast(`✅ ${d} 저장! 수익률 ${sgn(r.cumRet)}${(r.cumRet*100).toFixed(2)}% | NAV ${r.nav.toFixed(1)}`);
+  document.getElementById('in-end').value='';
+  document.getElementById('in-io').value='';
+  document.getElementById('in-realized').value='';
+  document.getElementById('in-kp').value='';
+  renderEntryList();
+  refreshAll();
+}
+
+function delEntry(idx){
+  // entries26에서 idx번째가 userEntry인지 확인
+  const entry = entries26[idx];
+  if(!entry||entry._seed!==false){toast('기본 데이터는 삭제 불가');return;}
+  const ui = userEntries.findIndex(e=>e.d===entry.d);
+  if(ui>=0) userEntries.splice(ui,1);
+  sv('inv_user_entries', userEntries);
+  entries26 = buildEntries26();
+  renderEntryList();
+  refreshAll();
+}
+
+function saveAcc(){
+  accounts.forEach((a,i)=>{a.balance=parseInt(document.getElementById('ai-'+i).value)||0;});
+  sv('inv_acc',accounts);
+  acInit=false;
+  toast('✅ 계좌 잔고 저장!');
+  refreshAll();
+}
+
+function addLifeRow(){ lifeCfg.items.push({name:'새 항목',target:0,actual:0}); renderLifeTable(); }
+function delLifeRow(i){ lifeCfg.items.splice(i,1); renderLifeTable(); }
+function saveLife(){
+  const goal=parseInt(document.getElementById('in-goal').value)||5000000;
+  const items=lifeCfg.items.map((_,i)=>({
+    name:document.getElementById('ln-'+i).value||'항목',
+    target:parseInt(document.getElementById('lt-'+i).value)||0,
+    actual:parseInt(document.getElementById('la-'+i).value)||0,
+  }));
+  lifeCfg={goal,items};
+  sv('inv_life',lifeCfg);
+  // 생활비 게임 탭 설명의 목표금액 즉시 반영
+  const goalTxt = document.getElementById('life-goal-txt');
+  if(goalTxt) goalTxt.textContent = fmtW(goal);
+  toast('✅ 생활비 설정 저장!');
+}
+
+function exportData(){
+  const data = {
+    exportedAt: new Date().toISOString().slice(0,10),
+    userEntries: userEntries,
+    accounts: accounts,
+    lifeCfg: lifeCfg,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `dashboard_backup_${data.exportedAt}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('📥 데이터 내보내기 완료!');
+}
+
+function resetAll(){['inv_user_entries','inv_e26','inv_acc','inv_life'].forEach(k=>localStorage.removeItem(k));location.reload();}
+
+function refreshAll(){
+  buildOv();
+  if(pfInit){
+    pfInit=false;
+    buildPf();
+    pfInit=true;
+  } else {
+    // pnl 차트만 별도 갱신 (탭 열기 전에도 데이터 최신화)
+  }
+  if(acInit){acInit=false;buildAc();acInit=true;}
+}
+
+buildOv();
+</script>
+</body>
+</html>
