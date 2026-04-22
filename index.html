@@ -137,6 +137,18 @@ tr:hover td{background:rgba(34,211,238,0.04)}
 .calc-item .cl{font-size:10px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:3px}
 .calc-item .cv{font-size:17px;font-weight:700;font-family:'JetBrains Mono',monospace}
 
+/* CALENDAR */
+.cal-wrap{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dow{text-align:center;font-size:10px;color:var(--muted);padding:5px 0;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px}
+.cal-day{border-radius:8px;padding:6px 5px;min-height:52px;background:var(--bg3);border:1px solid var(--border);position:relative;transition:all 0.15s}
+.cal-day.has-data{background:rgba(74,222,128,0.06);border-color:rgba(74,222,128,0.3)}
+.cal-day.has-data:hover{border-color:rgba(74,222,128,0.65);transform:translateY(-1px);box-shadow:0 4px 12px rgba(74,222,128,0.15)}
+.cal-day.today{border-color:rgba(34,211,238,0.5);box-shadow:0 0 0 1px rgba(34,211,238,0.2)}
+.cal-day.empty{background:transparent;border-color:transparent;pointer-events:none}
+.cal-dn{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.cal-day.today .cal-dn{color:var(--acc2);font-weight:700}
+.cal-val{font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:5px;line-height:1.3;color:var(--up)}
+
 /* LIFE INPUT TABLE */
 .life-tbl{width:100%;border-collapse:collapse;margin-top:8px}
 .life-tbl th{padding:7px 10px;font-size:10px;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left}
@@ -202,6 +214,22 @@ tr:hover td{background:rgba(34,211,238,0.04)}
     </div>
     <div style="height:320px"><canvas id="ch-full"></canvas></div>
   </div>
+  <!-- 실현손익 달력 -->
+  <div class="card">
+    <div class="sec">
+      <span>실현손익 달력</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="stab" onclick="calMove(-1)" style="padding:4px 10px;font-size:13px">‹</button>
+        <span id="cal-title" style="font-size:12px;color:var(--text);font-family:'JetBrains Mono',monospace;min-width:80px;text-align:center"></span>
+        <button class="stab" onclick="calMove(1)" style="padding:4px 10px;font-size:13px">›</button>
+      </div>
+    </div>
+    <div id="cal-grid"></div>
+    <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid var(--border)">
+      <span style="font-size:12px;color:var(--muted)">이달 실현손익 합계</span>
+      <span id="cal-month-total" style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--up)">—</span>
+    </div>
+  </div>
   <!-- 수익금 히스토리 -->
   <div class="card">
     <div class="sec">수익금 히스토리</div>
@@ -219,7 +247,6 @@ tr:hover td{background:rgba(34,211,238,0.04)}
         <div style="height:200px"><canvas id="ch-pnl-cum"></canvas></div>
       </div>
     </div>
-    <!-- 표 -->
     <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="pnl-tbl-title">수익금 내역</div>
     <div style="max-height:340px;overflow-y:auto">
       <table id="pnl-table">
@@ -229,8 +256,6 @@ tr:hover td{background:rgba(34,211,238,0.04)}
     </div>
   </div>
 </div>
-
-<!-- ══ ACCOUNTS ══ -->
 <div id="panel-accounts" class="panel">
   <div class="kpi-grid" id="kpi-ac"></div>
   <div class="g2">
@@ -602,6 +627,70 @@ function buildOv(){
 //  PERFORMANCE  (서브탭: 전체/2024/2025/2026)
 // ═══════════════════════════════════════════════
 let chFull=null, chMBar=null;
+// ═══════════════════════════════════════════════
+//  CALENDAR (실현손익 달력)
+// ═══════════════════════════════════════════════
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+
+function calMove(dir){
+  calMonth += dir;
+  if(calMonth > 11){ calMonth = 0; calYear++; }
+  if(calMonth < 0){ calMonth = 11; calYear--; }
+  buildCalendar();
+}
+
+function buildCalendar(){
+  const yr = calYear, mo = calMonth;
+  const ym = yr + '-' + String(mo+1).padStart(2,'0');
+
+  document.getElementById('cal-title').textContent =
+    yr + '년 ' + (mo+1) + '월';
+
+  // 실현손익 맵
+  const rmap = {};
+  entries26.forEach(e=>{
+    if(e.d.startsWith(ym) && e.realized){
+      rmap[parseInt(e.d.slice(8))] = e.realized;
+    }
+  });
+
+  // 월 합계
+  const total = Object.values(rmap).reduce((s,v)=>s+v,0);
+  const totalEl = document.getElementById('cal-month-total');
+  totalEl.textContent = total > 0 ? '+' + total.toLocaleString() + '원' : '—';
+  totalEl.style.color = total > 0 ? 'var(--up)' : 'var(--muted)';
+
+  // 달력 그리기
+  const firstDay = new Date(yr, mo, 1).getDay(); // 0=일
+  const lastDate = new Date(yr, mo+1, 0).getDate();
+  const today = new Date();
+  const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+  const dows = ['일','월','화','수','목','금','토'];
+  let html = '<div class="cal-wrap">';
+  // 요일 헤더
+  dows.forEach(d => { html += `<div class="cal-dow">${d}</div>`; });
+  // 빈 칸
+  for(let i=0; i<firstDay; i++) html += '<div class="cal-day empty"></div>';
+  // 날짜
+  for(let d=1; d<=lastDate; d++){
+    const dateStr = ym + '-' + String(d).padStart(2,'0');
+    const isToday = dateStr === todayStr;
+    const rv = rmap[d];
+    const hasData = !!rv;
+    let cls = 'cal-day';
+    if(hasData) cls += ' has-data';
+    if(isToday) cls += ' today';
+    html += `<div class="${cls}">
+      <div class="cal-dn">${d}</div>
+      ${hasData ? `<div class="cal-val">+${rv >= 10000 ? Math.round(rv/10000)+'만' : rv.toLocaleString()}</div>` : ''}
+    </div>`;
+  }
+  html += '</div>';
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
 function buildPf(){
   const lat=getLatest();
   const cur=lat.ret||0, kp=lat.kospi||0, alpha=(cur-kp).toFixed(2);
@@ -613,6 +702,7 @@ function buildPf(){
   `;
   buildFullChart();
   buildPnlCharts();
+  buildCalendar();
 }
 
 function getFullData(){
