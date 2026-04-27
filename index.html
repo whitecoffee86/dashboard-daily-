@@ -199,6 +199,77 @@ tr:hover td{background:rgba(34,211,238,0.04)}
     <div class="sec" id="daily-title">이번달 일별 손익</div>
     <div style="height:160px"><canvas id="ch-ov-daily"></canvas></div>
   </div>
+
+  <!-- 연간 목표 게이지 -->
+  <div class="card">
+    <div class="sec">
+      <span>연간 목표 달성률</span>
+      <span id="goal-badge" class="pill p-acc">—</span>
+    </div>
+
+    <!-- 상단: 원형 게이지 + 수치 -->
+    <div style="display:flex;align-items:center;gap:24px;margin-bottom:20px">
+      <!-- 원형 SVG 게이지 -->
+      <div style="position:relative;flex-shrink:0;width:120px;height:120px">
+        <svg viewBox="0 0 120 120" style="width:120px;height:120px;transform:rotate(-90deg)">
+          <!-- 배경 원 -->
+          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
+          <!-- 진행 원 -->
+          <circle id="goal-circle" cx="60" cy="60" r="50" fill="none"
+            stroke="url(#goalGrad)" stroke-width="10"
+            stroke-linecap="round"
+            stroke-dasharray="314" stroke-dashoffset="314"
+            style="transition:stroke-dashoffset 1s ease"/>
+          <defs>
+            <linearGradient id="goalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#22d3ee"/>
+              <stop offset="100%" stop-color="#4ade80"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <!-- 중앙 텍스트 -->
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div id="goal-pct-lbl" style="font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--acc2);line-height:1">—</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">달성</div>
+        </div>
+      </div>
+
+      <!-- 우측 수치 -->
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+        <div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">현재 실현손익</div>
+          <div id="goal-current" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--up);font-size:20px">—</div>
+        </div>
+        <div style="height:1px;background:var(--border)"></div>
+        <div style="display:flex;justify-content:space-between">
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:3px">목표</div>
+            <div id="goal-target-lbl" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text);font-size:15px">1억원</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:3px">잔여</div>
+            <div id="goal-remain" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--dn);font-size:15px">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 월별 달성 히스토리 -->
+    <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">월별 실현손익 히스토리</div>
+    <div style="height:130px"><canvas id="ch-monthly-hist"></canvas></div>
+  </div>
+
+  <!-- MDD + 통계 -->
+  <div class="g2">
+    <div class="card">
+      <div class="sec">리스크 지표</div>
+      <div id="risk-stats"></div>
+    </div>
+    <div class="card">
+      <div class="sec">매매 승률</div>
+      <div id="win-stats"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ PERFORMANCE ══ -->
@@ -214,6 +285,12 @@ tr:hover td{background:rgba(34,211,238,0.04)}
     </div>
     <div style="height:320px"><canvas id="ch-full"></canvas></div>
   </div>
+  <!-- 코스피 대비 초과수익 차트 -->
+  <div class="card">
+    <div class="sec">코스피 대비 초과수익 (α) 누적</div>
+    <div style="height:200px"><canvas id="ch-alpha"></canvas></div>
+  </div>
+
   <!-- 실현손익 달력 -->
   <div class="card">
     <div class="sec">
@@ -621,14 +698,329 @@ function buildOv(){
       scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
     }
   });
+
+  // 새 섹션들 (차트 다 그린 후 실행)
+  buildGoalGauge();
+  buildRiskStats();
+  buildWinStats();
 }
 
 // ═══════════════════════════════════════════════
 //  PERFORMANCE  (서브탭: 전체/2024/2025/2026)
 // ═══════════════════════════════════════════════
 let chFull=null, chMBar=null;
+
 // ═══════════════════════════════════════════════
-//  CALENDAR (실현손익 달력)
+//  연간 목표 게이지 (실현손익 1억 기준)
+// ═══════════════════════════════════════════════
+let chMonthlyHist = null;
+function buildGoalGauge(){
+  const GOAL = 100000000; // 1억
+  const realizedMap={};
+  entries26.forEach(e=>{
+    const ym=e.d.slice(0,7);
+    realizedMap[ym]=(realizedMap[ym]||0)+(e.realized||0);
+  });
+  const totalRealized = Object.values(realizedMap).reduce((s,v)=>s+v,0);
+  const pct = Math.min(totalRealized / GOAL * 100, 100);
+
+  const goalEl = document.getElementById('goal-current');
+  const circleEl = document.getElementById('goal-circle');
+  const pctEl = document.getElementById('goal-pct-lbl');
+  const remainEl = document.getElementById('goal-remain');
+  const badgeEl = document.getElementById('goal-badge');
+  if(!goalEl) return;
+
+  goalEl.textContent = '+' + totalRealized.toLocaleString() + '원';
+
+  // 원형 게이지 (둘레 = 2π×50 ≈ 314)
+  const circumference = 314;
+  const offset = circumference - (pct / 100) * circumference;
+  if(circleEl) circleEl.style.strokeDashoffset = offset.toFixed(1);
+
+  if(pctEl) pctEl.textContent = pct.toFixed(1) + '%';
+  const remain = Math.max(GOAL - totalRealized, 0);
+  if(remainEl) remainEl.textContent = remain > 0 ? '-' + remain.toLocaleString() + '원' : '✅ 달성!';
+  if(remainEl) remainEl.style.color = remain > 0 ? 'var(--dn)' : 'var(--up)';
+
+  if(totalRealized >= GOAL){ badgeEl.textContent='🎉 달성!'; badgeEl.className='pill p-up'; }
+  else if(pct >= 70){ badgeEl.textContent='순항 중 🚀'; badgeEl.className='pill p-acc'; }
+  else if(pct >= 40){ badgeEl.textContent='진행 중'; badgeEl.className='pill p-nu'; }
+  else { badgeEl.textContent='초반'; badgeEl.className='pill p-nu'; }
+
+  // 월별 실현손익 히스토리 차트
+  const keys = Object.keys(realizedMap).filter(k=>k.startsWith('2026')).sort();
+  const labels = keys.map(k=>k.slice(5)+'월');
+  const vals = keys.map(k=>realizedMap[k]);
+  const maxV = Math.max(...vals, 1);
+  const canvasEl = document.getElementById('ch-monthly-hist');
+  if(!canvasEl) return;
+  if(chMonthlyHist) chMonthlyHist.destroy();
+  chMonthlyHist = new Chart(canvasEl,{
+    type:'bar',
+    data:{labels, datasets:[{
+      label:'실현손익', data:vals,
+      backgroundColor: vals.map(v=>{
+        const ratio = v/maxV;
+        return `rgba(${Math.round(74-ratio*30)},${Math.round(222-ratio*10)},${Math.round(128-ratio*60)},${0.6+ratio*0.35})`;
+      }),
+      borderRadius:7, borderSkipped:false,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.parsed.y.toLocaleString()}원`}}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  리스크 지표 (MDD)
+// ═══════════════════════════════════════════════
+function buildRiskStats(){
+  const el = document.getElementById('risk-stats');
+  if(!el) return;
+
+  // 전체 NAV 시계열 (SEED_HIST + SEED26)
+  const fullNav = [];
+  SEED_HIST.forEach((r,i)=>{
+    if(i===0){ fullNav.push({d:r[0],nav:1000}); return; }
+    const diff = r[1]-SEED_HIST[i-1][1];
+    fullNav.push({d:r[0], nav:fullNav[fullNav.length-1].nav*(1+diff/100)});
+  });
+  const lastHR = SEED_HIST[SEED_HIST.length-1][1];
+  entries26.forEach(e=>{
+    const adj=(1+lastHR/100)*(1+e.ret/100)*100-100;
+    fullNav.push({d:e.d, nav:1000*(1+adj/100)});
+  });
+
+  // MDD 계산 함수
+  const calcMDD = (data) => {
+    let peak=-Infinity, mdd=0, pk='', tr='', curPk='';
+    data.forEach(({d,nav})=>{
+      if(nav>peak){peak=nav;curPk=d;}
+      const dd=(peak-nav)/peak*100;
+      if(dd>mdd){mdd=dd;pk=curPk;tr=d;}
+    });
+    return {mdd,pk,tr};
+  };
+
+  const all  = calcMDD(fullNav);
+  const m24  = calcMDD(fullNav.filter(e=>e.d.startsWith('2024')));
+  const m25  = calcMDD(fullNav.filter(e=>e.d.startsWith('2025')));
+  const m26  = calcMDD(entries26.map(e=>({d:e.d,nav:e.nav||0})));
+
+  // 변동성 (일별 수익률 표준편차)
+  const dailyRets = entries26.map((e,i)=>{
+    if(i===0) return 0;
+    const prev = entries26[i-1];
+    return prev.nav>0 ? (e.nav-prev.nav)/prev.nav*100 : 0;
+  }).filter((_,i)=>i>0);
+  const mean = dailyRets.reduce((s,v)=>s+v,0)/dailyRets.length;
+  const variance = dailyRets.reduce((s,v)=>s+(v-mean)**2,0)/dailyRets.length;
+  const vol = Math.sqrt(variance);
+
+  // 샤프 비율 - 전체 기간(24~26년) CAGR 기준
+  const navSeries = [];
+  SEED_HIST.forEach((r,i)=>{
+    if(i===0){ navSeries.push(1000); return; }
+    const retDiff = r[1] - SEED_HIST[i-1][1];
+    navSeries.push(navSeries[navSeries.length-1] * (1 + retDiff/100));
+  });
+  const lastHistRet = SEED_HIST[SEED_HIST.length-1][1];
+  entries26.forEach(e=>{
+    const adjRet = (1+lastHistRet/100)*(1+e.ret/100)*100-100;
+    navSeries.push(1000*(1+adjRet/100));
+  });
+  const allDailyRets = navSeries.slice(1).map((v,i)=>navSeries[i]>0?(v-navSeries[i])/navSeries[i]*100:0);
+  const allMean = allDailyRets.reduce((s,v)=>s+v,0)/allDailyRets.length;
+  const allVar = allDailyRets.reduce((s,v)=>s+(v-allMean)**2,0)/allDailyRets.length;
+  const volAnnual = Math.sqrt(allVar) * Math.sqrt(252);
+  const totalDays = (()=>{ try{ const s=new Date(SEED_HIST[0][0]),e=new Date(entries26[entries26.length-1].d); return (e-s)/86400000; } catch{return 845;} })();
+  const years = totalDays/365;
+  const finalNav = navSeries[navSeries.length-1];
+  const cagr = ((finalNav/1000)**(1/years)-1)*100;
+  const sharpe = volAnnual>0 ? ((cagr-3)/volAnnual).toFixed(2) : '—';
+
+  // 최악의 하루
+  const worst = entries26.reduce((a,b)=>(b.pnl||0)<(a.pnl||0)?b:a, entries26[0]);
+
+  document.getElementById('risk-stats').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="padding:10px 14px;background:var(--bg3);border-radius:10px;border:1px solid rgba(251,113,133,0.3)">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">MDD 전체 (24~26년)</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:11px;color:var(--subtle)">${all.pk.slice(5)} → ${all.tr.slice(5)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--dn)">-${all.mdd.toFixed(2)}%</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid rgba(251,113,133,0.2);text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:5px">2024년</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--dn)">-${m24.mdd.toFixed(1)}%</div>
+        </div>
+        <div style="padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid rgba(253,224,71,0.2);text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:5px">2025년</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--am)">-${m25.mdd.toFixed(1)}%</div>
+        </div>
+        <div style="padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid rgba(74,222,128,0.2);text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:5px">2026년</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--up)">-${m26.mdd.toFixed(1)}%</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+        <div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">일별 변동성 (26년)</div>
+          <div style="font-size:11px;color:var(--subtle);margin-top:2px">표준편차</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--am)">${vol.toFixed(2)}%</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:10px;border:1px solid rgba(192,132,252,0.2)">
+        <div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">샤프 비율 (24~26년)</div>
+          <div style="font-size:11px;color:var(--subtle);margin-top:2px">CAGR / 연환산 변동성</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--pu)">${sharpe}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:10px;border:1px solid rgba(251,113,133,0.15)">
+        <div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">최악의 하루</div>
+          <div style="font-size:11px;color:var(--subtle);margin-top:2px">${worst?.d||'—'}</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--dn)">${Math.round((worst?.pnl||0)/10000)}만</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  매매 승률
+// ═══════════════════════════════════════════════
+function buildWinStats(){
+  const el = document.getElementById('win-stats');
+  if(!el) return;
+  const days = entries26.filter(e=>e.pnl!==0);
+  const wins = days.filter(e=>e.pnl>0);
+  const losses = days.filter(e=>e.pnl<0);
+  const winRate = days.length>0 ? (wins.length/days.length*100).toFixed(1) : 0;
+  const avgWin = wins.length>0 ? wins.reduce((s,e)=>s+e.pnl,0)/wins.length : 0;
+  const avgLoss = losses.length>0 ? Math.abs(losses.reduce((s,e)=>s+e.pnl,0)/losses.length) : 0;
+  const profitFactor = avgLoss>0 ? (avgWin/avgLoss).toFixed(2) : '—';
+
+  // 최고/최저 기록
+  const best = entries26.reduce((a,b)=>b.ret>a.ret?b:a, entries26[0]);
+  const worst = entries26.reduce((a,b)=>b.pnl<a.pnl?b:a, entries26[0]);
+  const bestDay = entries26.reduce((a,b)=>b.pnl>a.pnl?b:a, entries26[0]);
+
+  // 승률 도넛
+  const winPct = parseFloat(winRate);
+  const losePct = 100 - winPct;
+
+  document.getElementById('win-stats').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:16px;padding:14px;background:var(--bg3);border-radius:10px;border:1px solid rgba(74,222,128,0.2)">
+        <div style="position:relative;width:72px;height:72px;flex-shrink:0">
+          <svg viewBox="0 0 36 36" style="width:72px;height:72px;transform:rotate(-90deg)">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(251,113,133,0.2)" stroke-width="3"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4ade80" stroke-width="3"
+              stroke-dasharray="${winPct} ${losePct}" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--up)">${winRate}%</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">26년 매매 승률</div>
+          <div style="display:flex;gap:12px;font-size:12px">
+            <span style="color:var(--up)">✅ ${wins.length}승</span>
+            <span style="color:var(--dn)">❌ ${losses.length}패</span>
+            <span style="color:var(--muted)">${days.length}매매일</span>
+          </div>
+          <div style="margin-top:6px;font-size:11px;color:var(--muted)">수익배수 <span style="color:var(--pu);font-weight:700">${profitFactor}x</span></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:10px;border:1px solid rgba(74,222,128,0.15)">
+        <div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">평균 수익</div>
+          <div style="font-size:11px;color:var(--subtle);margin-top:2px">수익난 날 평균</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--up)">+${Math.round(avgWin/10000)}만</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:10px;border:1px solid rgba(251,113,133,0.15)">
+        <div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">평균 손실</div>
+          <div style="font-size:11px;color:var(--subtle);margin-top:2px">손실난 날 평균</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--dn)">-${Math.round(avgLoss/10000)}만</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:10px;border:1px solid rgba(34,211,238,0.2)">
+        <div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">🏆 최고 수익률 달성일</div>
+          <div style="font-size:11px;color:var(--subtle);margin-top:2px">${best?.d||'—'}</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--acc2)">+${best?.ret?.toFixed(2)||0}%</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:10px;border:1px solid rgba(74,222,128,0.15)">
+        <div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">💰 최고 수익 하루</div>
+          <div style="font-size:11px;color:var(--subtle);margin-top:2px">${bestDay?.d||'—'}</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--up)">+${Math.round((bestDay?.pnl||0)/10000)}만</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  코스피 초과수익 (α) 차트
+// ═══════════════════════════════════════════════
+let chAlpha = null;
+function buildAlphaChart(){
+  const data = getFullData();
+  if(pfRange!=='all') { // 전체 뷰에서만 의미있음
+    const d26 = entries26.filter(e=>e.ret!==undefined);
+    const labels = d26.map(e=>e.d.slice(5));
+    const alphas = d26.map(e=>(e.ret||0)-(e.kospi||0));
+    if(chAlpha) chAlpha.destroy();
+    chAlpha = new Chart(document.getElementById('ch-alpha'),{
+      type:'line',
+      data:{labels, datasets:[{
+        label:'α (초과수익)',
+        data:alphas,
+        borderColor:'#c084fc',
+        backgroundColor: alphas.map(v=>v>=0?'rgba(192,132,252,0.08)':'rgba(251,113,133,0.08)'),
+        borderWidth:2, tension:0.3, fill:true, pointRadius:0, pointHoverRadius:5,
+        pointHoverBackgroundColor:'#c084fc',
+        segment:{
+          borderColor: ctx => ctx.p0.parsed.y >= 0 ? '#c084fc' : '#fb7185',
+        }
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},
+          tooltip:{...TT,callbacks:{label:c=>` α: ${c.parsed.y>=0?'+':''}${c.parsed.y.toFixed(2)}%p`}},
+          annotation:{annotations:{zero:{type:'line',yMin:0,yMax:0,borderColor:'rgba(255,255,255,0.15)',borderWidth:1}}}
+        },
+        scales:{x:{grid:{display:false},ticks:{maxTicksLimit:12}},
+          y:{grid:{color:gc},ticks:{callback:v=>v.toFixed(0)+'%p'}}}
+      }
+    });
+    return;
+  }
+  const labels = data.map(d=>d.d.slice(5));
+  const alphas = data.map(d=>(d.ret||0)-(d.kospi||0));
+  if(chAlpha) chAlpha.destroy();
+  chAlpha = new Chart(document.getElementById('ch-alpha'),{
+    type:'line',
+    data:{labels, datasets:[{
+      label:'α (초과수익)',
+      data:alphas,
+      borderColor:'#c084fc', backgroundColor:'rgba(192,132,252,0.06)',
+      borderWidth:2, tension:0.3, fill:true, pointRadius:0, pointHoverRadius:5,
+      segment:{borderColor: ctx=>ctx.p0.parsed.y>=0?'#c084fc':'#fb7185'}
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{...TT,callbacks:{label:c=>` α: ${c.parsed.y>=0?'+':''}${c.parsed.y.toFixed(2)}%p`}}},
+      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:12}},
+        y:{grid:{color:gc},ticks:{callback:v=>v.toFixed(0)+'%p'}}}
+    }
+  });
+}
 // ═══════════════════════════════════════════════
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth(); // 0-indexed
@@ -703,6 +1095,7 @@ function buildPf(){
   buildFullChart();
   buildPnlCharts();
   buildCalendar();
+  buildAlphaChart();
 }
 
 function getFullData(){
