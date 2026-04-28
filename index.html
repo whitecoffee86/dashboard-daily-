@@ -207,56 +207,53 @@ tr:hover td{background:rgba(34,211,238,0.04)}
       <span id="goal-badge" class="pill p-acc">—</span>
     </div>
 
-    <!-- 상단: 원형 게이지 + 수치 -->
-    <div style="display:flex;align-items:center;gap:24px;margin-bottom:20px">
-      <!-- 원형 SVG 게이지 -->
-      <div style="position:relative;flex-shrink:0;width:120px;height:120px">
-        <svg viewBox="0 0 120 120" style="width:120px;height:120px;transform:rotate(-90deg)">
-          <!-- 배경 원 -->
-          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
-          <!-- 진행 원 -->
-          <circle id="goal-circle" cx="60" cy="60" r="50" fill="none"
-            stroke="url(#goalGrad)" stroke-width="10"
-            stroke-linecap="round"
-            stroke-dasharray="314" stroke-dashoffset="314"
-            style="transition:stroke-dashoffset 1s ease"/>
-          <defs>
-            <linearGradient id="goalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#22d3ee"/>
-              <stop offset="100%" stop-color="#4ade80"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <!-- 중앙 텍스트 -->
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-          <div id="goal-pct-lbl" style="font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--acc2);line-height:1">—</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px">달성</div>
+    <div style="display:flex;gap:24px;align-items:stretch">
+      <!-- 왼쪽: 도넛 + 수치 -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0;width:160px">
+        <!-- 도넛 SVG -->
+        <div style="position:relative;width:140px;height:140px">
+          <svg viewBox="0 0 120 120" style="width:140px;height:140px;transform:rotate(-90deg)">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12"/>
+            <circle id="goal-circle" cx="60" cy="60" r="50" fill="none"
+              stroke="url(#goalGrad)" stroke-width="12"
+              stroke-linecap="round"
+              stroke-dasharray="314" stroke-dashoffset="314"
+              style="transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);filter:drop-shadow(0 0 8px rgba(34,211,238,0.6))"/>
+            <defs>
+              <linearGradient id="goalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#22d3ee"/>
+                <stop offset="100%" stop-color="#4ade80"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div id="goal-pct-lbl" style="font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--acc2);line-height:1">—</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px">달성</div>
+          </div>
+        </div>
+        <!-- 수치들 -->
+        <div style="width:100%;display:flex;flex-direction:column;gap:8px">
+          <div style="background:linear-gradient(135deg,rgba(34,211,238,0.1),rgba(74,222,128,0.07));border:1px solid rgba(34,211,238,0.25);border-radius:8px;padding:8px 12px;text-align:center">
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">🎯 연간 목표</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--acc2);font-size:18px;margin-top:2px">1억원</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">현재 실현손익</div>
+            <div id="goal-current" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--up);font-size:14px">—</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">목표까지 남은금액</div>
+            <div id="goal-remain" style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px">—</div>
+          </div>
         </div>
       </div>
 
-      <!-- 우측 수치 -->
-      <div style="flex:1;display:flex;flex-direction:column;gap:10px">
-        <div>
-          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">현재 실현손익</div>
-          <div id="goal-current" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--up);font-size:20px">—</div>
-        </div>
-        <div style="height:1px;background:var(--border)"></div>
-        <div style="display:flex;justify-content:space-between">
-          <div>
-            <div style="font-size:10px;color:var(--muted);margin-bottom:3px">목표</div>
-            <div id="goal-target-lbl" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text);font-size:15px">1억원</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:10px;color:var(--muted);margin-bottom:3px">잔여</div>
-            <div id="goal-remain" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--dn);font-size:15px">—</div>
-          </div>
-        </div>
+      <!-- 오른쪽: 누적 달성 추이 차트 (세로로 길게) -->
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">월별 누적 달성 추이</div>
+        <div style="flex:1;min-height:220px"><canvas id="ch-monthly-hist"></canvas></div>
       </div>
     </div>
-
-    <!-- 월별 달성 히스토리 -->
-    <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">월별 실현손익 히스토리</div>
-    <div style="height:130px"><canvas id="ch-monthly-hist"></canvas></div>
   </div>
 
   <!-- MDD + 통계 -->
@@ -740,35 +737,59 @@ function buildGoalGauge(){
 
   if(pctEl) pctEl.textContent = pct.toFixed(1) + '%';
   const remain = Math.max(GOAL - totalRealized, 0);
-  if(remainEl) remainEl.textContent = remain > 0 ? '-' + remain.toLocaleString() + '원' : '✅ 달성!';
-  if(remainEl) remainEl.style.color = remain > 0 ? 'var(--dn)' : 'var(--up)';
+  if(remainEl){
+    if(remain > 0){
+      remainEl.textContent = Math.round(remain/10000).toLocaleString() + '만원';
+      remainEl.style.color = 'var(--text)';
+    } else {
+      remainEl.textContent = '🎉 목표 달성!';
+      remainEl.style.color = 'var(--up)';
+    }
+  }
 
   if(totalRealized >= GOAL){ badgeEl.textContent='🎉 달성!'; badgeEl.className='pill p-up'; }
   else if(pct >= 70){ badgeEl.textContent='순항 중 🚀'; badgeEl.className='pill p-acc'; }
   else if(pct >= 40){ badgeEl.textContent='진행 중'; badgeEl.className='pill p-nu'; }
   else { badgeEl.textContent='초반'; badgeEl.className='pill p-nu'; }
 
-  // 월별 실현손익 히스토리 차트
+  // 월별 누적 달성 라인차트
   const keys = Object.keys(realizedMap).filter(k=>k.startsWith('2026')).sort();
   const labels = keys.map(k=>k.slice(5)+'월');
   const vals = keys.map(k=>realizedMap[k]);
-  const maxV = Math.max(...vals, 1);
+  // 누적값
+  const cumVals = []; let cum=0;
+  vals.forEach(v=>{ cum+=v; cumVals.push(cum); });
+  const goalLine = keys.map(()=>GOAL); // 목표 기준선
+
   const canvasEl = document.getElementById('ch-monthly-hist');
   if(!canvasEl) return;
   if(chMonthlyHist) chMonthlyHist.destroy();
   chMonthlyHist = new Chart(canvasEl,{
-    type:'bar',
-    data:{labels, datasets:[{
-      label:'실현손익', data:vals,
-      backgroundColor: vals.map(v=>{
-        const ratio = v/maxV;
-        return `rgba(${Math.round(74-ratio*30)},${Math.round(222-ratio*10)},${Math.round(128-ratio*60)},${0.6+ratio*0.35})`;
-      }),
-      borderRadius:7, borderSkipped:false,
-    }]},
+    type:'line',
+    data:{labels, datasets:[
+      {
+        label:'누적 실현손익', data:cumVals,
+        borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,0.08)',
+        borderWidth:2.5, tension:0.4, fill:true,
+        pointRadius:5, pointBackgroundColor:'#22d3ee',
+        pointBorderColor:'#0d1117', pointBorderWidth:2,
+      },
+      {
+        label:'목표 (1억)', data:goalLine,
+        borderColor:'rgba(74,222,128,0.5)', backgroundColor:'transparent',
+        borderWidth:1.5, borderDash:[6,4], pointRadius:0, tension:0,
+      },
+    ]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.parsed.y.toLocaleString()}원`}}},
-      scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+      plugins:{
+        legend:{labels:{color:'#5c6b7e',boxWidth:10,padding:10,font:{size:10}}},
+        tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}원`}}
+      },
+      scales:{
+        x:{grid:{display:false}},
+        y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'},
+          min:0, suggestedMax:GOAL*1.05}
+      }
     }
   });
 }
