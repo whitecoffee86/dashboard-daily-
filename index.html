@@ -250,9 +250,21 @@ tr:hover td{background:rgba(34,211,238,0.04)}
 
       <!-- 오른쪽: 누적 달성 추이 차트 (세로로 길게) -->
       <div style="flex:1;display:flex;flex-direction:column">
-        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">월별 누적 달성 추이</div>
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">일별 누적 달성 추이</div>
         <div style="flex:1;min-height:220px"><canvas id="ch-monthly-hist"></canvas></div>
       </div>
+    </div>
+  </div>
+
+  <!-- 스트릭 + 페이스 체커 -->
+  <div class="g2">
+    <div class="card">
+      <div class="sec">🔥 수익 스트릭</div>
+      <div id="streak-stats"></div>
+    </div>
+    <div class="card">
+      <div class="sec">🎯 목표 달성 페이스</div>
+      <div id="pace-stats"></div>
     </div>
   </div>
 
@@ -302,6 +314,17 @@ tr:hover td{background:rgba(34,211,238,0.04)}
     <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid var(--border)">
       <span style="font-size:12px;color:var(--muted)">이달 실현손익 합계</span>
       <span id="cal-month-total" style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--up)">—</span>
+    </div>
+  </div>
+  <!-- 요일별 + 분포 -->
+  <div class="g2">
+    <div class="card">
+      <div class="sec">요일별 평균 손익</div>
+      <div style="height:200px"><canvas id="ch-weekday"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="sec">일별 손익 분포</div>
+      <div style="height:200px"><canvas id="ch-dist"></canvas></div>
     </div>
   </div>
   <!-- 수익금 히스토리 -->
@@ -373,6 +396,11 @@ tr:hover td{background:rgba(34,211,238,0.04)}
       </div>
       <div id="life-verdict" style="margin-top:12px;text-align:center;padding:13px;border-radius:10px"></div>
     </div>
+  </div>
+  <!-- 월별 생활비 달성 히스토리 -->
+  <div class="card">
+    <div class="sec">월별 생활비 달성 히스토리</div>
+    <div style="height:200px"><canvas id="ch-life-hist"></canvas></div>
   </div>
 </div>
 
@@ -700,6 +728,8 @@ function buildOv(){
   buildGoalGauge();
   buildRiskStats();
   buildWinStats();
+  buildStreak();
+  buildPaceChecker();
 }
 
 // ═══════════════════════════════════════════════
@@ -711,6 +741,210 @@ let chFull=null, chMBar=null;
 //  연간 목표 게이지 (실현손익 1억 기준)
 // ═══════════════════════════════════════════════
 let chMonthlyHist = null;
+// ═══════════════════════════════════════════════
+//  스트릭 (연속 수익일)
+// ═══════════════════════════════════════════════
+function buildStreak(){
+  const el = document.getElementById('streak-stats');
+  if(!el) return;
+  const days = [...entries26].sort((a,b)=>a.d>b.d?1:-1);
+  // 현재 연속 수익일
+  let cur = 0;
+  for(let i=days.length-1;i>=0;i--){
+    if((days[i].pnl||0) > 0) cur++;
+    else break;
+  }
+  // 최장 연속 수익일
+  let best = 0, tmp = 0;
+  days.forEach(d=>{ if((d.pnl||0)>0){tmp++;best=Math.max(best,tmp);}else tmp=0; });
+  // 현재 연속 손실일
+  let curLoss = 0;
+  for(let i=days.length-1;i>=0;i--){
+    if((days[i].pnl||0) < 0) curLoss++;
+    else break;
+  }
+
+  const fireColor = cur >= 5 ? 'var(--up)' : cur >= 3 ? 'var(--am)' : 'var(--acc)';
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="text-align:center;padding:16px;background:var(--bg3);border-radius:12px;border:1px solid ${cur>0?'rgba(74,222,128,0.3)':'var(--border)'}">
+        <div style="font-size:36px;margin-bottom:4px">${cur>=5?'🔥':cur>=3?'⚡':'📈'}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:40px;font-weight:700;color:${fireColor};line-height:1">${cur}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">현재 연속 수익일</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid rgba(74,222,128,0.2);text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">🏆 최장 스트릭</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--up)">${best}일</div>
+        </div>
+        <div style="padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid ${curLoss>0?'rgba(251,113,133,0.2)':'var(--border)'};text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">현재 연속 손실</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:${curLoss>0?'var(--dn)':'var(--muted)'}">${curLoss}일</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  페이스 체커
+// ═══════════════════════════════════════════════
+function buildPaceChecker(){
+  const el = document.getElementById('pace-stats');
+  if(!el) return;
+  const GOAL = 100000000;
+  const realizedMap={};
+  entries26.forEach(e=>{
+    const ym=e.d.slice(0,7);
+    realizedMap[ym]=(realizedMap[ym]||0)+(e.realized||0);
+  });
+  const totalRealized = Object.values(realizedMap).reduce((s,v)=>s+v,0);
+  const months = Object.keys(realizedMap).filter(k=>k.startsWith('2026')).sort();
+  const elapsed = months.length; // 경과 월
+  if(elapsed === 0){ el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">데이터 없음</div>'; return; }
+
+  const avgPerMonth = totalRealized / elapsed;
+  const remain = Math.max(GOAL - totalRealized, 0);
+  const monthsNeeded = avgPerMonth > 0 ? remain / avgPerMonth : 999;
+  // 현재 월 기준 달성 예상
+  const now = new Date();
+  const targetDate = new Date(now.getFullYear(), now.getMonth() + Math.ceil(monthsNeeded), 1);
+  const targetStr = targetDate.getFullYear() + '년 ' + (targetDate.getMonth()+1) + '월';
+
+  const paceColor = monthsNeeded <= 3 ? 'var(--up)' : monthsNeeded <= 6 ? 'var(--am)' : 'var(--acc)';
+  const paceEmoji = monthsNeeded <= 3 ? '🚀' : monthsNeeded <= 6 ? '⚡' : '🎯';
+
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="padding:14px;background:var(--bg3);border-radius:12px;border:1px solid rgba(34,211,238,0.2);text-align:center">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">예상 달성 시점</div>
+        <div style="font-size:11px;margin-bottom:4px">${paceEmoji}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:${paceColor}">${remain<=0?'이미 달성!':targetStr}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="padding:10px 12px;background:var(--bg3);border-radius:10px;text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">월평균 실현</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--acc2)">${Math.round(avgPerMonth/10000)}만</div>
+        </div>
+        <div style="padding:10px 12px;background:var(--bg3);border-radius:10px;text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">남은 기간</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:${paceColor}">${remain<=0?'—':Math.ceil(monthsNeeded)+'개월'}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  요일별 평균 손익
+// ═══════════════════════════════════════════════
+let chWeekday = null;
+function buildWeekdayChart(){
+  const el = document.getElementById('ch-weekday');
+  if(!el) return;
+  const dow = ['일','월','화','수','목','금','토'];
+  const sumMap = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  const cntMap = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  entries26.forEach(e=>{
+    if(!e.pnl) return;
+    const d = new Date(e.d).getDay();
+    sumMap[d] += e.pnl;
+    cntMap[d]++;
+  });
+  // 거래일(월~금)만
+  const labels = [1,2,3,4,5].map(d=>dow[d]);
+  const vals = [1,2,3,4,5].map(d=>cntMap[d]>0?Math.round(sumMap[d]/cntMap[d]):0);
+  if(chWeekday) chWeekday.destroy();
+  chWeekday = new Chart(el,{
+    type:'bar',
+    data:{labels, datasets:[{
+      label:'평균 손익', data:vals,
+      backgroundColor: vals.map(v=>v>=0?'rgba(74,222,128,0.7)':'rgba(251,113,133,0.7)'),
+      borderRadius:8, borderSkipped:false,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.parsed.y.toLocaleString()}원`}}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  일별 손익 분포 히스토그램
+// ═══════════════════════════════════════════════
+let chDist = null;
+function buildDistChart(){
+  const el = document.getElementById('ch-dist');
+  if(!el) return;
+  const pnls = entries26.map(e=>e.pnl||0).filter(v=>v!==0);
+  if(!pnls.length) return;
+  // 구간: -600만~+600만, 100만 단위
+  const step = 1000000;
+  const min = -6, max = 6; // 단위: 100만
+  const buckets = [];
+  for(let i=min;i<max;i++) buckets.push({label:`${i>=0?'+':''}${i}M`, from:i*step, to:(i+1)*step, count:0});
+  pnls.forEach(v=>{
+    const idx = Math.floor(v/step) - min;
+    if(idx>=0 && idx<buckets.length) buckets[idx].count++;
+  });
+  if(chDist) chDist.destroy();
+  chDist = new Chart(el,{
+    type:'bar',
+    data:{
+      labels: buckets.map(b=>b.label),
+      datasets:[{
+        label:'빈도', data:buckets.map(b=>b.count),
+        backgroundColor: buckets.map(b=>b.from>=0?'rgba(74,222,128,0.7)':'rgba(251,113,133,0.7)'),
+        borderRadius:4, borderSkipped:false,
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.parsed.y}일`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:gc},ticks:{stepSize:1}}}
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  월별 생활비 달성 히스토리
+// ═══════════════════════════════════════════════
+let chLifeHist = null;
+function buildLifeHist(){
+  const el = document.getElementById('ch-life-hist');
+  if(!el) return;
+  // 월별 실현손익 vs 목표
+  const realizedMap={};
+  entries26.forEach(e=>{
+    const ym=e.d.slice(0,7);
+    realizedMap[ym]=(realizedMap[ym]||0)+(e.realized||0);
+  });
+  const keys = Object.keys(realizedMap).filter(k=>k.startsWith('2026')).sort();
+  const labels = keys.map(k=>k.slice(5)+'월');
+  const vals = keys.map(k=>realizedMap[k]);
+  const goal = lifeCfg.goal;
+  if(chLifeHist) chLifeHist.destroy();
+  chLifeHist = new Chart(el,{
+    type:'bar',
+    data:{labels, datasets:[
+      {
+        label:'실현손익', data:vals,
+        backgroundColor: vals.map(v=>v>=goal?'rgba(74,222,128,0.8)':'rgba(34,211,238,0.6)'),
+        borderRadius:8, borderSkipped:false,
+      },
+      {
+        label:`목표 (${Math.round(goal/10000)}만)`,
+        data:keys.map(()=>goal),
+        type:'line', borderColor:'rgba(251,113,133,0.7)',
+        borderWidth:2, borderDash:[6,4], pointRadius:0, fill:false,
+      }
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#5c6b7e',boxWidth:10,padding:10,font:{size:10}}},
+        tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}원`}}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+    }
+  });
+}
+
 function buildGoalGauge(){
   const GOAL = 100000000; // 1억
   const realizedMap={};
@@ -752,31 +986,30 @@ function buildGoalGauge(){
   else if(pct >= 40){ badgeEl.textContent='진행 중'; badgeEl.className='pill p-nu'; }
   else { badgeEl.textContent='초반'; badgeEl.className='pill p-nu'; }
 
-  // 월별 누적 달성 라인차트
-  const keys = Object.keys(realizedMap).filter(k=>k.startsWith('2026')).sort();
-  const labels = keys.map(k=>k.slice(5)+'월');
-  const vals = keys.map(k=>realizedMap[k]);
-  // 누적값
-  const cumVals = []; let cum=0;
-  vals.forEach(v=>{ cum+=v; cumVals.push(cum); });
-  const goalLine = keys.map(()=>GOAL); // 목표 기준선
+  // 일별 누적 달성 라인차트
+  const sortedDays = [...entries26].sort((a,b)=>a.d>b.d?1:-1);
+  const dlabels = sortedDays.map(e=>e.d.slice(5));
+  let dcum=0;
+  const dcumVals = sortedDays.map(e=>{ dcum+=(e.realized||0); return dcum; });
+  const dgoalLine = sortedDays.map(()=>GOAL);
 
   const canvasEl = document.getElementById('ch-monthly-hist');
   if(!canvasEl) return;
   if(chMonthlyHist) chMonthlyHist.destroy();
   chMonthlyHist = new Chart(canvasEl,{
     type:'line',
-    data:{labels, datasets:[
+    data:{labels:dlabels, datasets:[
       {
-        label:'누적 실현손익', data:cumVals,
+        label:'누적 실현손익', data:dcumVals,
         borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,0.08)',
-        borderWidth:2.5, tension:0.4, fill:true,
-        pointRadius:5, pointBackgroundColor:'#22d3ee',
+        borderWidth:2.5, tension:0.3, fill:true,
+        pointRadius:0, pointHoverRadius:5,
+        pointBackgroundColor:'#22d3ee',
         pointBorderColor:'#0d1117', pointBorderWidth:2,
       },
       {
-        label:'목표 (1억)', data:goalLine,
-        borderColor:'rgba(74,222,128,0.5)', backgroundColor:'transparent',
+        label:'목표 (1억)', data:dgoalLine,
+        borderColor:'rgba(74,222,128,0.6)', backgroundColor:'transparent',
         borderWidth:1.5, borderDash:[6,4], pointRadius:0, tension:0,
       },
     ]},
@@ -786,7 +1019,7 @@ function buildGoalGauge(){
         tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}원`}}
       },
       scales:{
-        x:{grid:{display:false}},
+        x:{grid:{display:false},ticks:{maxTicksLimit:8,font:{size:9}}},
         y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'},
           min:0, suggestedMax:GOAL*1.05}
       }
@@ -1117,6 +1350,8 @@ function buildPf(){
   buildPnlCharts();
   buildCalendar();
   buildAlphaChart();
+  buildWeekdayChart();
+  buildDistChart();
 }
 
 function getFullData(){
@@ -1473,6 +1708,7 @@ function buildLife(){
       </div>
     </div>`;
   }).join('');
+  buildLifeHist();
 }
 
 // ═══════════════════════════════════════════════
