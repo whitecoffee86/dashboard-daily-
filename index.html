@@ -393,8 +393,8 @@ const DEFAULT_PROJECTS=[
   {cat:'공사비확보',name:'아산탕정자이퍼스트시티(1BL)',  values:[null,null,null,null,null,null]},
   {cat:'공사비확보',name:'아산탕정자이센트럴시티(2BL)',  values:[null,null,null,null,null,null]},
   {cat:'신규',name:'구리역 하이니티 리버파크',         values:[null,53,5,1,null,null]},
-  {cat:'신규',name:'아산탕정자이메트로시티',           values:[null,null,null,null,null,null]},
-  {cat:'신규',name:'창원자이더스카이',                 values:[null,null,null,null,null,null]},
+  {cat:'신규',name:'아산탕정자이메트로시티',           values:[null,null,null,89,null,null]},
+  {cat:'신규',name:'창원자이더스카이',                 values:[null,null,null,46,null,null]},
 ];
 
 function loadSaved(){try{const s=localStorage.getItem('ctr_v9');if(s)return JSON.parse(s);}catch(e){}return null;}
@@ -440,9 +440,9 @@ const DEFAULT_DAILY_LOG=[
   {date:'26/05/12',total:11,bycat:{'집중관리':0,'일반':11,'공사비확보':0,'신규':0}},
   {date:'26/05/13',total:26,bycat:{'집중관리':1,'일반':25,'공사비확보':0,'신규':0}},
   {date:'26/05/14',total:0, bycat:{'집중관리':0,'일반':0, '공사비확보':0,'신규':0}},
-  {date:'26/05/15',total:3, bycat:{'집중관리':0,'일반':3, '공사비확보':0,'신규':0}},
-  {date:'26/05/16',total:10,bycat:{'집중관리':0,'일반':10,'공사비확보':0,'신규':0}},
-  {date:'26/05/17',total:6, bycat:{'집중관리':0,'일반':6, '공사비확보':0,'신규':0}},
+  {date:'26/05/15',total:19, bycat:{'집중관리':0,'일반':3, '공사비확보':0,'신규':16}},
+  {date:'26/05/16',total:111,bycat:{'집중관리':0,'일반':10,'공사비확보':0,'신규':101}},
+  {date:'26/05/17',total:24, bycat:{'집중관리':0,'일반':6, '공사비확보':0,'신규':18}},
 ];
 let dailyLog=sv&&sv.dailyLog&&sv.dailyLog.length?sv.dailyLog:JSON.parse(JSON.stringify(DEFAULT_DAILY_LOG));
 
@@ -468,8 +468,8 @@ let dailyProjects=[
   {cat:'공사비확보',name:'아산탕정자이퍼스트시티(1BL)',   supply:797, prev:730, today:0},
   {cat:'공사비확보',name:'아산탕정자이센트럴시티(2BL)',   supply:1238,prev:1202,today:0},
   {cat:'신규',name:'구리역 하이니티 리버파크',          supply:505, prev:408, today:0},
-  {cat:'신규',name:'아산탕정자이메트로시티',            supply:1638,prev:1032,today:0},
-  {cat:'신규',name:'창원자이더스카이',                  supply:509, prev:78,  today:0},
+  {cat:'신규',name:'아산탕정자이메트로시티',            supply:1638,prev:1114,today:7},
+  {cat:'신규',name:'창원자이더스카이',                  supply:509, prev:113, today:11},
 ];
 
 /* 유틸 */
