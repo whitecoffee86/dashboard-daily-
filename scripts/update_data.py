@@ -15,7 +15,7 @@ EXCEL_PATH = Path('_단기투자_INPUT.xlsx')
 DATA_DIR   = Path('data')
 KOSPI_BASE = 4214.17    # 2026-01-01 기준값
 NAV_BASE   = 1000.0
-GOAL       = 100_000_000
+GOAL       = 10_000_000   # 생활비 게임 월 목표 (1000만)
 
 LIFE_ITEMS = [
     {'name': '생활비', 'target': 3_500_000},
@@ -62,9 +62,9 @@ def calc_nav_series(df: pd.DataFrame) -> list:
         ret   = round((nav / NAV_BASE - 1) * 100, 4)
         kospi = round((kp - KOSPI_BASE) / KOSPI_BASE * 100, 4)
 
-        # 당일손익
+        # 당일손익 (첫날은 초기 입금이므로 0)
         prev_end = rows[-1]['end'] if rows else end
-        pnl = end - prev_end - io
+        pnl = 0 if i == 0 else end - prev_end - io
 
         rows.append({
             'd':        r['date'],
