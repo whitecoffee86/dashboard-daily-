@@ -1,5 +1,5 @@
 """
-_단기투자_.xlsx 의 INPUT 시트를 읽어서
+_단기투자_INPUT.xlsx 의 INPUT 시트를 읽어서
 data/daily.json, data/accounts.json, data/monthly.json 을 갱신한다.
 
 NAV 계산 공식 (엑셀 역추적으로 검증 완료):
