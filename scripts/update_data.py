@@ -84,9 +84,18 @@ def calc_nav_series(df: pd.DataFrame) -> list:
 
 def build_monthly(rows: list) -> dict:
     from collections import defaultdict
-    monthly = defaultdict(int)
+    # 1~5월 확정 실현손익 (월수익 시트 고정값)
+    monthly = defaultdict(int, {
+        '2026-01': 7215472,
+        '2026-02': 6907829,
+        '2026-03': 7159542,
+        '2026-04': 13471723,
+        '2026-05': 14703327,
+    })
     for r in rows:
-        monthly[r['d'][:7]] += r['realized']
+        ym = r['d'][:7]
+        if ym >= '2026-06':  # 6월 이후만 INPUT 시트에서 집계
+            monthly[ym] += r['realized']
 
     # 이달 생활비 충당 계산
     this_month = max(monthly.keys()) if monthly else ''
