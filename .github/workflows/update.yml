@@ -3,7 +3,7 @@ name: Update Dashboard Data
 on:
   push:
     paths:
-      - '_단기투자_INPUT.xlsx'   # 엑셀 파일 push 시 자동 실행
+      - 'input.xlsx'   # 엑셀 파일 push 시 자동 실행
   workflow_dispatch:          # 수동 실행 버튼도 제공
 
 jobs:
