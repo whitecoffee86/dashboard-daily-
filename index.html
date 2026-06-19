@@ -180,17 +180,22 @@ tr:hover td{background:rgba(34,211,238,0.04)}
   th{padding:5px 7px;font-size:9px;letter-spacing:0.5px}
   td{padding:6px 7px}
   td:not(:first-child){font-size:11px}
-  .goal-flex{flex-direction:column !important;gap:14px !important}
-  .goal-left{width:100% !important;flex-direction:row !important;align-items:center !important;gap:14px !important}
-  .goal-right{min-height:160px !important}
+  /* 연간 목표 – 세로 스택 */
+  .goal-flex{flex-direction:column !important;gap:12px !important}
+  .goal-left{flex-direction:row !important;width:100% !important;align-items:center !important;gap:14px !important;flex-shrink:0 !important}
+  .goal-chart-area{width:100% !important;min-width:0 !important;overflow:hidden !important}
+  .goal-right{min-height:160px !important;width:100% !important;overflow:hidden !important}
+  /* 달력 */
   .cal-wrap{gap:2px}
   .cal-day{min-height:34px;padding:3px 2px;border-radius:5px}
   .cal-val{font-size:8px}
   .cal-dn{font-size:8px}
   .cal-dow{font-size:9px;padding:3px 0}
+  /* 생활비 */
   .life-row{margin-bottom:9px}
   .lrow-name{font-size:12px}
   .lrow-amt{font-size:10px}
+  /* 입력폼 */
   .fgrid{grid-template-columns:1fr !important}
   .fi{font-size:16px}
   .stat2{grid-template-columns:1fr 1fr}
@@ -248,9 +253,9 @@ tr:hover td{background:rgba(34,211,238,0.04)}
       <span id="goal-badge" class="pill p-acc">—</span>
     </div>
  
-    <div style="display:flex;gap:24px;align-items:stretch">
+    <div class="goal-flex" style="display:flex;gap:24px;align-items:stretch">
       <!-- 왼쪽: 도넛 + 수치 -->
-      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0;width:160px">
+      <div class="goal-left" style="display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0;width:160px">
         <!-- 도넛 SVG -->
         <div style="position:relative;width:140px;height:140px">
           <svg viewBox="0 0 120 120" style="width:140px;height:140px;transform:rotate(-90deg)">
@@ -290,9 +295,9 @@ tr:hover td{background:rgba(34,211,238,0.04)}
       </div>
  
       <!-- 오른쪽: 누적 달성 추이 차트 (세로로 길게) -->
-      <div style="flex:1;display:flex;flex-direction:column">
+      <div class="goal-chart-area" style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
         <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">일별 누적 달성 추이</div>
-        <div style="flex:1;min-height:220px"><canvas id="ch-monthly-hist"></canvas></div>
+        <div class="goal-right" style="flex:1;min-height:180px;min-width:0;overflow:hidden"><canvas id="ch-monthly-hist"></canvas></div>
       </div>
     </div>
   </div>
@@ -386,7 +391,7 @@ tr:hover td{background:rgba(34,211,238,0.04)}
       </div>
     </div>
     <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="pnl-tbl-title">수익금 내역</div>
-    <div style="max-height:340px;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <div style="max-height:340px;overflow-y:auto">
       <table id="pnl-table">
         <thead id="pnl-thead"></thead>
         <tbody id="pnl-tbody"></tbody>
