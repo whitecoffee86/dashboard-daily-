@@ -156,6 +156,47 @@ tr:hover td{background:rgba(34,211,238,0.04)}
 .life-tbl td{padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.03)}
 .life-tbl td input{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;width:100%;transition:border-color 0.15s}
 .life-tbl td input:focus{border-color:var(--acc-border)}
+ 
+@media(max-width:600px){
+  .hdr{padding:10px 14px;flex-wrap:wrap;gap:6px}
+  .hdr-title{font-size:13px}
+  .hdr-sub{font-size:10px}
+  .hdr-badge{padding:4px 10px;font-size:11px}
+  .tabs{padding:6px 8px 0;gap:1px}
+  .tab{padding:6px 8px 8px;font-size:11px;white-space:nowrap}
+  .content{padding:10px 8px}
+  .panel{gap:10px}
+  .card{padding:12px 10px;border-radius:10px}
+  .sec{font-size:9px;letter-spacing:1.5px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:7px}
+  .kpi{padding:11px 12px;border-radius:10px}
+  .kpi-val{font-size:16px}
+  .kpi-lbl{font-size:9px}
+  .kpi-sub{font-size:10px}
+  .kpi-icon{font-size:15px}
+  .g2{grid-template-columns:1fr !important}
+  .g11{grid-template-columns:1fr !important}
+  table{font-size:11px}
+  th{padding:5px 7px;font-size:9px;letter-spacing:0.5px}
+  td{padding:6px 7px}
+  td:not(:first-child){font-size:11px}
+  .goal-flex{flex-direction:column !important;gap:14px !important}
+  .goal-left{width:100% !important;flex-direction:row !important;align-items:center !important;gap:14px !important}
+  .goal-right{min-height:160px !important}
+  .cal-wrap{gap:2px}
+  .cal-day{min-height:34px;padding:3px 2px;border-radius:5px}
+  .cal-val{font-size:8px}
+  .cal-dn{font-size:8px}
+  .cal-dow{font-size:9px;padding:3px 0}
+  .life-row{margin-bottom:9px}
+  .lrow-name{font-size:12px}
+  .lrow-amt{font-size:10px}
+  .fgrid{grid-template-columns:1fr !important}
+  .fi{font-size:16px}
+  .stat2{grid-template-columns:1fr 1fr}
+  .toast{bottom:14px;right:10px;left:10px;text-align:center;font-size:12px}
+  .elist .eitem{font-size:11px;gap:5px}
+}
 </style>
 </head>
 <body>
@@ -1968,43 +2009,4 @@ loadData().then(() => {
 });
 </script>
 </body>
-</html>@media(max-width:600px){
-  .hdr{padding:10px 14px;flex-wrap:wrap;gap:6px}
-  .hdr-title{font-size:13px}
-  .hdr-sub{font-size:10px}
-  .hdr-badge{padding:4px 10px;font-size:11px}
-  .tabs{padding:6px 8px 0;gap:1px}
-  .tab{padding:6px 8px 8px;font-size:11px;white-space:nowrap}
-  .content{padding:10px 8px}
-  .panel{gap:10px}
-  .card{padding:12px 10px;border-radius:10px}
-  .sec{font-size:9px;letter-spacing:1.5px}
-  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:7px}
-  .kpi{padding:11px 12px;border-radius:10px}
-  .kpi-val{font-size:16px}
-  .kpi-lbl{font-size:9px}
-  .kpi-sub{font-size:10px}
-  .kpi-icon{font-size:15px}
-  .g2{grid-template-columns:1fr !important}
-  .g11{grid-template-columns:1fr !important}
-  table{font-size:11px}
-  th{padding:5px 7px;font-size:9px;letter-spacing:0.5px}
-  td{padding:6px 7px}
-  td:not(:first-child){font-size:11px}
-  .goal-flex{flex-direction:column !important;gap:14px !important}
-  .goal-left{width:100% !important;flex-direction:row !important;align-items:center !important;gap:14px !important}
-  .goal-right{min-height:160px !important}
-  .cal-wrap{gap:2px}
-  .cal-day{min-height:34px;padding:3px 2px;border-radius:5px}
-  .cal-val{font-size:8px}
-  .cal-dn{font-size:8px}
-  .cal-dow{font-size:9px;padding:3px 0}
-  .life-row{margin-bottom:9px}
-  .lrow-name{font-size:12px}
-  .lrow-amt{font-size:10px}
-  .fgrid{grid-template-columns:1fr !important}
-  .fi{font-size:16px}
-  .stat2{grid-template-columns:1fr 1fr}
-  .toast{bottom:14px;right:10px;left:10px;text-align:center;font-size:12px}
-  .elist .eitem{font-size:11px;gap:5px}
-}
+</html>
