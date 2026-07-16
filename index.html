@@ -516,6 +516,15 @@ async function loadData() {
 const KOSPI_BASE_26  = 4214.17;  // 2026-01-01
 const KOSPI_BASE_ALL = 2655.28;  // 2024-01-01
 
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+// 사용자가 추가한 항목만 별도 저장
+let userEntries = ld('inv_user_entries', []);
+
 let lifeCfg   = {};
 let pfRange   = 'all';
 
