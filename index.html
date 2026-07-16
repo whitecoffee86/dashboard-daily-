@@ -1045,14 +1045,14 @@ function buildRiskStats(){
   const el = document.getElementById('risk-stats');
   if(!el) return;
 
-  // 전체 NAV 시계열 (SEED_HIST + SEED26)
+  // 전체 NAV 시계열 (entriesHist + SEED26)
   const fullNav = [];
-  SEED_HIST.forEach((r,i)=>{
+  entriesHist.forEach((r,i)=>{
     if(i===0){ fullNav.push({d:r[0],nav:1000}); return; }
-    const diff = r[1]-SEED_HIST[i-1][1];
+    const diff = r[1]-entriesHist[i-1][1];
     fullNav.push({d:r[0], nav:fullNav[fullNav.length-1].nav*(1+diff/100)});
   });
-  const lastHR = SEED_HIST[SEED_HIST.length-1][1];
+  const lastHR = entriesHist[entriesHist.length-1][1];
   entries26.forEach(e=>{
     const adj=(1+lastHR/100)*(1+e.ret/100)*100-100;
     fullNav.push({d:e.d, nav:1000*(1+adj/100)});
@@ -1086,12 +1086,12 @@ function buildRiskStats(){
 
   // 샤프 비율 - 전체 기간(24~26년) CAGR 기준
   const navSeries = [];
-  SEED_HIST.forEach((r,i)=>{
+  entriesHist.forEach((r,i)=>{
     if(i===0){ navSeries.push(1000); return; }
-    const retDiff = r[1] - SEED_HIST[i-1][1];
+    const retDiff = r[1] - entriesHist[i-1][1];
     navSeries.push(navSeries[navSeries.length-1] * (1 + retDiff/100));
   });
-  const lastHistRet = SEED_HIST[SEED_HIST.length-1][1];
+  const lastHistRet = entriesHist[entriesHist.length-1][1];
   entries26.forEach(e=>{
     const adjRet = (1+lastHistRet/100)*(1+e.ret/100)*100-100;
     navSeries.push(1000*(1+adjRet/100));
@@ -1100,7 +1100,7 @@ function buildRiskStats(){
   const allMean = allDailyRets.reduce((s,v)=>s+v,0)/allDailyRets.length;
   const allVar = allDailyRets.reduce((s,v)=>s+(v-allMean)**2,0)/allDailyRets.length;
   const volAnnual = Math.sqrt(allVar) * Math.sqrt(252);
-  const totalDays = (()=>{ try{ const s=new Date(SEED_HIST[0][0]),e=new Date(entries26[entries26.length-1].d); return (e-s)/86400000; } catch{return 845;} })();
+  const totalDays = (()=>{ try{ const s=new Date(entriesHist[0][0]),e=new Date(entries26[entries26.length-1].d); return (e-s)/86400000; } catch{return 845;} })();
   const years = totalDays/365;
   const finalNav = navSeries[navSeries.length-1];
   const cagr = ((finalNav/1000)**(1/years)-1)*100;
@@ -1385,11 +1385,11 @@ function buildPf(){
 }
 
 function getFullData(){
-  // SEED_HIST는 [date, myRet, kospiRet] 배열 (2024-01 기준 누적)
-  const hist = SEED_HIST.map(r=>({d:r[0],ret:r[1],kospi:r[2]}));
+  // entriesHist는 [date, myRet, kospiRet] 배열 (2024-01 기준 누적)
+  const hist = entriesHist.map(r=>({d:r[0],ret:r[1],kospi:r[2]}));
 
   // SEED26은 2026-01-01 기준 0% 리셋
-  const lastHist = SEED_HIST[SEED_HIST.length - 1];
+  const lastHist = entriesHist[entriesHist.length - 1];
   const baseMe  = lastHist[1];
   const baseKp  = lastHist[2];
 
@@ -1965,14 +1965,18 @@ function refreshAll(){
 }
 
 loadData().then(() => {
-  // fetch 완료 후 사용자 오버라이드 + 초기화
-  entries26 = buildEntries26();
-  accounts  = ld('inv_acc', accounts);
-  lifeCfg   = ld('inv_life', lifeData);
-  buildOv();
+  try {
+    // fetch 완료 후 사용자 오버라이드 + 초기화
+    entries26 = buildEntries26();
+    accounts  = ld('inv_acc', accounts);
+    lifeCfg   = ld('inv_life', lifeData);
+    buildOv();
+  } catch(e) {
+    throw e;
+  }
 }).catch(err => {
   console.error('데이터 로드 실패:', err);
-  document.body.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;color:#dc2626"><h2>⚠️ 데이터 로드 실패</h2><p>data/ 폴더의 JSON 파일을 확인해주세요.</p><pre>' + err + '</pre></div>';
+  document.body.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;color:#dc2626"><h2>⚠️ 데이터 로드 실패</h2><p>data/ 폴더의 JSON 파일을 확인해주세요.</p><pre>' + (err && err.stack ? err.stack : err) + '</pre></div>';
 });
 </script>
 </body>
