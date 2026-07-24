@@ -348,7 +348,7 @@ canvas{max-width:100% !important}
   </div>
   <div class="card">
     <div class="sec" id="daily-title">이번달 일별 손익</div>
-    <div style="height:160px"><canvas id="ch-ov-daily"></canvas></div>
+    <div style="height:140px"><canvas id="ch-ov-daily"></canvas></div>
   </div>
 
   <!-- 연간 목표 게이지 -->
@@ -832,15 +832,35 @@ function buildOv(){
   const yrRealized = Object.values(realizedMap).reduce((s,v)=>s+v,0);
   const thisMonthRealized = realizedMap[new Date().toISOString().slice(0,7)]||0;
 
-  document.getElementById('hdr-sub').textContent='최종 업데이트 '+(lat.d||'—');
+  document.getElementById('hdr-sub').textContent='📅 '+(lat.d||'—');
   document.getElementById('hdr-badge').textContent='26년 '+sgn(cur)+cur.toFixed(2)+'%';
 
   document.getElementById('kpi-ov').innerHTML=`
-    <div class="kpi"><div class="kpi-icon">🏦</div><div class="kpi-lbl">현재 잔액 합계</div><div class="kpi-val" style="color:var(--acc2)">${fmt(totalBal)}</div><div class="kpi-sub">운용 중 계좌 합산</div></div>
-    <div class="kpi"><div class="kpi-icon">📈</div><div class="kpi-lbl">26년 누적 수익률</div><div class="kpi-val" style="color:var(--up)">${sgn(cur)}${cur.toFixed(2)}%</div><div class="kpi-sub">좌수법 기준</div></div>
-    <div class="kpi"><div class="kpi-icon">📊</div><div class="kpi-lbl">코스피 수익률</div><div class="kpi-val" style="color:var(--am)">${sgn(kp)}${kp.toFixed(2)}%</div></div>
-    <div class="kpi"><div class="kpi-icon">⚡</div><div class="kpi-lbl">초과 수익 (α)</div><div class="kpi-val" style="color:${+alpha>=0?'var(--acc)':'var(--dn)'}">${sgn(+alpha)}${alpha}%p</div></div>
-    <div class="kpi"><div class="kpi-icon">💰</div><div class="kpi-lbl">26년 실현손익</div><div class="kpi-val" style="color:var(--up)">${fmt(yrRealized)}</div><div class="kpi-sub">확정된 수익 합계</div></div>
+    <div class="kpi" style="border-left:3px solid var(--acc)">
+      <div class="kpi-lbl">현재 잔액</div>
+      <div class="kpi-val" style="color:var(--acc2);font-size:26px">${fmt(totalBal)}</div>
+      <div class="kpi-sub">운용 중 계좌 합산</div>
+    </div>
+    <div class="kpi" style="border-left:3px solid var(--up)">
+      <div class="kpi-lbl">26년 누적 수익률</div>
+      <div class="kpi-val" style="color:var(--up);font-size:26px">${sgn(cur)}${cur.toFixed(2)}%</div>
+      <div class="kpi-sub">NAV ${lat.nav?lat.nav.toFixed(0):'—'}원</div>
+    </div>
+    <div class="kpi" style="border-left:3px solid var(--am)">
+      <div class="kpi-lbl">코스피 수익률</div>
+      <div class="kpi-val" style="color:var(--am);font-size:26px">${sgn(kp)}${kp.toFixed(2)}%</div>
+      <div class="kpi-sub">2026-01-01 기준</div>
+    </div>
+    <div class="kpi" style="border-left:3px solid ${+alpha>=0?'var(--acc)':'var(--dn)'}">
+      <div class="kpi-lbl">초과 수익 (α)</div>
+      <div class="kpi-val" style="color:${+alpha>=0?'var(--acc2)':'var(--dn)'};font-size:26px">${sgn(+alpha)}${alpha}%p</div>
+      <div class="kpi-sub">코스피 대비</div>
+    </div>
+    <div class="kpi" style="border-left:3px solid var(--up)">
+      <div class="kpi-lbl">26년 실현손익</div>
+      <div class="kpi-val" style="color:var(--up);font-size:22px">${fmt(yrRealized)}</div>
+      <div class="kpi-sub">확정 수익</div>
+    </div>
   `;
 
   // 월별 실현손익 바 — 금액 수준에 따라 색상 스펙트럼 변화 (히트맵 스타일)
@@ -877,24 +897,24 @@ function buildOv(){
     }
   }
 
-  document.getElementById('mth-bars').innerHTML = realizedMonths.map(m=>{
+  document.getElementById('mth-bars').innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
+  realizedMonths.map(m=>{
     const ratio = m.realized > 0 ? m.realized / maxR : 0;
     const hc = heatColor(ratio);
-    const barColor = m.realized > 0 ? hc.bar : 'rgba(251,113,133,0.5)';
+    const barColor = m.realized > 0 ? hc.bar : 'rgba(248,113,113,0.5)';
     const textColor = m.realized > 0 ? hc.color : 'var(--dn)';
-    const glowStyle = m.realized > 0 ? `box-shadow:0 0 10px ${hc.glow}` : '';
     const barW = m.realized > 0 ? m.realized / maxR * 100 : 0;
     return `
-    <div class="mrow">
-      <div class="mrow-meta">
-        <span style="color:var(--muted)">${m.month}</span>
-        <span style="color:${textColor};font-family:'JetBrains Mono',monospace;font-weight:700;text-shadow:0 0 12px ${textColor}66">${m.realized>0?'+':''}${fmt(m.realized)}</span>
+    <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">${m.month}</span>
+        <span style="font-size:13px;font-weight:700;color:${textColor};font-family:'JetBrains Mono',monospace">${m.realized>0?'+':''}${fmt(m.realized)}</span>
       </div>
-      <div class="pbar" style="height:9px;border-radius:5px">
-        <div class="pbar-fill" style="width:${barW}%;background:${barColor};border-radius:5px;${glowStyle}"></div>
+      <div style="background:rgba(255,255,255,0.04);border-radius:4px;height:5px;overflow:hidden">
+        <div style="width:${barW}%;height:100%;background:${barColor};border-radius:4px;transition:width 0.6s"></div>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + `</div>`; 
 
   document.getElementById('yr-sum').textContent = sgn(yrRealized)+fmtW(yrRealized);
 
@@ -1802,17 +1822,17 @@ function buildPnlDaily(){
     data:{labels, datasets:[
       {
         label:'실현손익', data:realizedVals,
-        backgroundColor:'rgba(74,222,128,0.75)',
-        borderColor:'rgba(74,222,128,1)',
+        backgroundColor:'rgba(52,211,153,0.8)',
+        borderColor:'rgba(52,211,153,1)',
         borderWidth:1, borderRadius:3, borderSkipped:false,
-        barPercentage:0.6,
+        barPercentage:0.4, categoryPercentage:0.7,
       },
       {
         label:'평가손익', data:evalVals,
-        backgroundColor: evalVals.map(v=>v>0?'rgba(34,211,238,0.55)':v<0?'rgba(251,113,133,0.55)':'rgba(93,107,126,0.2)'),
-        borderColor: evalVals.map(v=>v>0?'rgba(34,211,238,0.9)':v<0?'rgba(251,113,133,0.9)':'rgba(93,107,126,0.4)'),
+        backgroundColor: evalVals.map(v=>v>0?'rgba(56,189,248,0.6)':v<0?'rgba(248,113,113,0.6)':'rgba(93,107,126,0.2)'),
+        borderColor: evalVals.map(v=>v>0?'rgba(56,189,248,1)':v<0?'rgba(248,113,113,1)':'rgba(93,107,126,0.4)'),
         borderWidth:1, borderRadius:3, borderSkipped:false,
-        barPercentage:0.6,
+        barPercentage:0.4, categoryPercentage:0.7,
       },
     ]},
     options:{responsive:true,maintainAspectRatio:false,
@@ -2051,27 +2071,42 @@ function buildSlotPanel() {
   });
 
   el.innerHTML = `
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-    <table style="width:100%;min-width:500px;border-collapse:collapse;font-size:13px">
-      <thead>
-        <tr>
-          <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:10px;letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border)">계좌</th>
-          <th style="text-align:right;padding:8px 12px;color:var(--muted);font-size:10px;letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border)">현재 잔고</th>
-          <th style="text-align:right;padding:8px 12px;color:var(--muted);font-size:10px;letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border)">KODEX레버 평단가</th>
-          <th style="text-align:right;padding:8px 12px;color:var(--muted);font-size:10px;letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border)">코스닥150 평단가</th>
-          <th style="text-align:right;padding:8px 12px;color:var(--muted);font-size:10px;letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border)">평가손익</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows.map(r => `<tr>
-          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04)"><strong>${r.name}</strong></td>
-          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--acc2)">${r.balance>0?r.balance.toLocaleString()+'원':'—'}</td>
-          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--muted)">${r.leverAvg>0?r.leverAvg.toLocaleString():'—'}</td>
-          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--muted)">${r.kosdaqAvg>0?r.kosdaqAvg.toLocaleString():'—'}</td>
-          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right">${r.pnlHtml}</td>
-        </tr>`).join('')}
-      </tbody>
-    </table>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+      ${rows.map((r,i) => {
+        const hasLever  = r.leverAvg > 0 && priceLever > 0;
+        const hasKosdaq = r.kosdaqAvg > 0 && priceKosdaq > 0;
+        const leverPct  = hasLever  ? (priceLever  - r.leverAvg)  / r.leverAvg  * 100 : null;
+        const kosdaqPct = hasKosdaq ? (priceKosdaq - r.kosdaqAvg) / r.kosdaqAvg * 100 : null;
+        const accentColor = ['#38bdf8','#34d399','#a78bfa','#fbbf24','#f87171','#fb923c','#e879f9','#22d3ee'][i%8];
+        return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${accentColor};opacity:0.6"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+            <span style="font-size:12px;font-weight:700;color:var(--text)">${r.name}</span>
+            <span style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--acc2)">${r.balance>0?fmt(r.balance):'—'}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${hasLever ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:7px">
+              <div>
+                <div style="font-size:9px;color:var(--muted);letter-spacing:0.8px">KODEX레버</div>
+                <div style="font-size:11px;color:var(--subtle);font-family:'JetBrains Mono',monospace">평단 ${r.leverAvg.toLocaleString()}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${leverPct>=0?'var(--up)':'var(--dn)'}">${leverPct>=0?'+':''}${leverPct.toFixed(2)}%</div>
+              </div>
+            </div>` : ''}
+            ${hasKosdaq ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:7px">
+              <div>
+                <div style="font-size:9px;color:var(--muted);letter-spacing:0.8px">코스닥150</div>
+                <div style="font-size:11px;color:var(--subtle);font-family:'JetBrains Mono',monospace">평단 ${r.kosdaqAvg.toLocaleString()}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${kosdaqPct>=0?'var(--up)':'var(--dn)'}">${kosdaqPct>=0?'+':''}${kosdaqPct.toFixed(2)}%</div>
+              </div>
+            </div>` : ''}
+            ${!hasLever && !hasKosdaq ? `<div style="text-align:center;padding:12px;color:var(--subtle);font-size:11px">평단가 없음</div>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
     </div>`;
 }
 
