@@ -1,5 +1,5 @@
 {
-  "goal": 5000000,
+  "goal": 10000000,
   "items": [
     {
       "name": "생활비",
@@ -9,6 +9,31 @@
     {
       "name": "월세",
       "target": 1500000,
+      "actual": 0
+    },
+    {
+      "name": "식비",
+      "target": 1100000,
+      "actual": 0
+    },
+    {
+      "name": "관리비",
+      "target": 400000,
+      "actual": 0
+    },
+    {
+      "name": "교통비",
+      "target": 300000,
+      "actual": 0
+    },
+    {
+      "name": "통신비",
+      "target": 200000,
+      "actual": 0
+    },
+    {
+      "name": "적금",
+      "target": 3000000,
       "actual": 0
     }
   ]
