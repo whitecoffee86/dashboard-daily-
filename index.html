@@ -408,9 +408,9 @@ canvas{max-width:100% !important}
   <!-- 목표 자본 대비 투입률 -->
   <div class="card">
     <div class="sec">
-      <span>목표 자본 대비 현황</span>
+      <span>투자자본 대비 투입원금</span>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <span style="font-size:11px;color:var(--muted)">목표자본</span>
+        <span style="font-size:11px;color:var(--muted)">투자자본</span>
         <input type="number" id="target-capital" value="200000000"
           style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--acc2);font-size:12px;font-family:'JetBrains Mono',monospace;width:110px;text-align:right"
           oninput="buildCapitalGauge()">
@@ -1558,7 +1558,10 @@ function buildPnlMonthly(){
   const mmap = getMonthlyPnl();
   const keys  = Object.keys(mmap).filter(k=>k.startsWith('2026')).sort();
   const labels = keys.map(k=>k.slice(5)+'월');
-  const vals   = keys.map(k=>mmap[k]);
+  // 전체손익(pnl)은 첫날 오류가 있으므로 실현손익 기준으로 표시
+  const realizedMapM={};
+  entries26.forEach(e=>{const ym=e.d.slice(0,7);realizedMapM[ym]=(realizedMapM[ym]||0)+(e.realized||0);});
+  const vals = keys.map(k=>realizedMapM[k]||0);
 
   // 월별 실현손익 집계
   const realizedMap={};
@@ -1568,7 +1571,7 @@ function buildPnlMonthly(){
   });
   const realizedVals = keys.map(k=>realizedMap[k]||0);
 
-  // 누적
+  // 누적 (실현손익 기준)
   const cumVals=[]; let cum=0;
   vals.forEach(v=>{cum+=v; cumVals.push(cum);});
 
@@ -1581,14 +1584,15 @@ function buildPnlMonthly(){
     type:'bar',
     data:{labels, datasets:[
       {
-        label:'전체 손익', data:vals,
-        backgroundColor: vals.map(v=>v>=0?'rgba(56,189,248,0.5)':'rgba(248,113,113,0.5)'),
-        borderColor: vals.map(v=>v>=0?'rgba(56,189,248,0.9)':'rgba(248,113,113,0.9)'),
+        label:'실현손익', data:vals,
+        backgroundColor: vals.map(v=>v>=0?'rgba(74,222,128,0.7)':'rgba(251,113,133,0.7)'),
+        borderColor: vals.map(v=>v>=0?'rgba(74,222,128,1)':'rgba(251,113,133,1)'),
         borderWidth:1.5, borderRadius:5, borderSkipped:false,
         barPercentage:0.75, categoryPercentage:0.8,
       },
       {
-        label:'실현손익', data:realizedVals,
+        label:'[hidden]', data:realizedVals,
+        hidden: true,
         backgroundColor:'rgba(74,222,128,0.75)',
         borderColor:'rgba(74,222,128,1)',
         borderWidth:1.5, borderRadius:5, borderSkipped:false,
@@ -1759,36 +1763,55 @@ function buildAc(){
 function buildCapitalGauge() {
   const el = document.getElementById('capital-gauge');
   if (!el) return;
-  const total = accounts.reduce((s,a)=>s+a.balance,0);
+  // 투입원금 = 누적 입금 합계 (io > 0인 것만)
+  let totalIn = 0, totalOut = 0;
+  entries26.forEach(e => {
+    if (e.io > 0) totalIn  += e.io;
+    if (e.io < 0) totalOut += Math.abs(e.io);
+  });
+  const invested = totalIn - totalOut; // 순 투입원금
+  const currentBal = accounts.reduce((s,a)=>s+a.balance,0);
   const target = parseInt(document.getElementById('target-capital')?.value) || 200000000;
-  const usedPct = Math.min(total / target * 100, 100);
-  const remainAmt = Math.max(target - total, 0);
-
+  const usedPct = Math.min(invested / target * 100, 100);
+  const remainAmt = Math.max(target - invested, 0);
+  // 평가손익 = 현재잔고 - 투입원금
+  const evalPnl = currentBal - invested;
   const barColor = usedPct >= 90 ? 'var(--dn)' : usedPct >= 70 ? 'var(--am)' : 'var(--acc)';
+  const pnlColor = evalPnl >= 0 ? 'var(--up)' : 'var(--dn)';
 
   el.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;min-width:0">
-        <div style="background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid var(--acc-border);text-align:center">
-          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">목표 자본</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--acc2)">${Math.round(target/100000000*10)/10}억</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;grid-column:1/-1">
+          <div style="background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid var(--acc-border);text-align:center">
+            <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">투자자본</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--acc2)">${fmt(target)}</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid rgba(192,132,252,0.3);text-align:center">
+            <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">투입 원금</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--pu)">${fmt(invested)}</div>
+          </div>
         </div>
         <div style="background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid var(--up-border);text-align:center">
           <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">현재 잔고</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--up)">${fmt(total)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--up)">${fmt(currentBal)}</div>
         </div>
-        <div style="background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid var(--border);text-align:center">
-          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">미투입 여력</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--muted)">${fmt(remainAmt)}</div>
+        <div style="background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid ${evalPnl>=0?'rgba(74,222,128,0.2)':'rgba(251,113,133,0.2)'};text-align:center">
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">평가손익</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:${pnlColor}">${evalPnl>=0?'+':''}${fmt(evalPnl)}</div>
         </div>
       </div>
       <div>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px">
-          <span style="color:var(--muted)">자본 활용률</span>
+          <span style="color:var(--muted)">투자자본 대비 투입률</span>
           <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${barColor}">${usedPct.toFixed(1)}%</span>
         </div>
         <div style="background:rgba(255,255,255,0.05);border-radius:6px;height:14px;overflow:hidden">
           <div style="width:${usedPct}%;height:100%;background:${barColor};border-radius:6px;transition:width 0.8s;box-shadow:0 0 10px ${barColor}66"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted)">
+          <span>미투입 여력: <strong style="color:var(--text)">${fmt(remainAmt)}</strong></span>
+          <span>입금누계: ${fmt(totalIn)} / 출금누계: ${fmt(totalOut)}</span>
         </div>
       </div>
     </div>`;
