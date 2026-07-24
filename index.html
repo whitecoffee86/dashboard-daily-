@@ -8,8 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html{overflow-x:hidden}
-body{overflow-x:hidden}
 :root{
   --bg:#0d1117; --bg2:#161b27; --bg3:#1c2333;
   --border:rgba(255,255,255,0.09); --border2:rgba(255,255,255,0.18);
@@ -25,7 +23,7 @@ body{overflow-x:hidden}
   /* 코스피: 선명한 앰버 */
   --am:#fde047; --am-bg:rgba(253,224,71,0.09); --am-border:rgba(253,224,71,0.25);
 }
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;font-size:14px;width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;font-size:14px}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:#2d3a4a;border-radius:3px}
@@ -48,7 +46,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .stab.active{background:rgba(34,211,238,0.12);border-color:rgba(34,211,238,0.35);color:var(--acc2)}
 
 /* LAYOUT */
-.content{padding:22px 28px;max-width:1440px;margin:0 auto;width:100%;overflow-x:hidden}
+.content{padding:22px 28px;max-width:1440px;margin:0 auto}
 .panel{display:none;flex-direction:column;gap:16px}
 .panel.active{display:flex}
 .g2{display:grid;grid-template-columns:2fr 1fr;gap:14px}
@@ -67,7 +65,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .kpi-sub{font-size:11px;color:var(--subtle);margin-top:3px}
 
 /* CARD */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;transition:border-color 0.2s;min-width:0;overflow:hidden}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;transition:border-color 0.2s}
 .card:hover{border-color:rgba(255,255,255,0.13)}
 .sec{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
 
@@ -163,119 +161,33 @@ tr:hover td{background:rgba(34,211,238,0.04)}
 .life-tbl td input{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;width:100%;transition:border-color 0.15s}
 .life-tbl td input:focus{border-color:var(--acc-border)}
 
-@media(max-width:600px){
-  /* 헤더 */
-  .hdr{padding:10px 14px;flex-wrap:wrap;gap:6px}
-  .hdr-title{font-size:13px}
-  .hdr-sub{font-size:10px}
-  .hdr-badge{padding:4px 10px;font-size:11px}
-
-  /* 탭 */
-  .tabs{padding:4px 6px 0;gap:1px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tab{padding:6px 10px 8px;font-size:11px;white-space:nowrap;flex-shrink:0}
-
-  /* 레이아웃 */
-  .content{padding:10px 8px}
-  .panel{gap:10px}
-  .card{padding:12px 10px;border-radius:10px}
-  .g2,.g11{grid-template-columns:1fr !important}
-  .sec{font-size:9px;letter-spacing:1.5px}
-
-  /* KPI */
-  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:7px}
-  .kpi{padding:11px 12px;border-radius:10px}
-  .kpi-val{font-size:16px}
-  .kpi-lbl{font-size:9px;letter-spacing:0.8px}
-  .kpi-sub{font-size:10px}
-  .kpi-icon{font-size:15px;top:10px;right:10px}
-
-  /* 테이블 */
-  table{font-size:11px}
-  th{padding:5px 7px;font-size:9px;letter-spacing:0.5px}
-  td{padding:6px 7px}
-  td:not(:first-child){font-size:11px}
-
-  /* 차트 높이 줄이기 */
-  .card [style*="height:240px"]{height:180px !important}
-  .card [style*="height:320px"]{height:220px !important}
-  .card [style*="height:200px"]{height:160px !important}
-  .card [style*="height:160px"]{height:130px !important}
-
-  /* 서브탭 */
-  .subtabs{gap:4px;flex-wrap:wrap}
-  .stab{padding:5px 10px;font-size:11px}
-
-  /* 연간 목표 게이지 */
-  .goal-flex{flex-direction:column !important;gap:12px !important}
-  .goal-left{flex-direction:row !important;width:100% !important;align-items:center !important;gap:14px !important;flex-shrink:0 !important}
-  .goal-chart-area{width:100% !important;min-width:0 !important}
-  .goal-right{min-height:140px !important;width:100% !important}
-
-  /* 달력 */
-  .cal-wrap{gap:2px}
-  .cal-day{min-height:36px;padding:3px 2px;border-radius:5px}
-  .cal-val{font-size:8px;margin-top:3px}
-  .cal-dn{font-size:8px}
-  .cal-dow{font-size:9px;padding:3px 0}
-
-  /* 생활비 */
-  .life-row{margin-bottom:9px}
-  .lrow-name{font-size:12px;gap:5px}
-  .lrow-amt{font-size:10px}
-
-  /* 입력폼 */
-  .fgrid{grid-template-columns:1fr !important}
-  .fi{font-size:16px}  /* iOS 줌 방지 */
-  .btn{font-size:13px;padding:10px 16px}
-
-  /* 스트릭/페이스 */
-  .stat2{grid-template-columns:1fr 1fr}
-
-  /* 엔트리 리스트 */
-  .elist .eitem{font-size:11px;gap:5px;flex-wrap:wrap}
-
-  /* 토스트 */
-  .toast{bottom:14px;right:10px;left:10px;text-align:center;font-size:12px}
-
-  /* 계좌 도넛 차트 */
-  #ch-acc{max-height:180px}
-
-  /* pill 태그 */
-  .pill{font-size:9px;padding:2px 7px}
-
-  /* 월별 바 텍스트 */
-  .mrow-meta{font-size:11px}
-
-  /* sbox */
-  .sbox .sv{font-size:16px}
-
-  /* calc-box */
-  .calc-grid{gap:14px}
-  .calc-item .cv{font-size:14px}
-}
-
-@media(max-width:400px){
-  .kpi-grid{grid-template-columns:1fr 1fr}
-  .kpi-val{font-size:14px}
-  .tab{font-size:10px;padding:5px 7px 7px}
-  .cal-day{min-height:30px}
-  .cal-val{font-size:7px}
-}
-
+html{overflow-x:hidden}
+body{overflow-x:hidden}
 canvas{max-width:100% !important}
 .g2,.g11{min-width:0}
 .g2 > *,.g11 > *{min-width:0;overflow:hidden}
-.kpi-grid > *{min-width:0}
 
 @media(max-width:600px){
-  .card > div[style*="max-height"],
-  .card > div[style*="overflow-y"]{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{min-width:0;width:100%}
-  .tabs{-webkit-overflow-scrolling:touch}
-  /* 그리드 내 요소들 너비 초과 방지 */
-  [style*="display:flex"]{flex-wrap:wrap;min-width:0}
-  .calc-grid{flex-wrap:wrap}
-  .hdr{flex-wrap:wrap}
+  .hdr{padding:10px 14px;flex-wrap:wrap;gap:6px}
+  .hdr-title{font-size:13px}
+  .hdr-badge{padding:4px 10px;font-size:11px}
+  .tabs{padding:4px 6px 0;-webkit-overflow-scrolling:touch}
+  .tab{padding:6px 10px 8px;font-size:11px}
+  .content{padding:10px 8px}
+  .panel{gap:10px}
+  .card{padding:12px 10px;border-radius:10px;overflow:hidden}
+  .g2,.g11{grid-template-columns:1fr !important}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:7px}
+  .kpi{padding:11px 12px}
+  .kpi-val{font-size:16px}
+  .kpi-lbl{font-size:9px}
+  .fi{font-size:16px}
+  .goal-flex{flex-direction:column !important}
+  .cal-day{min-height:36px;padding:3px 2px;border-radius:5px}
+  .cal-val{font-size:8px}
+  .cal-dn{font-size:8px}
+  .fgrid{grid-template-columns:1fr !important}
+  .toast{bottom:14px;right:10px;left:10px;text-align:center}
 }
 </style>
 </head>
@@ -610,13 +522,9 @@ canvas{max-width:100% !important}
 <script>
 // ── 데이터 소스: data/*.json (fetch) ──
 let entries26 = [], entriesHist = [], accounts = [], lifeData = {};
- 
+
 async function loadData() {
-  const base = (() => {
-    const s = document.currentScript;
-    if (s) return s.src.replace(/[^/]*$/, '');
-    return location.href.replace(/[^/]*$/, '');
-  })();
+  const base = location.href.replace(/[^/]*$/, '');
   const [d, h, a, m] = await Promise.all([
     fetch(base + 'data/daily.json').then(r => r.json()),
     fetch(base + 'data/hist.json').then(r => r.json()),
@@ -628,19 +536,32 @@ async function loadData() {
   accounts    = a;
   lifeData    = m;
 }
- 
+
 // 코스피 기준값
-const KOSPI_BASE_26  = 4214.17;  // 2026-01-01
-const KOSPI_BASE_ALL = 2655.28;  // 2024-01-01
+const KOSPI_BASE_26  = 4214.17;
+const KOSPI_BASE_ALL = 2655.28;
 
 // ═══════════════════════════════════════════════
 //  STATE
+//  시드 데이터는 항상 고정 베이스, 사용자 추가분만 localStorage
 // ═══════════════════════════════════════════════
 function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 
-// 사용자가 추가한 항목만 별도 저장
+// 사용자가 추가한 항목만 별도 저장 (시드와 key 충돌 방지)
 let userEntries = ld('inv_user_entries', []);
+
+// 전체 entries26 = 시드 + 사용자 추가 (날짜 기준 병합, 중복 날짜는 사용자 항목 우선)
+function buildEntries26(){
+  const merged = [...entries26];
+  userEntries.forEach(e=>{
+    const idx = merged.findIndex(s=>s.d===e.d);
+    if(idx>=0) merged[idx]=e;
+    else merged.push(e);
+  });
+  return merged.sort((a,b)=>a.d>b.d?1:-1);
+}
+let entries26 = buildEntries26();
 
 let lifeCfg   = {};
 let pfRange   = 'all';
@@ -688,15 +609,6 @@ function getMonthlyPnl(){
 function get26Monthly(){
   const m=getMonthlyPnl();
   return Object.keys(m).filter(k=>k.startsWith('2026')).sort().map(k=>({month:k.slice(5)+'월',key:k,profit:m[k]}));
-}
-function buildEntries26(){
-  const merged = [...entries26];
-  userEntries.forEach(e=>{
-    const idx = merged.findIndex(s=>s.d===e.d);
-    if(idx>=0) merged[idx]=e;
-    else merged.push(e);
-  });
-  return merged.sort((a,b)=>a.d>b.d?1:-1);
 }
 function getLatest(){
   const all = buildEntries26();
@@ -1432,16 +1344,9 @@ function buildCalendar(){
   // 월 합계
   const total = Object.values(rmap).reduce((s,v)=>s+v,0);
   const totalEl = document.getElementById('cal-month-total');
-  if(total > 0){
-    totalEl.textContent = '+' + total.toLocaleString() + '원';
-    totalEl.style.color = 'var(--up)';
-  } else if(total < 0){
-    totalEl.textContent = total.toLocaleString() + '원';
-    totalEl.style.color = 'var(--dn)';
-  } else {
-    totalEl.textContent = '—';
-    totalEl.style.color = 'var(--muted)';
-  }
+  if(total > 0){ totalEl.textContent = '+'+total.toLocaleString()+'원'; totalEl.style.color='var(--up)'; }
+  else if(total < 0){ totalEl.textContent = total.toLocaleString()+'원'; totalEl.style.color='var(--dn)'; }
+  else { totalEl.textContent = '—'; totalEl.style.color='var(--muted)'; }
 
   // 달력 그리기
   const firstDay = new Date(yr, mo, 1).getDay(); // 0=일
@@ -1472,8 +1377,7 @@ function buildCalendar(){
       const abs = Math.abs(rv);
       const sign = rv > 0 ? '+' : '-';
       const disp = abs >= 10000 ? Math.round(abs/10000)+'만' : abs.toLocaleString();
-      const colorCls = rv > 0 ? 'up' : 'dn';
-      valHtml = `<div class="cal-val ${colorCls}">${sign}${disp}</div>`;
+      valHtml = `<div class="cal-val ${rv>0?'up':'dn'}">${sign}${disp}</div>`;
     }
     html += `<div class="${cls}">
       <div class="cal-dn">${d}</div>
@@ -2082,18 +1986,13 @@ function refreshAll(){
 }
 
 loadData().then(() => {
-  try {
-    // fetch 완료 후 사용자 오버라이드 + 초기화
-    entries26 = buildEntries26();
-    accounts  = ld('inv_acc', accounts);
-    lifeCfg   = ld('inv_life', lifeData);
-    buildOv();
-  } catch(e) {
-    throw e;
-  }
+  entries26 = buildEntries26();
+  accounts  = ld('inv_acc', accounts);
+  lifeCfg   = ld('inv_life', lifeData);
+  buildOv();
 }).catch(err => {
   console.error('데이터 로드 실패:', err);
-  document.body.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;color:#dc2626"><h2>⚠️ 데이터 로드 실패</h2><p>data/ 폴더의 JSON 파일을 확인해주세요.</p><pre>' + (err && err.stack ? err.stack : err) + '</pre></div>';
+  document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#dc2626"><h2>⚠️ 데이터 로드 실패</h2><p>data/ 폴더의 JSON 파일을 확인해주세요.</p><pre>' + (err && err.stack ? err.stack : err) + '</pre></div>';
 });
 </script>
 </body>
