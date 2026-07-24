@@ -1713,7 +1713,8 @@ function buildPnlMonthly(){
     const monthEntries = entries26.filter(e=>e.d.startsWith(ym));
     if(!monthEntries.length) return;
     const prevEntries = entries26.filter(e=>e.d < ym+'-01');
-    const startBal = prevEntries.length ? prevEntries[prevEntries.length-1].end : monthEntries[0].end;
+    // 이전달 마지막 잔고 (없으면 0 — 1월은 시작 전 잔고가 0)
+    const startBal = prevEntries.length ? prevEntries[prevEntries.length-1].end : 0;
     const endBal   = monthEntries[monthEntries.length-1].end;
     const monthIo  = monthEntries.reduce((s,e)=>s+(e.io||0),0);
     const total    = (endBal - startBal) - monthIo;  // 총손익
