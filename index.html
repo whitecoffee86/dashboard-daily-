@@ -981,24 +981,26 @@ function buildStreak(){
   const days = [...entries26].sort((a,b)=>a.d>b.d?1:-1);
 
   // 실현손익 기준으로 스트릭 계산
+  // pnl 기준 스트릭 (첫날 제외)
+  const pnlDays = days.slice(1);
   let cur = 0;
-  for(let i=days.length-1;i>=0;i--){
-    if((days[i].realized||0) > 0) cur++;
+  for(let i=pnlDays.length-1;i>=0;i--){
+    if((pnlDays[i].pnl||0) > 0) cur++;
     else break;
   }
   let best = 0, tmp = 0;
-  days.forEach(d=>{ if((d.realized||0)>0){tmp++;best=Math.max(best,tmp);}else tmp=0; });
+  pnlDays.forEach(d=>{ if((d.pnl||0)>0){tmp++;best=Math.max(best,tmp);}else tmp=0; });
   let curLoss = 0;
-  for(let i=days.length-1;i>=0;i--){
-    if((days[i].realized||0) < 0) curLoss++;
+  for(let i=pnlDays.length-1;i>=0;i--){
+    if((pnlDays[i].pnl||0) < 0) curLoss++;
     else break;
   }
 
   // 이번달 수익일/손실일
   const thisMonth = new Date().toISOString().slice(0,7);
-  const thisMthDays = days.filter(e=>e.d.startsWith(thisMonth) && e.realized!==0);
-  const thisMthWin  = thisMthDays.filter(e=>e.realized>0).length;
-  const thisMthLoss = thisMthDays.filter(e=>e.realized<0).length;
+  const thisMthDays = entries26.slice(1).filter(e=>e.d.startsWith(thisMonth) && e.pnl!==0);
+  const thisMthWin  = thisMthDays.filter(e=>e.pnl>0).length;
+  const thisMthLoss = thisMthDays.filter(e=>e.pnl<0).length;
 
   const fireEmoji = cur >= 7 ? '🔥🔥🔥' : cur >= 5 ? '🔥🔥' : cur >= 3 ? '🔥' : cur >= 1 ? '✨' : '😴';
   const fireColor = cur >= 5 ? 'var(--up)' : cur >= 3 ? 'var(--am)' : cur >= 1 ? 'var(--acc2)' : 'var(--muted)';
@@ -1444,18 +1446,18 @@ function buildRiskStats(){
 function buildWinStats(){
   const el = document.getElementById('win-stats');
   if(!el) return;
-  // 실현손익 기준으로 승률 계산
-  const days = entries26.filter(e=>e.realized!==0);
-  const wins   = days.filter(e=>e.realized>0);
-  const losses = days.filter(e=>e.realized<0);
+  // 일별 총손익(pnl) 기준 승률 (첫날 제외)
+  const days = entries26.slice(1).filter(e=>e.pnl!==0);
+  const wins   = days.filter(e=>e.pnl>0);
+  const losses = days.filter(e=>e.pnl<0);
   const winRate = days.length>0 ? (wins.length/days.length*100).toFixed(1) : 0;
-  const avgWin  = wins.length>0   ? wins.reduce((s,e)=>s+e.realized,0)/wins.length : 0;
-  const avgLoss = losses.length>0 ? Math.abs(losses.reduce((s,e)=>s+e.realized,0)/losses.length) : 0;
+  const avgWin  = wins.length>0   ? wins.reduce((s,e)=>s+e.pnl,0)/wins.length : 0;
+  const avgLoss = losses.length>0 ? Math.abs(losses.reduce((s,e)=>s+e.pnl,0)/losses.length) : 0;
   const profitFactor = avgLoss>0 ? (avgWin/avgLoss).toFixed(2) : '—';
 
   const best    = entries26.reduce((a,b)=>b.ret>a.ret?b:a, entries26[0]);
-  const bestDay = entries26.reduce((a,b)=>(b.realized||0)>(a.realized||0)?b:a, entries26[0]);
-  const worstDay= entries26.reduce((a,b)=>(b.realized||0)<(a.realized||0)?b:a, entries26[0]);
+  const bestDay = entries26.slice(1).reduce((a,b)=>(b.pnl||0)>(a.pnl||0)?b:a, entries26[1]);
+  const worstDay= entries26.slice(1).reduce((a,b)=>(b.pnl||0)<(a.pnl||0)?b:a, entries26[1]);
 
   const winPct  = parseFloat(winRate);
   const losePct = 100 - winPct;
@@ -1481,7 +1483,7 @@ function buildWinStats(){
             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--up)">${winRate}%</div>
           </div>
           <div style="flex:1">
-            <div style="font-size:9px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px">26년 매매 승률</div>
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px">26년 일별 총손익 승률</div>
             <div style="display:flex;gap:10px;margin-bottom:6px">
               <span style="font-size:14px;font-weight:700;color:var(--up)">✅ ${wins.length}승</span>
               <span style="font-size:14px;font-weight:700;color:var(--dn)">❌ ${losses.length}패</span>
@@ -1520,7 +1522,7 @@ function buildWinStats(){
         <div style="padding:11px 14px;background:var(--bg3);border-radius:10px;border:1px solid rgba(52,211,153,0.15)">
           <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">🔥 최고 수익 하루</div>
           <div style="font-size:10px;color:var(--subtle);font-family:'JetBrains Mono',monospace;margin-bottom:5px">${bestDay?.d||'—'}</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--up)">+${Math.round((bestDay?.realized||0)/10000)}만</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--up)">+${Math.round((bestDay?.pnl||0)/10000)}만</div>
         </div>
       </div>
     </div>`;
