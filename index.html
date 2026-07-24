@@ -1698,32 +1698,40 @@ function buildPnlCharts(){
 }
 
 function buildPnlMonthly(){
-  // 월별 실현손익 + 평가손익 집계
-  const realizedMap={}, evalMap={};
+  // 월별 실현손익 집계
+  const realizedMap={};
   entries26.forEach(e=>{
     const ym=e.d.slice(0,7);
     realizedMap[ym]=(realizedMap[ym]||0)+(e.realized||0);
-    // 평가손익 = 전체손익 - 실현손익 (단 첫날 제외)
-    const evalPnl = (e.pnl||0) - (e.realized||0);
-    evalMap[ym]=(evalMap[ym]||0)+evalPnl;
   });
-  // 첫날(1월) pnl 오류 보정: io=endAmt인 날 pnl이 -endAmt로 잡힘
-  const firstEntry = entries26[0];
-  if(firstEntry && firstEntry.io > 0 && Math.abs(firstEntry.pnl + firstEntry.io) < 1000){
-    const ym = firstEntry.d.slice(0,7);
-    evalMap[ym] = (evalMap[ym]||0) + firstEntry.io; // 보정
-  }
 
-  const keys = Object.keys(realizedMap).filter(k=>k.startsWith('2026')).sort();
+  // 월별 총손익 = (월말잔고 - 월초잔고) - 월중입출금
+  // = 실현손익 + 평가손익 합산
+  const months = [...new Set(entries26.map(e=>e.d.slice(0,7)))].filter(m=>m.startsWith('2026')).sort();
+  const totalMap={}, evalMap={};
+  months.forEach(ym => {
+    const monthEntries = entries26.filter(e=>e.d.startsWith(ym));
+    if(!monthEntries.length) return;
+    const prevEntries = entries26.filter(e=>e.d < ym+'-01');
+    const startBal = prevEntries.length ? prevEntries[prevEntries.length-1].end : monthEntries[0].end;
+    const endBal   = monthEntries[monthEntries.length-1].end;
+    const monthIo  = monthEntries.reduce((s,e)=>s+(e.io||0),0);
+    const total    = (endBal - startBal) - monthIo;  // 총손익
+    const realized = realizedMap[ym]||0;
+    totalMap[ym]   = total;
+    evalMap[ym]    = total - realized;  // 평가손익(미실현)
+  });
+
+  const keys = months;
   const labels = keys.map(k=>k.slice(5)+'월');
+  const totalVals    = keys.map(k=>totalMap[k]||0);
   const realizedVals = keys.map(k=>realizedMap[k]||0);
-  const evalVals = keys.map(k=>evalMap[k]||0);
+  const evalVals     = keys.map(k=>evalMap[k]||0);
 
-  // 누적
+  const cumTotalVals=[]; let cumT=0;
+  totalVals.forEach(v=>{cumT+=v; cumTotalVals.push(cumT);});
   const cumRealVals=[]; let cumR=0;
   realizedVals.forEach(v=>{cumR+=v; cumRealVals.push(cumR);});
-  const cumEvalVals=[]; let cumE=0;
-  evalVals.forEach(v=>{cumE+=v; cumEvalVals.push(cumE);});
 
   document.getElementById('pnl-chart-title').textContent = '월별 손익 (2026)';
   document.getElementById('pnl-tbl-title').textContent   = '월별 손익 내역';
@@ -1733,23 +1741,23 @@ function buildPnlMonthly(){
     type:'bar',
     data:{labels, datasets:[
       {
-        label:'실현손익', data:realizedVals,
-        backgroundColor:'rgba(74,222,128,0.75)',
-        borderColor:'rgba(74,222,128,1)',
+        label:'총손익(실현+평가)', data:totalVals,
+        backgroundColor: totalVals.map(v=>v>=0?'rgba(56,189,248,0.6)':'rgba(248,113,113,0.6)'),
+        borderColor: totalVals.map(v=>v>=0?'rgba(56,189,248,1)':'rgba(248,113,113,1)'),
         borderWidth:1.5, borderRadius:5, borderSkipped:false,
-        barPercentage:0.6, categoryPercentage:0.8,
+        barPercentage:0.5, categoryPercentage:0.8,
       },
       {
-        label:'평가손익', data:evalVals,
-        backgroundColor: evalVals.map(v=>v>=0?'rgba(34,211,238,0.55)':'rgba(251,113,133,0.55)'),
-        borderColor: evalVals.map(v=>v>=0?'rgba(34,211,238,0.9)':'rgba(251,113,133,0.9)'),
+        label:'실현손익', data:realizedVals,
+        backgroundColor:'rgba(52,211,153,0.75)',
+        borderColor:'rgba(52,211,153,1)',
         borderWidth:1.5, borderRadius:5, borderSkipped:false,
-        barPercentage:0.6, categoryPercentage:0.8,
+        barPercentage:0.5, categoryPercentage:0.8,
       },
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#5c6b7e',boxWidth:10,padding:10}},
+      plugins:{legend:{labels:{color:'#7a90a8',boxWidth:10,padding:10}},
         tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}원`}}},
       scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
     }
@@ -1760,20 +1768,20 @@ function buildPnlMonthly(){
     type:'line',
     data:{labels, datasets:[
       {
-        label:'누적 실현손익', data:cumRealVals,
-        borderColor:'#4ade80', backgroundColor:'rgba(74,222,128,0.08)',
+        label:'누적 총손익', data:cumTotalVals,
+        borderColor:'#38bdf8', backgroundColor:'rgba(56,189,248,0.08)',
         borderWidth:2, tension:0.4, fill:true, pointRadius:0, pointHoverRadius:5,
       },
       {
-        label:'누적 평가손익', data:cumEvalVals,
-        borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,0.06)',
-        borderWidth:2, tension:0.4, fill:true, pointRadius:0, pointHoverRadius:5,
+        label:'누적 실현손익', data:cumRealVals,
+        borderColor:'#34d399', backgroundColor:'rgba(52,211,153,0.05)',
+        borderWidth:1.5, tension:0.4, fill:true, pointRadius:0, pointHoverRadius:5,
         borderDash:[5,3],
       },
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#5c6b7e',boxWidth:10,padding:10}},
+      plugins:{legend:{labels:{color:'#7a90a8',boxWidth:10,padding:10}},
         tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}원`}}},
       scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
     }
@@ -1782,19 +1790,21 @@ function buildPnlMonthly(){
   document.getElementById('pnl-thead').innerHTML=`
     <tr>
       <th style="text-align:left">월</th>
+      <th>총손익</th>
       <th>실현손익</th>
-      <th>평가손익</th>
-      <th>누적 실현손익</th>
+      <th>평가손익(미실현)</th>
+      <th>누적 총손익</th>
     </tr>`;
   let runCum=0;
   document.getElementById('pnl-tbody').innerHTML = keys.map((k,i)=>{
-    const rv=realizedVals[i], ev=evalVals[i];
-    runCum+=rv;
+    const tv=totalVals[i], rv=realizedVals[i], ev=evalVals[i];
+    runCum+=tv;
     return `<tr>
       <td><strong>${labels[i]}</strong></td>
-      <td style="color:${rv>=0?'var(--up)':'var(--dn)'};font-weight:700">${rv!==0?sgn(rv)+rv.toLocaleString()+'원':'—'}</td>
-      <td style="color:${ev>=0?'var(--acc2)':'var(--dn)'}">${ev!==0?sgn(ev)+ev.toLocaleString()+'원':'—'}</td>
-      <td style="color:var(--acc2)">${runCum.toLocaleString()}원</td>
+      <td style="color:${tv>=0?'var(--acc2)':'var(--dn)'};font-weight:700">${tv!==0?sgn(tv)+tv.toLocaleString()+'원':'—'}</td>
+      <td style="color:${rv>=0?'var(--up)':'var(--dn)'}">${rv!==0?sgn(rv)+rv.toLocaleString()+'원':'—'}</td>
+      <td style="color:${ev>=0?'var(--muted)':'var(--dn)'}">${ev!==0?sgn(ev)+ev.toLocaleString()+'원':'—'}</td>
+      <td style="color:${runCum>=0?'var(--acc2)':'var(--dn)'};font-weight:700">${runCum.toLocaleString()}원</td>
     </tr>`;
   }).reverse().join('');
 }
