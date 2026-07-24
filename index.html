@@ -595,6 +595,8 @@ async function loadData() {
     accounts = a.list || [];
     accounts._baseInvested = a._baseInvested || 0;
     accounts._baseDate     = a._baseDate     || '2026-01-01';
+    accounts._leverPrice   = a._leverPrice   || 0;
+    accounts._kosdaqPrice  = a._kosdaqPrice  || 0;
   }
   lifeData    = m;
 }
@@ -1797,6 +1799,16 @@ function buildAc(){
   });
 
   buildCapitalGauge();
+  // CONFIG에서 현재가 초기값 설정
+  if(accounts._leverPrice){
+    const el1 = document.getElementById('price-lever');
+    if(el1 && !el1.value) el1.value = accounts._leverPrice;
+  }
+  if(accounts._kosdaqPrice){
+    const el2 = document.getElementById('price-kosdaq');
+    if(el2 && !el2.value) el2.value = accounts._kosdaqPrice;
+  }
+  buildSlotPanel();
 }
 
 // ═══════════════════════════════════════════════
@@ -1874,19 +1886,54 @@ function buildSlotPanel() {
   const priceLever  = parseFloat(document.getElementById('price-lever')?.value) || 0;
   const priceKosdaq = parseFloat(document.getElementById('price-kosdaq')?.value) || 0;
 
-  if (!priceLever && !priceKosdaq) return;
+  if (!priceLever && !priceKosdaq) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">
+      위에 현재가를 입력하면 계좌별 손익이 계산됩니다.
+    </div>`;
+    return;
+  }
 
-  // 최신 데이터에서 평단가 읽기 (col 13~28: 1번레버,1번코스닥, 2번레버...)
+  // 최신 데이터에서 평단가 읽기
   const latest = entries26[entries26.length - 1];
   if (!latest) return;
 
+  const leverAvgs  = latest.lever_avg  || Array(8).fill(0);
+  const kosdaqAvgs = latest.kosdaq_avg || Array(8).fill(0);
+
   const rows = accounts.map((acc, i) => {
     const bal = acc.balance || 0;
-    // acc 배열에서 잔고 (latest.acc[i])
-    const accBal = (latest.acc && latest.acc[i]) || bal;
+    const la = leverAvgs[i]  || 0;
+    const ka = kosdaqAvgs[i] || 0;
 
-    // 평단가는 daily.json에 없으므로 표시만
-    return { name: acc.name, balance: bal };
+    // 손익 계산
+    let pnlHtml = '<span style="color:var(--subtle)">—</span>';
+    let pnlVal = 0;
+
+    if (la > 0 && priceLever > 0 && ka > 0 && priceKosdaq > 0) {
+      // 둘 다 있으면 잔고 비율로 추정 (단순화)
+      const leverPnlPct  = (priceLever  - la) / la * 100;
+      const kosdaqPnlPct = (priceKosdaq - ka) / ka * 100;
+      pnlHtml = `<div style="font-size:11px">
+        <span style="color:${leverPnlPct>=0?'var(--up)':'var(--dn)'}">레버: ${leverPnlPct>=0?'+':''}${leverPnlPct.toFixed(2)}%</span><br>
+        <span style="color:${kosdaqPnlPct>=0?'var(--up)':'var(--dn)'}">코스닥: ${kosdaqPnlPct>=0?'+':''}${kosdaqPnlPct.toFixed(2)}%</span>
+      </div>`;
+    } else if (la > 0 && priceLever > 0) {
+      const pct = (priceLever - la) / la * 100;
+      pnlVal = Math.round(bal * pct / 100);
+      pnlHtml = `<div>
+        <span style="color:${pct>=0?'var(--up)':'var(--dn)'};font-weight:700">${pct>=0?'+':''}${pct.toFixed(2)}%</span>
+        <div style="font-size:11px;color:${pnlVal>=0?'var(--up)':'var(--dn)'}">${pnlVal>=0?'+':''}${fmt(pnlVal)}</div>
+      </div>`;
+    } else if (ka > 0 && priceKosdaq > 0) {
+      const pct = (priceKosdaq - ka) / ka * 100;
+      pnlVal = Math.round(bal * pct / 100);
+      pnlHtml = `<div>
+        <span style="color:${pct>=0?'var(--up)':'var(--dn)'};font-weight:700">${pct>=0?'+':''}${pct.toFixed(2)}%</span>
+        <div style="font-size:11px;color:${pnlVal>=0?'var(--up)':'var(--dn)'}">${pnlVal>=0?'+':''}${fmt(pnlVal)}</div>
+      </div>`;
+    }
+
+    return { name: acc.name, balance: bal, leverAvg: la, kosdaqAvg: ka, pnlHtml };
   });
 
   el.innerHTML = `
@@ -1902,35 +1949,15 @@ function buildSlotPanel() {
         </tr>
       </thead>
       <tbody>
-        ${rows.map((r,i) => {
-          // daily.json에서 평단가 가져오기 (acc_lever, acc_kosdaq 필드)
-          const leverAvg   = latest['lever_avg']   ? latest['lever_avg'][i]   : 0;
-          const kosdaqAvg  = latest['kosdaq_avg']  ? latest['kosdaq_avg'][i]  : 0;
-          const bal = r.balance;
-
-          // 평단가 있으면 손익 계산
-          let pnlHtml = '<span style="color:var(--subtle)">평단가 없음</span>';
-          if (leverAvg > 0 && priceLever > 0) {
-            const pnlPct = (priceLever - leverAvg) / leverAvg * 100;
-            pnlHtml = `<span style="color:${pnlPct>=0?'var(--up)':'var(--dn)'}">KODEX: ${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}%</span>`;
-          } else if (kosdaqAvg > 0 && priceKosdaq > 0) {
-            const pnlPct = (priceKosdaq - kosdaqAvg) / kosdaqAvg * 100;
-            pnlHtml = `<span style="color:${pnlPct>=0?'var(--up)':'var(--dn)'}">코스닥: ${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}%</span>`;
-          }
-
-          return `<tr>
-            <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04)"><strong>${r.name}</strong></td>
-            <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--acc2)">${bal>0?bal.toLocaleString()+'원':'—'}</td>
-            <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--muted)">${leverAvg>0?leverAvg.toLocaleString():'—'}</td>
-            <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--muted)">${kosdaqAvg>0?kosdaqAvg.toLocaleString():'—'}</td>
-            <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right">${pnlHtml}</td>
-          </tr>`;
-        }).join('')}
+        ${rows.map(r => `<tr>
+          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04)"><strong>${r.name}</strong></td>
+          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--acc2)">${r.balance>0?r.balance.toLocaleString()+'원':'—'}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--muted)">${r.leverAvg>0?r.leverAvg.toLocaleString():'—'}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--muted)">${r.kosdaqAvg>0?r.kosdaqAvg.toLocaleString():'—'}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right">${r.pnlHtml}</td>
+        </tr>`).join('')}
       </tbody>
     </table>
-    </div>
-    <div style="margin-top:10px;padding:10px 12px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--muted)">
-      💡 평단가는 INPUT 시트에 입력하면 자동 반영됩니다.
     </div>`;
 }
 
