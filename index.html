@@ -168,6 +168,10 @@ canvas{max-width:100% !important}
 .g2 > *,.g11 > *{min-width:0;overflow:hidden}
 
 @media(max-width:600px){
+  #capital-gauge .grid-3{grid-template-columns:1fr !important}
+  #slot-panel table{font-size:11px}
+  #slot-panel th,#slot-panel td{padding:6px 8px !important}
+  .sec{flex-wrap:wrap;gap:6px}
   .hdr{padding:10px 14px;flex-wrap:wrap;gap:6px}
   .hdr-title{font-size:13px}
   .hdr-badge{padding:4px 10px;font-size:11px}
@@ -405,10 +409,10 @@ canvas{max-width:100% !important}
   <div class="card">
     <div class="sec">
       <span>목표 자본 대비 현황</span>
-      <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <span style="font-size:11px;color:var(--muted)">목표자본</span>
         <input type="number" id="target-capital" value="200000000"
-          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--acc2);font-size:12px;font-family:'JetBrains Mono',monospace;width:130px;text-align:right"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--acc2);font-size:12px;font-family:'JetBrains Mono',monospace;width:110px;text-align:right"
           oninput="buildCapitalGauge()">
         <span style="font-size:11px;color:var(--muted)">원</span>
       </div>
@@ -434,14 +438,14 @@ canvas{max-width:100% !important}
   <div class="card">
     <div class="sec">
       <span>계좌별 종목 손익</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:11px;color:var(--muted)">KODEX레버</span>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted)">레버</span>
         <input type="number" id="price-lever" placeholder="현재가" value=""
-          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--acc2);font-size:12px;width:90px;text-align:right"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--acc2);font-size:12px;width:80px;text-align:right"
           oninput="buildSlotPanel()">
-        <span style="font-size:11px;color:var(--muted)">코스닥150</span>
+        <span style="font-size:11px;color:var(--muted)">코스닥</span>
         <input type="number" id="price-kosdaq" placeholder="현재가" value=""
-          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--acc2);font-size:12px;width:90px;text-align:right"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--acc2);font-size:12px;width:80px;text-align:right"
           oninput="buildSlotPanel()">
       </div>
     </div>
@@ -1764,7 +1768,7 @@ function buildCapitalGauge() {
 
   el.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;min-width:0">
         <div style="background:var(--bg3);border-radius:10px;padding:12px 16px;border:1px solid var(--acc-border);text-align:center">
           <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">목표 자본</div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--acc2)">${Math.round(target/100000000*10)/10}억</div>
@@ -1815,7 +1819,8 @@ function buildSlotPanel() {
   });
 
   el.innerHTML = `
-    <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <table style="width:100%;min-width:500px;border-collapse:collapse;font-size:13px">
       <thead>
         <tr>
           <th style="text-align:left;padding:8px 12px;color:var(--muted);font-size:10px;letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border)">계좌</th>
@@ -1852,6 +1857,7 @@ function buildSlotPanel() {
         }).join('')}
       </tbody>
     </table>
+    </div>
     <div style="margin-top:10px;padding:10px 12px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--muted)">
       💡 평단가는 INPUT 시트에 입력하면 자동 반영됩니다.
     </div>`;
@@ -1873,10 +1879,10 @@ function buildQuarterChart() {
 
   // 분기별 합계
   const quarters = {
-    'Q1 (1~3월)': ['2026-01','2026-02','2026-03'],
-    'Q2 (4~6월)': ['2026-04','2026-05','2026-06'],
-    'Q3 (7~9월)': ['2026-07','2026-08','2026-09'],
-    'Q4 (10~12월)': ['2026-10','2026-11','2026-12'],
+    'Q1': ['2026-01','2026-02','2026-03'],
+    'Q2': ['2026-04','2026-05','2026-06'],
+    'Q3': ['2026-07','2026-08','2026-09'],
+    'Q4': ['2026-10','2026-11','2026-12'],
   };
 
   const labels = Object.keys(quarters);
