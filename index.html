@@ -1931,16 +1931,16 @@ function buildPnlMonthly(){
 function buildPnlDaily(){
   const data = [...entries26].sort((a,b)=>a.d>b.d?1:-1);
   const labels = data.map(e=>e.d.slice(5));
-  const realizedVals = data.map(e=>e.realized||0);
-  const evalVals = data.map((e,i)=>{
-    if(i===0 && e.io > 0 && Math.abs(e.pnl + e.io) < 1000) return 0;
-    return (e.pnl||0) - (e.realized||0);
-  });
 
+  // 총손익(pnl) - 첫날 제외
+  const totalVals   = data.map((e,i)=>i===0?0:(e.pnl||0));
+  const realizedVals = data.map(e=>e.realized||0);
+
+  // 누적
+  const cumTotalVals=[]; let cumT=0;
+  totalVals.forEach(v=>{cumT+=v; cumTotalVals.push(cumT);});
   const cumRealVals=[]; let cumR=0;
   realizedVals.forEach(v=>{cumR+=v; cumRealVals.push(cumR);});
-  const cumEvalVals=[]; let cumE=0;
-  evalVals.forEach(v=>{cumE+=v; cumEvalVals.push(cumE);});
 
   document.getElementById('pnl-chart-title').textContent = '일별 손익 (2026)';
   document.getElementById('pnl-tbl-title').textContent   = '일별 손익 내역';
@@ -1950,25 +1950,25 @@ function buildPnlDaily(){
     type:'bar',
     data:{labels, datasets:[
       {
-        label:'실현손익', data:realizedVals,
-        backgroundColor:'rgba(52,211,153,0.8)',
-        borderColor:'rgba(52,211,153,1)',
+        label:'총손익', data:totalVals,
+        backgroundColor: totalVals.map(v=>v>0?'rgba(56,189,248,0.7)':v<0?'rgba(248,113,113,0.7)':'rgba(93,107,126,0.2)'),
+        borderColor: totalVals.map(v=>v>0?'rgba(56,189,248,1)':v<0?'rgba(248,113,113,1)':'rgba(93,107,126,0.4)'),
         borderWidth:1, borderRadius:3, borderSkipped:false,
-        barPercentage:0.4, categoryPercentage:0.7,
+        barPercentage:0.5, categoryPercentage:0.7,
       },
       {
-        label:'평가손익', data:evalVals,
-        backgroundColor: evalVals.map(v=>v>0?'rgba(56,189,248,0.6)':v<0?'rgba(248,113,113,0.6)':'rgba(93,107,126,0.2)'),
-        borderColor: evalVals.map(v=>v>0?'rgba(56,189,248,1)':v<0?'rgba(248,113,113,1)':'rgba(93,107,126,0.4)'),
+        label:'실현손익', data:realizedVals,
+        backgroundColor:'rgba(52,211,153,0.7)',
+        borderColor:'rgba(52,211,153,1)',
         borderWidth:1, borderRadius:3, borderSkipped:false,
-        barPercentage:0.4, categoryPercentage:0.7,
+        barPercentage:0.5, categoryPercentage:0.7,
       },
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#5c6b7e',boxWidth:10,padding:10}},
+      plugins:{legend:{labels:{color:'#7a90a8',boxWidth:10,padding:10}},
         tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}원`}}},
-      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:14}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:14,color:'#546070'}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만',color:'#546070'}}}
     }
   });
 
@@ -1977,47 +1977,45 @@ function buildPnlDaily(){
     type:'line',
     data:{labels, datasets:[
       {
-        label:'누적 실현손익', data:cumRealVals,
-        borderColor:'#4ade80', backgroundColor:'rgba(74,222,128,0.08)',
+        label:'누적 총손익', data:cumTotalVals,
+        borderColor:'#38bdf8', backgroundColor:'rgba(56,189,248,0.08)',
         borderWidth:2, tension:0.4, fill:true, pointRadius:0, pointHoverRadius:5,
+        segment:{borderColor:ctx=>ctx.p0.parsed.y<0?'#f87171':'#38bdf8'}
       },
       {
-        label:'누적 평가손익', data:cumEvalVals,
-        borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,0.06)',
-        borderWidth:1.5, tension:0.4, fill:true, pointRadius:0, pointHoverRadius:5,
+        label:'누적 실현손익', data:cumRealVals,
+        borderColor:'#34d399', backgroundColor:'transparent',
+        borderWidth:1.5, tension:0.4, fill:false, pointRadius:0, pointHoverRadius:5,
         borderDash:[5,3],
       },
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#5c6b7e',boxWidth:10,padding:10}},
+      plugins:{legend:{labels:{color:'#7a90a8',boxWidth:10,padding:10}},
         tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toLocaleString()}원`}}},
-      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:14}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만'}}}
+      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:14,color:'#546070'}},y:{grid:{color:gc},ticks:{callback:v=>(v/10000).toFixed(0)+'만',color:'#546070'}}}
     }
   });
 
   document.getElementById('pnl-thead').innerHTML=`
     <tr>
       <th style="text-align:left">날짜</th>
+      <th>총손익</th>
       <th>실현손익</th>
-      <th>평가손익</th>
-      <th>누적 실현손익</th>
+      <th>누적 총손익</th>
       <th>계좌 총액</th>
     </tr>`;
   const rows = [...data].reverse();
   const cumByDate={};
-  data.forEach((e,i)=>{ cumByDate[e.d]=cumRealVals[i]; });
-  const evalByDate={};
-  data.forEach((e,i)=>{ evalByDate[e.d]=evalVals[i]; });
+  data.forEach((e,i)=>{ cumByDate[e.d]=cumTotalVals[i]; });
   document.getElementById('pnl-tbody').innerHTML = rows.map(e=>{
-    const rv=e.realized||0;
-    const ev=evalByDate[e.d]||0;
+    const tv=e.pnl||0, rv=e.realized||0;
     const c=cumByDate[e.d]||0;
     return `<tr>
       <td style="font-family:'JetBrains Mono',monospace;color:var(--muted)">${e.d}</td>
-      <td style="color:${rv>0?'var(--up)':rv<0?'var(--dn)':'var(--subtle)'};font-weight:${rv!==0?'700':'400'}">${rv!==0?sgn(rv)+rv.toLocaleString()+'원':'—'}</td>
-      <td style="color:${ev>0?'var(--acc2)':ev<0?'var(--dn)':'var(--subtle)'}">${ev!==0?sgn(ev)+ev.toLocaleString()+'원':'—'}</td>
-      <td style="color:var(--acc2)">${c.toLocaleString()}원</td>
+      <td style="color:${tv>0?'var(--acc2)':tv<0?'var(--dn)':'var(--subtle)'};font-weight:${tv!==0?'700':'400'}">${tv!==0?sgn(tv)+tv.toLocaleString()+'원':'—'}</td>
+      <td style="color:${rv>0?'var(--up)':rv<0?'var(--dn)':'var(--subtle)'}">${rv!==0?sgn(rv)+rv.toLocaleString()+'원':'—'}</td>
+      <td style="color:${c>=0?'var(--acc2)':'var(--dn)'};font-weight:700">${c.toLocaleString()}원</td>
       <td style="color:var(--text)">${e.end?e.end.toLocaleString()+'원':'—'}</td>
     </tr>`;
   }).join('');
