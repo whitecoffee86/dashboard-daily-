@@ -2,35 +2,35 @@
   "list": [
     {
       "name": "1번 계좌",
-      "balance": 6205120
+      "balance": 4624410
     },
     {
       "name": "2번 계좌",
-      "balance": 10366870
+      "balance": 7362380
     },
     {
       "name": "3번 계좌",
-      "balance": 14824170
+      "balance": 10728830
     },
     {
       "name": "4번 계좌",
-      "balance": 18048050
+      "balance": 13135445
     },
     {
       "name": "5번 계좌",
-      "balance": 37874050
+      "balance": 33360735
     },
     {
       "name": "6번 계좌",
-      "balance": 26195360
+      "balance": 21912280
     },
     {
       "name": "7번 계좌",
-      "balance": 20772680
+      "balance": 16165090
     },
     {
       "name": "8번 계좌",
-      "balance": 5782920
+      "balance": 4500210
     }
   ],
   "_baseInvested": 207659110,
