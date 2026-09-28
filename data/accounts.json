@@ -2,39 +2,39 @@
   "list": [
     {
       "name": "1번계좌",
-      "balance": 6094740
+      "balance": 5931880
     },
     {
       "name": "2번계좌",
-      "balance": 9592915
+      "balance": 9063810
     },
     {
       "name": "3번계좌",
-      "balance": 14043265
+      "balance": 13428710
     },
     {
       "name": "4번계좌",
-      "balance": 17216275
+      "balance": 16519930
     },
     {
       "name": "5번계좌",
-      "balance": 43484625
+      "balance": 41128190
     },
     {
       "name": "6번계좌",
-      "balance": 23344795
+      "balance": 23291685
     },
     {
       "name": "7번계좌",
-      "balance": 27689660
+      "balance": 27610320
     },
     {
       "name": "8번계좌",
-      "balance": 6176500
+      "balance": 6175730
     }
   ],
   "_baseInvested": 207659110,
   "_baseDate": "2026-07-23",
-  "_leverPrice": 116975,
-  "_kosdaqPrice": 6980
+  "_leverPrice": 109370,
+  "_kosdaqPrice": 6960
 }
