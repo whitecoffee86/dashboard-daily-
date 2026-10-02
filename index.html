@@ -19,7 +19,10 @@
   --display:'Do Hyeon','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   --body:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
   --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
-  --r:16px;
+  --r:18px;
+  --surf-hi:#172a52; --surf-lo:#0e1a35; --edge-gold:rgba(242,199,95,.42); --edge-mid:rgba(150,175,230,.09); --edge-violet:rgba(139,122,224,.32);
+  --shadow:0 1px 0 rgba(255,255,255,.07) inset,0 -1px 0 rgba(0,0,0,.35) inset,0 22px 44px -22px rgba(0,0,0,.75),0 3px 10px rgba(0,0,0,.28);
+  --shadow-hi:0 1px 0 rgba(255,255,255,.09) inset,0 -1px 0 rgba(0,0,0,.35) inset,0 30px 60px -24px rgba(0,0,0,.8),0 0 0 1px rgba(242,199,95,.12),0 10px 30px -12px rgba(212,162,60,.25);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -251,6 +254,120 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
 #tip .num{font-weight:600}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
 
+
+/* ════ DEPTH LAYER ════ */
+.atmo{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.atmo::before{content:"";position:absolute;inset:-25%;background:
+  radial-gradient(34% 30% at 18% 22%,rgba(139,122,224,.22),transparent 62%),
+  radial-gradient(30% 26% at 82% 8%,rgba(212,162,60,.20),transparent 62%),
+  radial-gradient(40% 36% at 62% 88%,rgba(79,157,255,.13),transparent 62%),
+  radial-gradient(26% 24% at 6% 92%,rgba(99,208,126,.08),transparent 62%);
+  filter:blur(24px);animation:aurora 28s ease-in-out infinite alternate}
+.atmo::after{content:"";position:absolute;inset:0;opacity:.55;background-image:
+  radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 72% 12%,#fff,transparent),
+  radial-gradient(1.5px 1.5px at 38% 6%,#fff,transparent),radial-gradient(1px 1px at 88% 34%,#fff,transparent),
+  radial-gradient(1px 1px at 22% 62%,#cfd8ff,transparent),radial-gradient(1px 1px at 55% 44%,#fff,transparent),
+  radial-gradient(1.5px 1.5px at 92% 72%,#ffe9b0,transparent),radial-gradient(1px 1px at 5% 40%,#fff,transparent);
+  background-size:520px 520px;animation:twinkle 6s ease-in-out infinite alternate}
+@keyframes aurora{0%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(3%,-2%,0) rotate(4deg)}100%{transform:translate3d(-3%,3%,0) rotate(-3deg)}}
+@keyframes twinkle{from{opacity:.25}to{opacity:.6}}
+.top{z-index:20} .wrap{position:relative;z-index:1}
+
+.panel{position:relative;isolation:isolate;border:1px solid transparent;border-radius:var(--r);
+  background:
+    radial-gradient(520px circle at var(--mx,50%) var(--my,-30%),rgba(242,199,95,.075),transparent 45%) padding-box,
+    linear-gradient(180deg,var(--surf-hi),var(--surf-lo)) padding-box,
+    linear-gradient(155deg,var(--edge-gold),var(--edge-mid) 28%,var(--edge-mid) 70%,var(--edge-violet)) border-box;
+  box-shadow:var(--shadow);transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}
+.panel::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:linear-gradient(180deg,rgba(255,255,255,.045),transparent 38%)}
+.lift:hover{transform:translateY(-4px);box-shadow:var(--shadow-hi)}
+
+/* hero */
+.hero-main{background:
+    radial-gradient(520px circle at var(--mx,30%) var(--my,0%),rgba(242,199,95,.10),transparent 45%) padding-box,
+    radial-gradient(120% 90% at 0% 0%,rgba(212,162,60,.16),transparent 55%) padding-box,
+    linear-gradient(180deg,#1a2f5c,var(--surf-lo)) padding-box,
+    linear-gradient(155deg,rgba(242,199,95,.65),var(--edge-mid) 35%,var(--edge-violet)) border-box}
+.hero-main .big{background:linear-gradient(100deg,#fff 0%,#fff 35%,var(--gold-hi) 50%,#fff 65%,#fff 100%);background-size:250% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 7s ease-in-out infinite;
+  filter:drop-shadow(0 6px 24px rgba(242,199,95,.22))}
+@keyframes sheen{0%,100%{background-position:100% 0}50%{background-position:0 0}}
+.tile[data-tone]::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none}
+.tile[data-tone="up"]::before{background:radial-gradient(120% 80% at 100% 0%,rgba(255,95,95,.16),transparent 60%)}
+.tile[data-tone="dn"]::before{background:radial-gradient(120% 80% at 100% 0%,rgba(79,157,255,.18),transparent 60%)}
+.tile[data-tone="gold"]::before{background:radial-gradient(120% 80% at 100% 0%,rgba(242,199,95,.16),transparent 60%)}
+.tile .v{text-shadow:0 0 18px currentColor}
+.level{background:
+    radial-gradient(520px circle at var(--mx,50%) var(--my,-30%),rgba(242,199,95,.12),transparent 45%) padding-box,
+    linear-gradient(120deg,#2a2a3e,#16213f 60%) padding-box,
+    linear-gradient(120deg,rgba(242,199,95,.8),rgba(242,199,95,.15) 60%,var(--edge-violet)) border-box}
+.level .badge{filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+.xp{box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+
+/* section titles */
+h2{display:flex;align-items:center;gap:.5em}
+.hi{display:inline-grid;place-items:center;width:1.65em;height:1.65em;border-radius:.45em;font-size:.9em;flex:none;
+  background:linear-gradient(150deg,#2a3f70,#14244a);box-shadow:0 1px 0 rgba(255,255,255,.15) inset,0 -2px 0 rgba(0,0,0,.35) inset,0 8px 18px -8px rgba(0,0,0,.8),0 0 0 1px rgba(242,199,95,.25);
+  transform:rotate(-6deg);transition:transform .3s}
+.sec-head:hover .hi{transform:rotate(4deg) scale(1.08)}
+.sec-head{position:relative;padding-bottom:10px}
+.sec-head::after{content:"";position:absolute;left:0;bottom:0;width:min(220px,40%);height:2px;border-radius:2px;background:linear-gradient(90deg,var(--gold),transparent)}
+
+/* ticker glass */
+.ticker{-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.top{background:linear-gradient(180deg,rgba(14,26,53,.92),rgba(10,19,38,.82));box-shadow:0 10px 30px -18px rgba(0,0,0,.9)}
+
+/* buttons */
+.play{background:linear-gradient(180deg,#f6d27a,#d4a23c 55%,#b8852a);box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 -2px 0 rgba(0,0,0,.25) inset,0 6px 14px -4px rgba(212,162,60,.55);transition:transform .15s}
+.play:active{transform:translateY(1px)}
+.play.on{background:linear-gradient(180deg,#24396a,#182a52);box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 4px 10px -4px rgba(0,0,0,.6)}
+.chip{background:rgba(255,255,255,.03);box-shadow:0 1px 0 rgba(255,255,255,.05) inset}
+.chip[aria-pressed="true"]{box-shadow:0 0 0 1px rgba(242,199,95,.25),0 4px 12px -4px rgba(212,162,60,.45)}
+.dice{background:linear-gradient(180deg,rgba(242,199,95,.08),transparent)}
+.today{box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 8px 20px -10px rgba(255,95,95,.6)}
+.today.neg{box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 8px 20px -10px rgba(79,157,255,.6)}
+
+/* bars: glossy */
+.step .bar,.rk-b,.ib,.xp,.item .ib{box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}
+.step .bar>div,.rk-b>div,.item .ib>div{background-image:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 55%)!important;background-color:currentColor}
+.rk-b>div{color:var(--gold)} .item .ib>div{color:var(--gold)} .item.done .ib>div{color:var(--leaf)}
+.step.next{box-shadow:inset 3px 0 0 var(--gold-hi)}
+
+/* inner surfaces */
+.hl-sum>div,.bag,.tm-card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 6px 14px -8px rgba(0,0,0,.6)}
+.tm-card{background:linear-gradient(160deg,#1d3266,#132449);border:1px solid rgba(242,199,95,.25)}
+
+/* 8칸 밭: 하늘 + 원근 흙 */
+.field{height:86px;border-radius:12px;padding-bottom:16px;
+  background:linear-gradient(180deg,var(--sky1,#0d1838),var(--sky2,#22305a) 62%,#3a2b1e 62%);box-shadow:inset 0 2px 8px rgba(0,0,0,.55)}
+.field::after{height:34%;background:
+  repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 2px,transparent 2px 14px),
+  linear-gradient(180deg,#5a4029,#2d2016);transform:perspective(120px) rotateX(38deg);transform-origin:bottom;bottom:-2px;left:-6%;right:-6%}
+.field.sun{--sky1:#2b2a5c;--sky2:#d98a4a}
+.field.rain{--sky1:#101a33;--sky2:#2a3e66}
+.field.calm{--sky1:#0a1430;--sky2:#1d2b55}
+.field .sky{position:absolute;top:6px;right:10px;font-size:1.15rem;z-index:1;animation:drift 9s ease-in-out infinite alternate;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+.field.rain .sky{left:12px;right:auto}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-14px)}}
+.field.rain::before{content:"";position:absolute;inset:0 0 34% 0;background:repeating-linear-gradient(105deg,transparent 0 9px,rgba(160,190,255,.22) 9px 10px);animation:rainfall 1s linear infinite;z-index:0}
+@keyframes rainfall{from{background-position:0 0}to{background-position:-14px 40px}}
+.field .crop{z-index:2;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))}
+
+/* 업적 메달 */
+.a .ic{width:2.6rem;height:2.6rem;display:grid;place-items:center;border-radius:50%;font-size:1.5rem;background:radial-gradient(circle at 35% 30%,#3a4a72,#1a2648);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 4px 10px -4px rgba(0,0,0,.7)}
+.a.got .ic{background:radial-gradient(circle at 35% 30%,#ffe7a3,#d4a23c 55%,#8a6420);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 0 rgba(0,0,0,.25),0 6px 16px -6px rgba(212,162,60,.8)}
+
+/* 캘린더 칸 입체 */
+.cell{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 1px 2px rgba(0,0,0,.35)}
+.hc{box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+
+/* 스크롤 진입: 보이는 상태에서 살짝 떠오름 */
+@supports (animation-timeline: view()){
+  .wrap > section{animation:rise linear both;animation-timeline:view();animation-range:entry 0% entry 35%}
+  @keyframes rise{from{transform:translateY(28px) scale(.985)}to{transform:none}}
+}
+
 @media (max-width:900px){
   .hero,.farm-top,.cal-grid,.harvest,.hl-grid,.seedbox{grid-template-columns:1fr}
   .plots{grid-template-columns:repeat(2,1fr)}
@@ -272,6 +389,7 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
 </head>
 <body>
 
+<div class="atmo" aria-hidden="true"></div>
 <div class="top">
   <div class="top-row">
     <div class="brand"><div class="mono">WC</div><b>주식농사 라이브</b></div>
@@ -291,10 +409,10 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
       <div class="muted" style="font-size:0.8571rem" id="h-spark-cap"></div>
     </div>
     <div class="hero-side">
-      <div class="panel tile"><span class="eyebrow">2026 수익률</span><span class="v" id="t-ret">-</span><span class="s" id="t-ret-s"></span></div>
-      <div class="panel tile"><span class="eyebrow">KOSPI 대비</span><span class="v" id="t-alpha">-</span><span class="s" id="t-alpha-s"></span></div>
-      <div class="panel tile"><span class="eyebrow">2024년부터 누적</span><span class="v" id="t-all">-</span><span class="s" id="t-all-s"></span></div>
-      <div class="panel tile"><span class="eyebrow">전고점 대비</span><span class="v" id="t-dd">-</span><span class="s" id="t-dd-s"></span></div>
+      <div class="panel tile lift"><span class="eyebrow">2026 수익률</span><span class="v" id="t-ret">-</span><span class="s" id="t-ret-s"></span></div>
+      <div class="panel tile lift"><span class="eyebrow">KOSPI 대비</span><span class="v" id="t-alpha">-</span><span class="s" id="t-alpha-s"></span></div>
+      <div class="panel tile lift"><span class="eyebrow">2024년부터 누적</span><span class="v" id="t-all">-</span><span class="s" id="t-all-s"></span></div>
+      <div class="panel tile lift"><span class="eyebrow">전고점 대비</span><span class="v" id="t-dd">-</span><span class="s" id="t-dd-s"></span></div>
       <div class="panel level">
         <div class="badge" id="lv-ic">🧑‍🌾</div>
         <div style="flex:1;min-width:0">
@@ -311,7 +429,7 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
   <!-- REPLAY -->
   <section>
     <div class="sec-head">
-      <div><span class="eyebrow">Replay</span><h2>🏁 코스피와 달리기 다시보기</h2><p>2024년 첫 거래일부터 오늘까지 내 계좌와 코스피의 누적수익률 경주. 7/23 이후로는 바닥에 수확(금색)·파종(초록) 눈금이 찍히고 그날 매매가 떠요.</p></div>
+      <div><span class="eyebrow">Replay</span><h2><span class="hi" aria-hidden="true">🏁</span>코스피와 달리기 다시보기</h2><p>2024년 첫 거래일부터 오늘까지 내 계좌와 코스피의 누적수익률 경주. 7/23 이후로는 바닥에 수확(금색)·파종(초록) 눈금이 찍히고 그날 매매가 떠요.</p></div>
     </div>
     <div class="panel stage">
       <div class="stage-ctl">
@@ -341,7 +459,7 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
   <!-- FARM -->
   <section>
     <div class="sec-head">
-      <div><span class="eyebrow">8 Accounts</span><h2>🌾 오늘의 8칸 밭</h2><p>시트에 입력한 레버리지 종가로 계좌별 손익과 수확 신호를 자동 계산합니다.</p></div>
+      <div><span class="eyebrow">8 Accounts</span><h2><span class="hi" aria-hidden="true">🌾</span>오늘의 8칸 밭</h2><p>시트에 입력한 레버리지 종가로 계좌별 손익과 수확 신호를 자동 계산합니다.</p></div>
     </div>
     <div class="farm-top">
       <div class="panel ladder" id="lad-k"></div>
@@ -354,7 +472,7 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
   <!-- HARVEST LOG -->
   <section>
     <div class="sec-head">
-      <div><span class="eyebrow">Farm Log</span><h2>📒 농사 기록부</h2><p>평단가 변화로 매매를 자동 감지했어요. 따로 입력할 건 없습니다.</p></div>
+      <div><span class="eyebrow">Farm Log</span><h2><span class="hi" aria-hidden="true">📒</span>농사 기록부</h2><p>평단가 변화로 매매를 자동 감지했어요. 따로 입력할 건 없습니다.</p></div>
     </div>
     <div class="hl-grid">
       <div class="panel chart-box" id="hl-rank"></div>
@@ -366,7 +484,7 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
   <!-- CALENDAR -->
   <section>
     <div class="sec-head">
-      <div><span class="eyebrow">2026 Calendar</span><h2>📅 매일의 밭 달력</h2><p>칸을 누르면 그날 성적이 오른쪽 카드에 뜹니다. 진할수록 큰 날.</p></div>
+      <div><span class="eyebrow">2026 Calendar</span><h2><span class="hi" aria-hidden="true">📅</span>매일의 밭 달력</h2><p>칸을 누르면 그날 성적이 오른쪽 카드에 뜹니다. 진할수록 큰 날.</p></div>
     </div>
     <div class="cal-grid">
       <div class="panel">
@@ -374,7 +492,7 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
         <div class="legend" style="padding:0 16px 14px">손실 <i style="background:var(--down)"></i><i style="background:rgba(79,157,255,.35)"></i><i style="background:rgba(255,255,255,.08)"></i><i style="background:rgba(255,95,95,.35)"></i><i style="background:var(--up)"></i> 수익</div>
       </div>
       <div class="panel tm">
-        <div><span class="eyebrow">Time Machine</span><h2 style="font-size:1.571rem">🎲 그날의 나</h2></div>
+        <div><span class="eyebrow">Time Machine</span><h2 style="font-size:1.571rem"><span class="hi" aria-hidden="true">🎲</span>그날의 나</h2></div>
         <div class="tm-card" id="tm-card"></div>
         <button class="dice" id="dice" type="button"><span>🎲</span> 아무 날이나 뽑기</button>
       </div>
@@ -384,7 +502,7 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
   <!-- HARVEST -->
   <section>
     <div class="sec-head">
-      <div><span class="eyebrow">Harvest</span><h2>🧺 월별 수확 창고</h2><p>매도로 확정한 실현손익. 금색 점선이 생활비 게임 목표선입니다.</p></div>
+      <div><span class="eyebrow">Harvest</span><h2><span class="hi" aria-hidden="true">🧺</span>월별 수확 창고</h2><p>매도로 확정한 실현손익. 금색 점선이 생활비 게임 목표선입니다.</p></div>
     </div>
     <div class="harvest">
       <div class="panel chart-box"><svg id="mbar" viewBox="0 0 640 260" role="img" aria-label="2026 월별 실현손익"></svg></div>
@@ -395,7 +513,7 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
   <!-- ACHIEVEMENTS -->
   <section>
     <div class="sec-head">
-      <div><span class="eyebrow">Badges</span><h2>🏆 업적 진열장</h2><p id="ach-sub">데이터에서 자동으로 계산됩니다.</p></div>
+      <div><span class="eyebrow">Badges</span><h2><span class="hi" aria-hidden="true">🏆</span>업적 진열장</h2><p id="ach-sub">데이터에서 자동으로 계산됩니다.</p></div>
     </div>
     <div class="ach" id="ach"></div>
   </section>
@@ -403,7 +521,7 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
   <!-- RECORDS -->
   <section>
     <div class="sec-head">
-      <div><span class="eyebrow">Records</span><h2>📊 기록실</h2><p>2026 거래일 기준 승패와 요일 습관, 그리고 지나온 낙폭.</p></div>
+      <div><span class="eyebrow">Records</span><h2><span class="hi" aria-hidden="true">📊</span>기록실</h2><p>2026 거래일 기준 승패와 요일 습관, 그리고 지나온 낙폭.</p></div>
     </div>
     <div class="rec">
       <div class="panel chart-box" id="r-wl"></div>
@@ -460,6 +578,15 @@ function showTip(html, x, y){
   tip.style.left = Math.max(8,lx)+'px'; tip.style.top = Math.max(8,ly)+'px';
 }
 function hideTip(){ tip.hidden = true; }
+
+/* ── spotlight ── */
+if(matchMedia('(hover:hover)').matches){
+  document.addEventListener('pointermove', e=>{
+    const p = e.target.closest && e.target.closest('.panel'); if(!p) return;
+    const r = p.getBoundingClientRect();
+    p.style.setProperty('--mx', (e.clientX-r.left)+'px'); p.style.setProperty('--my', (e.clientY-r.top)+'px');
+  }, {passive:true});
+}
 
 /* ── count up ── */
 function countUp(el, to, fmt, ms=1400){
@@ -623,6 +750,8 @@ load().then(raw=>{
   countUp($('t-all'), allNow, v=>pct(v,0)); $('t-all').className='v '+cls(allNow);
   $('t-all-s').textContent = '2024.01부터 이어 붙인 수익률';
   countUp($('t-dd'), curDD, v=>pct(v)); $('t-dd').className='v '+(curDD<-0.05?'dn':'gold');
+  [['t-ret',L.ret],['t-alpha',alpha],['t-all',allNow]].forEach(([id,v])=>$(id).closest('.tile').dataset.tone = v>0?'up':'dn');
+  $('t-dd').closest('.tile').dataset.tone = curDD<-0.05?'dn':'gold';
   $('t-dd-s').textContent = curDD<-0.05 ? `고점 ${md(peakRow.d)} · 탈환까지 ${pct((navPeak/L.nav-1)*100)}` : '🏔 지금이 신고점!';
   // level
   const STEP = 5000000, lv = Math.floor(real26/STEP)+1, into = real26 - (lv-1)*STEP;
@@ -669,7 +798,7 @@ load().then(raw=>{
   ];
   const got = A.filter(a=>a.ok).length;
   $('ach-sub').textContent = `${A.length}개 중 ${got}개 획득 · 데이터에서 자동 계산`;
-  $('ach').innerHTML = A.map(a=>`<div class="panel a ${a.ok?'got':'locked'}">
+  $('ach').innerHTML = A.map(a=>`<div class="panel a lift ${a.ok?'got':'locked'}">
       <span class="ic">${a.ic}</span><b>${a.n}</b><span class="ds">${a.d}</span><span class="av num">${a.v}</span>
       ${a.ok?'':`<div class="pb"><div style="width:${Math.max(0,Math.min(100,a.p*100)).toFixed(0)}%"></div></div>`}
     </div>`).join('');
@@ -945,6 +1074,7 @@ function farm(S, L, P){
     const worst = rets.length ? Math.min(...rets) : null, bestR = rets.length ? Math.max(...rets) : null;
     const n = b>0 ? Math.max(1, Math.round(b/mx*6)) : 0;
     const crop = k => bestR==null ? (k%3===2?'🌽':'🌾') : bestR>=0.3 ? (k%2?'🌽':'🌾') : worst<-3 ? (k%2?'🍂':'🌿') : (k%2?'🌱':'🌿');
+    const sky = b<=0 ? ['calm','🌙'] : bestR==null ? ['calm','🌙'] : bestR>=0.3 ? ['sun','☀️'] : worst<-3 ? ['rain','🌧'] : ['calm','🌙'];
     const crops = b>0 ? Array.from({length:n},(_,k)=>`<span class="crop" style="animation-delay:${-(k*0.37+i*0.21).toFixed(2)}s;font-size:${18+Math.round(b/mx*8)}px">${crop(k)}</span>`).join('') : '<span style="position:relative;z-index:1;font-size:0.8571rem;color:var(--muted);padding-bottom:12px">휴경 중</span>';
     const tr = (S.TR[L.d]||[]).filter(e=>e.n===i+1);
     const emptied = b===0 && (accPrev[i]||0)>0;
@@ -959,9 +1089,9 @@ function farm(S, L, P){
           <div class="g8-l"><span>0%</span><span>-5% 추가</span><span>-15% 청산</span></div></div>`;
       } else gauge = '<span class="tag">⚠️ 8번 규칙: -5%마다 추가 · -15% 단독 청산</span>';
     }
-    return `<div class="panel plot">
+    return `<div class="panel plot lift">
       <div class="plot-h"><b>${i+1}번 밭</b><span class="delta num ${tr.some(e=>e.t==='harvest')||emptied?'up':(d>0?'up':(d<0?'dn':'zero'))}">${tag}</span></div>
-      <div class="field">${crops}</div>
+      <div class="field ${sky[0]}"><span class="sky">${sky[1]}</span>${crops}</div>
       <div class="bal">${b>0?won(b):'0'}</div>
       ${seed('코스피',la,cl[0])}${seed('코스닥',qa,cl[1])}
       ${!la&&!qa&&b>0?'<div class="seed"><span>보유 종목 없음</span><span>현금 대기</span></div>':''}
