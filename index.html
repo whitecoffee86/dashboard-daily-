@@ -255,6 +255,42 @@ footer{margin-top:36px;color:var(--dim);font-size:0.8571rem;display:flex;justify
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
 
 
+/* ── live board ── */
+.liveboard{margin-top:16px}
+.lb-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.lb-title{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:1.43rem}
+.lb-title b{font-weight:400}
+.lb-status{font-family:var(--body);font-size:.82rem;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.lb-status.open{background:rgba(255,95,95,.14);color:var(--up)}
+.lb-status.open::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--up);animation:ping 1.6s infinite}
+.lb-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.4fr);gap:12px}
+.lb-quotes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.q{padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0;overflow:hidden}
+.q .qn{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.q .qp{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.45rem;font-weight:600;border-radius:6px;padding:0 4px;margin-left:-4px;transition:background .6s}
+.q .qc{font-family:var(--mono);font-size:.86rem}
+.q svg{width:100%;height:34px;display:block;margin-top:4px}
+.q.flash-up .qp{background:rgba(255,95,95,.28)}
+.q.flash-dn .qp{background:rgba(79,157,255,.28)}
+.lb-pnl{padding:14px 16px;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.lb-pnl .big2{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.9rem;font-weight:600;text-shadow:0 0 18px currentColor}
+.lb-pnl small{color:var(--muted);font-size:.8rem}
+.lb-alerts{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.al{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-size:.95rem;border:1px solid var(--line2);background:rgba(255,255,255,.035)}
+.al b{font-weight:700}
+.al.harvest{border-color:rgba(242,199,95,.6);background:linear-gradient(90deg,rgba(242,199,95,.18),rgba(242,199,95,.03));animation:alpulse 1.8s ease-in-out infinite}
+.al.seed{border-color:rgba(99,208,126,.5);background:linear-gradient(90deg,rgba(99,208,126,.14),transparent)}
+.al.warn{border-color:rgba(79,157,255,.6);background:linear-gradient(90deg,rgba(79,157,255,.16),transparent)}
+.al .when{margin-left:auto;font-size:.78rem;color:var(--muted);white-space:nowrap}
+@keyframes alpulse{0%,100%{box-shadow:0 0 0 0 rgba(242,199,95,0)}50%{box-shadow:0 0 22px -2px rgba(242,199,95,.45)}}
+.lb-setup{padding:14px 16px;font-size:.9rem;color:var(--muted)}
+.close-chip.is-live{color:var(--up);border-color:rgba(255,95,95,.4)}
+.pl{display:flex;justify-content:space-between;font-size:.86rem;color:var(--muted)}
+.pl b{font-weight:600}
+.qty{font-size:.76rem;color:var(--dim)}
+@media (max-width:1100px){ .lb-grid{grid-template-columns:1fr} }
+@media (max-width:640px){ .lb-quotes{grid-template-columns:repeat(2,minmax(0,1fr))} .al{flex-wrap:wrap} .al .when{margin-left:0} }
+
 /* ════ DEPTH LAYER ════ */
 .atmo{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .atmo::before{content:"";position:absolute;inset:-25%;background:
@@ -364,7 +400,7 @@ h2{display:flex;align-items:center;gap:.5em}
 
 /* 스크롤 진입: 보이는 상태에서 살짝 떠오름 */
 @supports (animation-timeline: view()){
-  .wrap > section{animation:rise linear both;animation-timeline:view();animation-range:entry 0% entry 35%}
+  .wrap > section:not(.liveboard){animation:rise linear both;animation-timeline:view();animation-range:entry 0% entry 35%}
   @keyframes rise{from{transform:translateY(28px) scale(.985)}to{transform:none}}
 }
 
@@ -425,6 +461,19 @@ h2{display:flex;align-items:center;gap:.5em}
       </div>
     </div>
   </div>
+
+  <!-- LIVE -->
+  <section class="liveboard" id="liveboard" aria-live="polite">
+    <div class="lb-head">
+      <div class="lb-title"><span class="hi" aria-hidden="true">📡</span><b>실시간 시세판</b><span class="lb-status" id="lb-status">연결 대기</span></div>
+      <span class="muted" id="lb-note"></span>
+    </div>
+    <div class="lb-grid">
+      <div class="panel lb-pnl" id="lb-pnl"></div>
+      <div class="lb-quotes" id="lb-quotes"></div>
+    </div>
+    <div class="lb-alerts" id="lb-alerts"></div>
+  </section>
 
   <!-- REPLAY -->
   <section>
@@ -636,7 +685,33 @@ function prep(raw){
   D.forEach(r=>{ if(r.leverClose||r.kosdaqClose) CL[r.d] = [r.leverClose||0, r.kosdaqClose||0]; });
   const LD = D[D.length-1].d;
   if(acc._leverPrice && !(CL[LD] && CL[LD][0])) CL[LD] = [acc._leverPrice, acc._kosdaqPrice||0];
-  return {daily, D, FULL, Y26, acc, CL, TR:detectTrades(D), monthly:raw.monthly||{}, src:raw.src};
+  return {daily, D, FULL, Y26, acc, CL, SH:deriveShares(D, CL), TR:detectTrades(D), monthly:raw.monthly||{}, src:raw.src};
+}
+
+/* 보유 수량 역산: 계좌 잔고 = KODEX레버 수량×종가 + 코스닥레버 수량×종가 (예수금 미포함) */
+function deriveShares(D, CL){
+  const days = D.filter(r=>CL[r.d] && CL[r.d][0] && CL[r.d][1]);
+  let prev = Array.from({length:8},()=>({k:null,q:null}));
+  const frac = x => Math.abs(x-Math.round(x));
+  days.forEach((r,di)=>{
+    const [pk,pq] = CL[r.d], pr = days[di-1], nx = days[di+1];
+    prev = prev.map((pv,i)=>{
+      const ak = (r.lever_avg||[])[i]||0, aq = (r.kosdaq_avg||[])[i]||0, y = (r.acc||[])[i]||0;
+      if(!y || (!ak && !aq)) return {k:0,q:0};
+      if(ak && !aq) return {k:Math.round(y/pk), q:0};
+      if(!ak && aq) return {k:0, q:Math.round(y/pq)};
+      const cand = [];
+      if(pv.k!=null){ const q=(y-pv.k*pk)/pq; if(q>=0) cand.push({k:pv.k,q,e:frac(q)}); }
+      if(pv.q!=null){ const k=(y-pv.q*pq)/pk; if(k>=0) cand.push({k,q:pv.q,e:frac(k)}); }
+      const sys2 = o => { if(!o||!CL[o.d]) return; const [k2,q2]=CL[o.d], y2=(o.acc||[])[i]||0, det=pk*q2-k2*pq; if(!det) return;
+        const k=(y*q2-y2*pq)/det, q=(pk*y2-k2*y)/det; if(k>=0&&q>=0) cand.push({k,q,e:frac(k)+frac(q)}); };
+      sys2(pr); sys2(nx);
+      if(!cand.length) return {k:null,q:null};
+      cand.sort((a,b)=>a.e-b.e);
+      return {k:Math.round(cand[0].k), q:Math.round(cand[0].q)};
+    });
+  });
+  return prev;
 }
 
 /* 평단가 변화로 매매 감지: 0→값 신규 파종, 값↓ 추가 파종, 값→0 수확, 실현손익만 있으면 부분 수확 */
@@ -771,6 +846,9 @@ load().then(raw=>{
 
   /* farm log */
   harvestLog(S, D);
+
+  /* live quotes */
+  startLive(S, L, P);
 
   /* calendar + time machine */
   calendar(S, D, L, traded);
@@ -1002,12 +1080,128 @@ function replay(S){
   setData(); size(); st.i = st.data.length-1; $('scrub').value = st.i; board(st.i); draw(performance.now());
 }
 
+/* ════════ LIVE ════════ */
+const LIVE = {on:false};
+function kstNow(){ const n = new Date(); return new Date(n.getTime() + (9*60 + n.getTimezoneOffset())*60000); }
+function marketWindow(){ const k = kstNow(), d = k.getDay(), m = k.getHours()*60 + k.getMinutes(); return d>0 && d<6 && m >= 8*60+50 && m <= 15*60+40; }
+const QMETA = [['KOSPI','코스피 지수',2],['KOSDAQ','코스닥 지수',2],['lever','KODEX 레버리지',0],['kosdaq','코스닥150레버리지',0]];
+function startLive(S, L, P){
+  const url = (S.acc && S.acc._quoteUrl) || '';
+  const st = $('lb-status'), note = $('lb-note');
+  if(!url){
+    $('lb-pnl').innerHTML = `<div class="lb-setup">⚙️ 실시간 시세가 아직 연결되지 않았어요.<br>Apps Script를 <b>웹 앱으로 배포</b>하고 CONFIG 시트에 <b>시세URL</b>을 넣은 뒤 업데이트하면 켜져요.</div>`;
+    $('lb-quotes').hidden = true; return;
+  }
+  const ymd = (()=>{ const k = kstNow(); return k.getFullYear()+String(k.getMonth()+1).padStart(2,'0')+String(k.getDate()).padStart(2,'0'); })();
+  const KEY = 'wcl_intra_'+ymd;
+  let intra = {}; try{ intra = JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
+  let last = {}, timer = 0;
+  const base = S.CL[L.d] || [0,0];
+  const sh = S.SH || [];
+
+  async function tick(){
+    try{
+      const r = await fetch(url + (url.includes('?')?'&':'?') + 't=' + Date.now(), {cache:'no-store'});
+      const j = await r.json();
+      if(!j || !j.ok) throw new Error((j && j.error) || '응답 이상');
+      render(j);
+    }catch(e){
+      st.className = 'lb-status'; st.textContent = '시세 연결 실패';
+      note.textContent = '잠시 후 다시 시도해요';
+    }
+    schedule();
+  }
+  function schedule(){ clearTimeout(timer); if(document.hidden) return; timer = setTimeout(tick, marketWindow() ? 30000 : 300000); }
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) tick(); });
+
+  function spark(arr){
+    if(!arr || arr.length<2) return '<svg viewBox="0 0 100 34" preserveAspectRatio="none"></svg>';
+    const v = arr.map(a=>a[1]), mn = Math.min(...v), mx = Math.max(...v), sp = (mx-mn)||1;
+    const pts = v.map((y,i)=>(i/(v.length-1)*100).toFixed(1)+','+(31-(y-mn)/sp*28).toFixed(1)).join(' ');
+    const col = v[v.length-1] >= v[0] ? 'var(--up)' : 'var(--down)';
+    return `<svg viewBox="0 0 100 34" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+  }
+
+  function render(j){
+    const it = j.items || {};
+    const open = String(j.status||'').toUpperCase() === 'OPEN';
+    const qd = String(j.date||'').slice(0,10);
+    LIVE.k = it.lever && it.lever.price; LIVE.q = it.kosdaq && it.kosdaq.price;
+    LIVE.on = !!(LIVE.k && LIVE.q) && (!qd || qd > L.d);
+    const hhmm = (()=>{ const k = kstNow(); return String(k.getHours()).padStart(2,'0')+':'+String(k.getMinutes()).padStart(2,'0')+':'+String(k.getSeconds()).padStart(2,'0'); })();
+    st.className = 'lb-status' + (open ? ' open' : '');
+    st.textContent = open ? '장중 실시간 · ' + hhmm : '장 마감 · ' + (qd ? md(qd) : '') + ' 종가';
+    note.textContent = open ? '30초마다 갱신 · 네이버 증권 시세' : (LIVE.on ? '오늘 데이터 입력 전 · 시세 종가로 계산 중' : '');
+
+    if(open){
+      QMETA.forEach(([k])=>{ const q = it[k]; if(!q || !q.price) return; const a = intra[k] = intra[k] || []; if(!a.length || a[a.length-1][1] !== q.price || a.length<2) a.push([hhmm, q.price]); if(a.length>500) a.shift(); });
+      try{ localStorage.setItem(KEY, JSON.stringify(intra)); }catch(e){}
+    }
+    $('lb-quotes').innerHTML = QMETA.map(([k,name,dp])=>{
+      const q = it[k] || {}, prev = last[k], fl = prev!=null && q.price!=null && prev!==q.price ? (q.price>prev?'flash-up':'flash-dn') : '';
+      const pr = q.price!=null ? q.price.toLocaleString(undefined,{minimumFractionDigits:dp,maximumFractionDigits:dp}) : '-';
+      return `<div class="panel q ${fl}"><span class="qn">${name}</span><span class="qp ${cls(q.chg||0)}">${pr}</span>
+        <span class="qc ${cls(q.chg||0)}">${q.chg!=null?(q.chg>0?'▲':q.chg<0?'▼':'')+' '+Math.abs(q.chg).toLocaleString(undefined,{maximumFractionDigits:dp}):''} ${q.pct!=null?pct(q.pct,2):''}</span>${spark(intra[k])}</div>`;
+    }).join('');
+    QMETA.forEach(([k])=>{ if(it[k]) last[k] = it[k].price; });
+    setTimeout(()=>document.querySelectorAll('.q.flash-up,.q.flash-dn').forEach(e=>e.classList.remove('flash-up','flash-dn')), 900);
+
+    // 내 밭 손익
+    if(LIVE.on){
+      let td = 0, un = 0;
+      sh.forEach((x,i)=>{ if(!x) return; const la=(L.lever_avg||[])[i]||0, qa=(L.kosdaq_avg||[])[i]||0;
+        td += (x.k||0)*(LIVE.k-base[0]) + (x.q||0)*(LIVE.q-base[1]);
+        un += (x.k&&la ? x.k*(LIVE.k-la) : 0) + (x.q&&qa ? x.q*(LIVE.q-qa) : 0); });
+      $('lb-pnl').innerHTML = `<span class="eyebrow">${open?'⚡ 지금 내 밭 (추정)':'📌 오늘 종가 기준 (추정)'}</span>
+        <span class="big2 ${cls(td)}">${won(td,true)}</span>
+        <small>평가자산 약 <b class="num" style="color:var(--fg)">${won(L.end+td)}</b> · 보유분 평가손익 <b class="num ${cls(un)}">${won(un,true)}</b></small>
+        <small>계좌 잔고로 역산한 수량 기준 · 장중 매매는 반영 전</small>`;
+      farm(S, L, P, true);
+      alerts(open);
+    } else {
+      $('lb-pnl').innerHTML = `<span class="eyebrow">📌 마지막 입력일 ${md(L.d)}</span><span class="big2 ${cls(L.pnl)}">${won(L.pnl,true)}</span><small>장이 열리면 실시간 손익이 여기에 떠요</small>`;
+      $('lb-alerts').innerHTML = '';
+    }
+  }
+
+  function alerts(open){
+    const out = [];
+    [['K', L.lever_avg||[], LIVE.k, base[0], 'k'], ['Q', L.kosdaq_avg||[], LIVE.q, base[1], 'q']].forEach(([s, avgs, p, c, key])=>{
+      if(!p || !c) return;
+      let deep = -1; avgs.forEach((v,i)=>{ if(v>0) deep = i; });
+      const chg = (p/c-1)*100;
+      if(deep>=0){
+        const a = avgs[deep], tgt = Math.ceil(a*1.003), r = (p/a-1)*100, n = (sh[deep]||{})[key]||0;
+        if(p>=tgt && p>c){
+          let more = 0; for(let i=deep-1;i>=0;i--){ if(avgs[i]>0 && p>=Math.ceil(avgs[i]*1.003)) more++; else break; }
+          out.push(`<div class="al harvest">🧺 <span><b>${SYS[s]} ${deep+1}번 지금 수확 조건</b> · 평단 ${pct(r,2)} · 약 <b class="num up">${won(n*(p-a)*(deep===0?0.5:1),true)}</b>${deep===0?' (절반 매도)':''}${more?` · 연쇄 후보 ${more}개 더`:''}</span><span class="when">종가 확정 전</span></div>`);
+        } else if(p<c && deep+1<8){
+          out.push(`<div class="al seed">🌱 <span><b>${SYS[s]} 전일 대비 ${pct(chg,2)}</b> · 이대로 마감하면 <b>${deep+2}번 ${won(ALLOT[deep+1])}</b> 파종</span><span class="when">종가 확정 전</span></div>`);
+        } else {
+          out.push(`<div class="al">😌 <span><b>${SYS[s]}</b> 전일 대비 ${pct(chg,2)} · ${deep+1}번 수확선까지 <b class="num">${pct((tgt/p-1)*100,2)}</b></span></div>`);
+        }
+        if(avgs[7]>0){
+          const r8 = (p/avgs[7]-1)*100;
+          if(r8<=-15) out.push(`<div class="al warn">⚠️ <span><b>${SYS[s]} 8번 청산선 도달</b> · 평단 ${pct(r8,1)}</span></div>`);
+          else if(r8<=-5) out.push(`<div class="al warn">💧 <span><b>${SYS[s]} 8번 추가 파종선</b> · 평단 ${pct(r8,1)}</span></div>`);
+        }
+      } else if(p<c){
+        out.push(`<div class="al seed">🌱 <span><b>${SYS[s]} 하락 중 ${pct(chg,2)}</b> · 이대로 마감하면 1번 ${won(ALLOT[0])} 파종</span></div>`);
+      }
+    });
+    $('lb-alerts').innerHTML = out.join('');
+  }
+  tick();
+}
+
 /* ════════ FARM ════════ */
-function farm(S, L, P){
+function farm(S, L, P, again){
   const list = (S.acc.list||[]).slice(0,8);
   const accNow = L.acc && L.acc.some(v=>v) ? L.acc : list.map(a=>a.balance);
   const accPrev = P.acc || accNow.map(()=>0);
-  const cl = S.CL[L.d] || [0,0], pcl = S.CL[P.d] || [0,0];
+  const live = LIVE.on && LIVE.k && LIVE.q;
+  const cl = live ? [LIVE.k, LIVE.q] : (S.CL[L.d] || [0,0]), pcl = live ? (S.CL[L.d] || [0,0]) : (S.CL[P.d] || [0,0]);
+  const SH = S.SH || [];
   const lk = L.lever_avg||[], lq = L.kosdaq_avg||[];
   const deepOf = avgs => { let d=-1; avgs.forEach((v,i)=>{ if(v>0) d=i; }); return d; };
 
@@ -1031,9 +1225,10 @@ function farm(S, L, P){
       note += `<div>🪜 파종 깊이 <b>${act}/8</b> · 1번↔${deep+1}번 평단 차 <b class="num">${pct((avgs[deep]/avgs[0]-1)*100,1)}</b></div>`;
     } else note = '<div>모든 칸이 비어 있어요. 1번 계좌부터 파종 대기.</div>';
     el.innerHTML = `<div class="lad-head"><h3>${emoji} ${label}</h3>
-      ${price?`<span class="close-chip">${md(L.d)} 종가 <b class="num">${price.toLocaleString()}</b>${dayChg!=null?` <span class="num ${cls(dayChg)}">${pct(dayChg,2)}</span>`:''}</span>`:''}</div>
+      ${price?`<span class="close-chip ${live?'is-live':''}">${live?'⚡ 실시간':md(L.d)+' 종가'} <b class="num">${price.toLocaleString()}</b>${dayChg!=null?` <span class="num ${cls(dayChg)}">${pct(dayChg,2)}</span>`:''}</span>`:''}</div>
       ${rows}<div class="lad-note">${note}</div>`;
-    requestAnimationFrame(()=>el.querySelectorAll('[data-w]').forEach(b=>b.style.width=b.dataset.w+'%'));
+    const grow = ()=>el.querySelectorAll('[data-w]').forEach(b=>b.style.width=b.dataset.w+'%');
+    again ? grow() : requestAnimationFrame(grow);
   }
   ladder($('lad-k'), 'k', 'KODEX 레버리지', '🐂', lk, cl[0], pcl[0]);
   ladder($('lad-q'), 'q', 'KODEX 코스닥150레버리지', '🐎', lq, cl[1], pcl[1]);
@@ -1094,6 +1289,12 @@ function farm(S, L, P){
       <div class="field ${sky[0]}"><span class="sky">${sky[1]}</span>${crops}</div>
       <div class="bal">${b>0?won(b):'0'}</div>
       ${seed('코스피',la,cl[0])}${seed('코스닥',qa,cl[1])}
+      ${(()=>{ const sh = SH[i]||{}; if(!sh.k && !sh.q) return '';
+        const un = (sh.k||0)*(la&&cl[0]?cl[0]-la:0) + (sh.q||0)*(qa&&cl[1]?cl[1]-qa:0);
+        const td = (sh.k&&pcl[0]?sh.k*(cl[0]-pcl[0]):0) + (sh.q&&pcl[1]?sh.q*(cl[1]-pcl[1]):0);
+        return `<div class="pl"><span>평가손익</span><b class="num ${cls(un)}">${won(un,true)}</b></div>`
+          + (live ? `<div class="pl"><span>⚡ 오늘</span><b class="num ${cls(td)}">${won(td,true)}</b></div>` : '')
+          + `<div class="qty num">${sh.k?'레버 '+sh.k.toLocaleString()+'주':''}${sh.k&&sh.q?' · ':''}${sh.q?'코닥 '+sh.q.toLocaleString()+'주':''}</div>`; })()}
       ${!la&&!qa&&b>0?'<div class="seed"><span>보유 종목 없음</span><span>현금 대기</span></div>':''}
       ${gauge}
     </div>`;
