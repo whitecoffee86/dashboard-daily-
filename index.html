@@ -104,12 +104,16 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold-hi);outlin
 .play.on{animation:none;background:var(--panel3);color:var(--fg)}
 @keyframes pulsebtn{0%,100%{box-shadow:0 0 0 0 rgba(212,162,60,.5)}60%{box-shadow:0 0 0 10px rgba(212,162,60,0)}}
 .scoreboard{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin:4px 0 10px}
+.scoreboard .date,.sb-item .num{font-variant-numeric:tabular-nums;display:inline-block;text-align:right}
+.sb-item .num{font-family:var(--mono);min-width:6.2ch}
+.scoreboard .date{min-width:10ch;text-align:left}
 .scoreboard .date{font-family:var(--display);font-size:2rem}
 .sb-item{display:flex;gap:6px;align-items:baseline;font-size:0.9286rem;color:var(--muted)}
 .sb-item .num{font-size:1.429rem;font-weight:600}
 .sw{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:middle}
 .cv-wrap{position:relative;height:clamp(260px,30vw,520px)}
 .diary{min-height:26px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:0.8571rem;margin-bottom:6px}
+#sb-diary{height:30px;min-height:0;flex-wrap:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
 .tchip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:0.8571rem;background:rgba(255,255,255,.05);border:1px solid var(--line2);white-space:nowrap}
 .t-harvest,.t-partial{background:var(--gold-soft);border-color:rgba(212,162,60,.45);color:var(--gold-hi)}
 .t-seed,.t-add{background:rgba(99,208,126,.12);border-color:rgba(99,208,126,.35);color:var(--leaf)}
@@ -541,6 +545,10 @@ h2{display:flex;align-items:center;gap:.5em}
   .rec{grid-template-columns:1fr}
 }
 @media (max-width:600px){
+  .scoreboard{display:grid;grid-template-columns:auto auto;gap:4px 14px;align-items:baseline}
+  .scoreboard .date{grid-column:1/-1;font-size:1.5rem}
+  .sb-item .num{font-size:1.15rem}
+  .cv-wrap{height:300px}
   .top-row{gap:8px;padding-block:8px;flex-wrap:nowrap}
   .brand{gap:7px;min-width:0}
   .brand b{font-size:1.12rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1184,6 +1192,7 @@ function replay(S){
     W = r.width; Hh = r.height; cv.width = W*dpr; cv.height = Hh*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   const X = i => pad.l + (i/(st.data.length-1))*(W-pad.l-pad.r);
+  const stride = () => Math.max(1, Math.round(st.data.length / ((W-pad.l-pad.r)/2.6)));
   const Y = v => pad.t + (1-(v-yr.min)/(yr.max-yr.min))*(Hh-pad.t-pad.b);
   function niceStep(range,n){ const raw=range/n, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p; return (f<1.5?1:f<3?2:f<7?5:10)*p; }
 
@@ -1221,26 +1230,30 @@ function replay(S){
       const tr = S.TR[st.data[i].d]; if(!tr) continue;
       const hv = tr.some(e=>e.t==='harvest'||e.t==='partial'), sd = tr.some(e=>e.t==='seed'||e.t==='add');
       const x = X(i);
-      if(hv){ ctx.fillStyle = C.gold; ctx.fillRect(x-1.5, Hh-pad.b-8, 3, 6); }
-      if(sd){ ctx.fillStyle = C.leaf; ctx.fillRect(x-1.5, Hh-pad.b-2, 3, 6); }
+      const tw = W<600 ? 1 : 2;
+      if(hv){ ctx.fillStyle = C.gold; ctx.fillRect(x-tw/2, Hh-pad.b-8, tw, 5); }
+      if(sd){ ctx.fillStyle = C.leaf; ctx.fillRect(x-tw/2, Hh-pad.b-2, tw, 5); }
     }
     // lines
     function line(key, col, w, glow){
       ctx.beginPath();
-      for(let i=0;i<=n;i++){ const x=X(i), y=Y(st.data[i][key]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+      for(let i=0;i<=n;i+=stride()){ const x=X(i), y=Y(st.data[i][key]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+      ctx.lineTo(X(n), Y(st.data[n][key]));
       if(st.i>n && n+1<st.data.length){ const f=st.i-n, a=st.data[n], b=st.data[n+1]; ctx.lineTo(X(n+f), Y(a[key]+(b[key]-a[key])*f)); }
       ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineJoin='round';
-      if(glow){ ctx.shadowColor = col; ctx.shadowBlur = 10; }
+      if(glow){ ctx.shadowColor = col; ctx.shadowBlur = 5; }
       ctx.stroke(); ctx.shadowBlur = 0;
     }
     // area under mine
     ctx.beginPath(); ctx.moveTo(X(0),Y(Math.max(yr.min,0)));
-    for(let i=0;i<=n;i++) ctx.lineTo(X(i),Y(st.data[i].me));
+    for(let i=0;i<=n;i+=stride()) ctx.lineTo(X(i),Y(st.data[i].me));
+    ctx.lineTo(X(n),Y(st.data[n].me));
     ctx.lineTo(X(n),Y(Math.max(yr.min,0))); ctx.closePath();
-    const g = ctx.createLinearGradient(0,pad.t,0,Hh-pad.b); g.addColorStop(0,'rgba(242,199,95,.18)'); g.addColorStop(1,'rgba(242,199,95,0)');
+    const g = ctx.createLinearGradient(0,pad.t,0,Hh-pad.b); g.addColorStop(0,'rgba(242,199,95,.12)'); g.addColorStop(1,'rgba(242,199,95,0)');
     ctx.fillStyle = g; ctx.fill();
-    line('kp', C.kospi, 2, false);
-    line('me', C.gold, 2.5, true);
+    const narrow = W < 600;
+    ctx.globalAlpha = .85; line('kp', C.kospi, narrow ? 1.1 : 1.5, false); ctx.globalAlpha = 1;
+    line('me', C.gold, narrow ? 1.5 : 2, !narrow);
     // endpoints + labels
     const e = st.data[n];
     const ym = Y(e.me), yk = Y(e.kp), xe = X(n);
@@ -1253,6 +1266,7 @@ function replay(S){
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ev.forEach(evn=>{
       if(evn.i>n) return;
+      if(W<600 && !['🏔','🌧','🚀'].includes(evn.ic)) return;
       const x = X(evn.i), y = Y(st.data[evn.i].me);
       ctx.font=`${Math.round(15*RS())}px serif`; ctx.fillText(evn.ic, x, evn.ic==='🌧'||evn.ic==='🥶' ? y+14 : y-14);
     });
