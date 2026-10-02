@@ -37,5 +37,6 @@
   "_baseDate": "2026-07-23",
   "_leverPrice": 113255,
   "_kosdaqPrice": 8150,
-  "_quoteUrl": "https://script.google.com/macros/s/AKfycbw58A97RJ4GKqw9dKYA1aluqvz6UQjt6Off9z_i3O9AygUj0rwwOhUAMaa8yFqLRO7fKg/exec"
+  "_quoteUrl": "https://script.google.com/macros/s/AKfycbw58A97RJ4GKqw9dKYA1aluqvz6UQjt6Off9z_i3O9AygUj0rwwOhUAMaa8yFqLRO7fKg/exec",
+  "_budget": 200000000
 }
