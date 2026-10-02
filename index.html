@@ -350,6 +350,22 @@ body{background-image:none}
 @media (max-width:640px){ .lb-quotes{grid-template-columns:repeat(2,minmax(0,1fr))} .al{flex-wrap:wrap} .al .when{margin-left:0} }
 
 
+/* ── 씨앗 창고 막대 ── */
+.budget{position:relative;height:30px;border-radius:9px;background:repeating-linear-gradient(90deg,rgba(127,127,127,.10) 0 8px,rgba(127,127,127,.04) 8px 16px);box-shadow:inset 0 1px 3px rgba(0,0,0,.45);overflow:hidden}
+.bseg{position:absolute;top:0;bottom:0;display:grid;place-items:center;border-right:2px solid var(--surf-lo);font-size:.72rem;color:#2a1d05;animation:bgrow .9s cubic-bezier(.2,.8,.2,1) both;transform-origin:left}
+.bseg b{font-weight:700}
+.bnext{position:absolute;top:4px;bottom:4px;border:1.5px dashed var(--leaf);border-radius:6px;display:grid;place-items:center;font-size:.72rem;color:var(--leaf);background:rgba(99,208,126,.10);animation:bpulse 2s ease-in-out infinite}
+@keyframes bgrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes bpulse{50%{background:rgba(99,208,126,.22)}}
+.bscale{display:flex;justify-content:space-between;font-size:.76rem;color:var(--muted);font-family:var(--mono)}
+.bsteps{display:flex;flex-wrap:wrap;gap:6px}
+.bstep{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:10px;font-size:.8rem;border:1px solid var(--line2)}
+.bstep i{font-style:normal;width:1.3em;height:1.3em;border-radius:50%;display:grid;place-items:center;font-size:.7rem;background:rgba(127,127,127,.18)}
+.bstep.ok{border-color:rgba(99,208,126,.45);background:rgba(99,208,126,.08)}
+.bstep.short{border-color:rgba(79,157,255,.5);background:rgba(79,157,255,.08)}
+.lv-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--up);margin-right:6px;vertical-align:middle;animation:ping 1.6s infinite}
+.big.plain{background:none!important;color:var(--fg)!important;-webkit-background-clip:border-box;background-clip:border-box}
+
 /* ── 쿼카 ── */
 .hero-main{padding-right:clamp(150px,25%,320px)}
 .mascot{position:absolute;right:clamp(4px,1.6vw,22px);top:14px;bottom:0;width:clamp(130px,22%,290px);display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:6px;background:none;border:0;padding:0;cursor:pointer;z-index:2}
@@ -829,6 +845,7 @@ function countUp(el, to, fmt, ms=1400){
   const t0 = performance.now();
   (function f(t){
     const k = Math.min(1,(t-t0)/ms), e = 1-Math.pow(1-k,4);
+    if(el.dataset.lock) return;
     el.textContent = fmt(to*e);
     if(k<1) requestAnimationFrame(f); else el.textContent = fmt(to);
   })(t0);
@@ -1032,6 +1049,26 @@ load().then(raw=>{
 
   /* farm log */
   harvestLog(S, D);
+
+  /* 실시간 히어로 */
+  S.heroLive = (td, kpNow, open) => {
+    const end = L.end + td, nav = end / (L.shares || 1), ret = (nav/1000 - 1)*100;
+    const big = $('h-end'); big.dataset.lock = 1; big.classList.add('plain');
+    const txt = won(end)+'원'; odo(big, txt, S._lastEnd || big.textContent); S._lastEnd = txt;
+    tb.classList.toggle('neg', td<0); tb.classList.remove('pop');
+    tb.innerHTML = `${open?'⚡ 지금':'📌 오늘 종가'} <span class="num">${won(td,true)}</span> <small class="num">${pct(td/L.end*100,2)} · 실시간 추정</small>`;
+    $('t-ret').dataset.lock = 1; $('t-ret').textContent = pct(ret); $('t-ret').className = 'v '+cls(ret);
+    $('t-ret').closest('.tile').dataset.tone = ret>0?'up':'dn';
+    if(kpNow){
+      const kp = (kpNow/4214.17 - 1)*100, al = ret - kp;
+      $('t-ret-s').textContent = 'KOSPI '+pct(kp)+' · 실시간';
+      $('t-alpha').dataset.lock = 1; $('t-alpha').textContent = pp(al); $('t-alpha').className = 'v '+cls(al);
+      $('t-alpha').closest('.tile').dataset.tone = al>0?'up':'dn';
+    }
+    const pk = Math.max(navPeak, nav), dd = (nav/pk - 1)*100;
+    $('t-dd').dataset.lock = 1; $('t-dd').textContent = pct(dd); $('t-dd').className = 'v '+(dd<-0.05?'dn':'gold');
+    $('t-dd-s').textContent = dd<-0.05 ? `탈환까지 ${pct((pk/nav-1)*100)} · 실시간` : '🏔 지금이 신고점!';
+  };
 
   /* live quotes */
   startLive(S, L, P);
@@ -1356,6 +1393,7 @@ function startLive(S, L, P){
         <small>평가자산 약 <b class="num" style="color:var(--fg)">${won(L.end+td)}</b> · 보유분 평가손익 <b class="num ${cls(un)}">${won(un,true)}</b></small>
         <small>계좌 잔고로 역산한 수량 기준 · 장중 매매는 반영 전</small>`;
       odo($('lb-big'), won(td,true), LT.pnl); LT.pnl = won(td,true);
+      S.heroLive && S.heroLive(td, it.KOSPI && it.KOSPI.price, open);
       farm(S, L, P, true);
       const hv = alerts(open);
       if(open){
@@ -1381,7 +1419,7 @@ function startLive(S, L, P){
           let more = 0; for(let i=deep-1;i>=0;i--){ if(avgs[i]>0 && p>=Math.ceil(avgs[i]*1.003)) more++; else break; }
           out.push(`<div class="al harvest">${qimg('mailbox')}<span><b>${SYS[s]} ${deep+1}번 지금 수확 조건</b> · 평단 ${pct(r,2)} · 약 <b class="num up">${won(n*(p-a)*(deep===0?0.5:1),true)}</b>${deep===0?' (절반 매도)':''}${more?` · 연쇄 후보 ${more}개 더`:''}</span><span class="when">종가 확정 전</span></div>`);
         } else if(p<c && deep+1<8){
-          out.push(`<div class="al seed">${qimg('watering')}<span><b>${SYS[s]} 전일 대비 ${pct(chg,2)}</b> · 이대로 마감하면 <b>${deep+2}번 ${won(ALLOT[deep+1])}</b> 파종</span><span class="when">종가 확정 전</span></div>`);
+          out.push(`<div class="al seed">${qimg('watering')}<span><b>${SYS[s]} 전일 대비 ${pct(chg,2)}</b> · 이대로 마감하면 <b>${deep+2}번+${deep+1}번 각 ${won(ALLOT[deep+1])}</b> 파종</span><span class="when">종가 확정 전</span></div>`);
         } else {
           out.push(`<div class="al">${qimg('clipboard')}<span><b>${SYS[s]}</b> 전일 대비 ${pct(chg,2)} · ${deep+1}번 수확선까지 <b class="num">${pct((tgt/p-1)*100,2)}</b></span></div>`);
         }
@@ -1403,8 +1441,10 @@ function startLive(S, L, P){
 /* ════════ FARM ════════ */
 function farm(S, L, P, again){
   const list = (S.acc.list||[]).slice(0,8);
-  const accNow = L.acc && L.acc.some(v=>v) ? L.acc : list.map(a=>a.balance);
-  const accPrev = P.acc || accNow.map(()=>0);
+  const accBase = L.acc && L.acc.some(v=>v) ? L.acc : list.map(a=>a.balance);
+  const liveOn = LIVE.on && LIVE.k && LIVE.q;
+  const accNow = liveOn ? accBase.map((b,i)=>{ const x=(S.SH||[])[i]||{}; const c=S.CL[L.d]||[0,0]; const cash=Math.max(0,b-(x.k||0)*c[0]-(x.q||0)*c[1]); return Math.round(cash+(x.k||0)*LIVE.k+(x.q||0)*LIVE.q); }) : accBase;
+  const accPrev = liveOn ? accBase : (P.acc || accNow.map(()=>0));
   const live = LIVE.on && LIVE.k && LIVE.q;
   const cl = live ? [LIVE.k, LIVE.q] : (S.CL[L.d] || [0,0]), pcl = live ? (S.CL[L.d] || [0,0]) : (S.CL[P.d] || [0,0]);
   const SH = S.SH || [];
@@ -1439,33 +1479,39 @@ function farm(S, L, P, again){
   ladder($('lad-k'), 'k', 'KODEX 레버리지', '🐂', lk, cl[0], pcl[0]);
   ladder($('lad-q'), 'q', 'KODEX 코스닥150레버리지', '🐎', lq, cl[1], pcl[1]);
 
-  /* 씨앗 창고 */
+  /* 씨앗 창고: 운용한도 − 보유 매입원금 */
   const dk = deepOf(lk), dq = deepOf(lq);
-  const bags = (deep, s) => { const out=[]; for(let i=deep+1;i<8;i++) out.push({s, n:i+1, amt:ALLOT[i]}); return out; };
-  const bk = bags(dk,'K'), bq = bags(dq,'Q');
-  const need = [...bk, ...bq].reduce((t,b)=>t+b.amt,0);
-  const cash = (typeof L.cash==='number') ? L.cash : null;
-  // 번갈아 파종한다고 가정한 순서
-  const order = []; for(let i=0;i<Math.max(bk.length,bq.length);i++){ if(bk[i]) order.push(bk[i]); if(bq[i]) order.push(bq[i]); }
-  let afford = 0, left = cash;
-  if(cash!=null){ for(const b of order){ if(left>=b.amt){ left-=b.amt; afford++; } else break; } }
-  const bagRow = (arr, s) => arr.length ? arr.map((b,i)=>{
-      const ok = cash==null ? null : order.indexOf(b) < afford;
-      return `<span class="bag ${i===0?'first':''} ${ok===false?'short':''}" title="${SYS[s]} ${b.n}번 ${won(b.amt)}">${ok===false?'🕳':'🌰'}<b>${b.n}번</b><span class="num">${won(b.amt)}</span></span>`;
-    }).join('') : '<span class="muted" style="font-size:0.8571rem">빈칸 없음 · 8번 규칙 구간</span>';
+  const budget = Number(S.acc._budget) || 2e8;
+  const costOf = i => { const x = SH[i]||{}; return (x.k&&lk[i] ? x.k*lk[i] : 0) + (x.q&&lq[i] ? x.q*lq[i] : 0); };
+  const costs = Array.from({length:8}, (_,i)=>costOf(i));
+  const planted = costs.reduce((t,v)=>t+v,0), left = budget - planted;
+  // 하락이 이어진다고 가정한 파종 순서: n번 신규 + (n-1)번 추가(같은 금액)
+  const steps = []; let nk = dk+2, nq = dq+2;
+  for(let r=0; r<8; r++){
+    if(nk<=8){ steps.push({s:'K', n:nk, amt: nk>1 ? ALLOT[nk-1]*2 : ALLOT[0]}); nk++; }
+    if(nq<=8){ steps.push({s:'Q', n:nq, amt: nq>1 ? ALLOT[nq-1]*2 : ALLOT[0]}); nq++; }
+  }
+  let rem = left, afford = 0; steps.forEach(st=>{ st.ok = rem >= st.amt; st.before = rem; if(st.ok){ rem -= st.amt; afford++; } else rem = -1; });
+  const firstShort = steps.find(st=>!st.ok);
+  const pctOf = v => Math.max(0, Math.min(100, v/budget*100));
+  const segCol = i => `hsl(${38 + i*3} ${70 - i*4}% ${62 - i*4}%)`;
+  let acc = 0;
+  const segs = costs.map((c,i)=>{ if(!c) return ''; const l = pctOf(acc); acc += c; return `<span class="bseg" style="left:${l}%;width:${pctOf(c)}%;background:${segCol(i)}" title="${i+1}번 계좌 원금 ${won(c)}"><b>${pctOf(c)>5?(i+1):''}</b></span>`; }).join('');
+  let nx = planted;
+  const nexts = steps.slice(0,4).map((st,j)=>{ if(!st.ok) return ''; const l = pctOf(nx); nx += st.amt; return `<span class="bnext" style="left:${l}%;width:${pctOf(st.amt)}%" title="${SYS[st.s]} ${st.n}번 파종 ${won(st.amt)}">${j+1}</span>`; }).join('');
   $('seedbox').innerHTML = `
     <div class="sb-l">${qimg('vault')}<div>
-      <div class="eyebrow">Seed Barn</div><h3>🌰 씨앗 창고</h3>
-      ${cash!=null ? `<div class="num gold" style="font-size:1.857rem;font-weight:600">${won(cash)}</div>
-        <div class="muted" style="font-size:0.8929rem">예수금 · 앞으로 <b style="color:var(--fg)">${afford}번</b> 더 파종 가능${afford<order.length?` · <span class="dn">${order.length-afford}칸은 씨앗 부족</span>`:''}</div>`
-      : `<div class="num" style="font-size:1.571rem;font-weight:600">${won(need)}</div>
-        <div class="muted" style="font-size:0.8929rem">남은 칸을 끝까지 채우는 데 드는 씨앗<br>예수금이 연결되면 남은 파종 횟수와 바닥 경고가 켜져요</div>`}
+      <div class="eyebrow">Seed Barn · 운용한도 ${won(budget)}</div><h3>🌰 씨앗 창고</h3>
+      <div class="num ${left>=0?'gold':'dn'}" style="font-size:1.857rem;font-weight:600">${won(left)}</div>
+      <div class="muted" style="font-size:0.8929rem">남은 씨앗 · 하락이 이어지면 <b style="color:var(--fg)">${afford}번</b> 더 파종 가능${firstShort?` · ${SYS[firstShort.s]} ${firstShort.n}번에서 <span class="dn">${won(firstShort.amt - Math.max(0,firstShort.before))} 부족</span>`:''}</div>
     </div></div>
     <div class="sb-r">
-      <div class="bagline"><span class="bl">🐂 코스피</span><div class="bags">${bagRow(bk,'K')}</div></div>
-      <div class="bagline"><span class="bl">🐎 코스닥</span><div class="bags">${bagRow(bq,'Q')}</div></div>
-      <div class="muted" style="font-size:0.8571rem">투입 기준 1·2번 300만 · 3·4번 400만 · 5·6번 500만 · 7·8번 600만 · 다음 파종 ${bk[0]?`코스피 ${won(bk[0].amt)}`:''}${bk[0]&&bq[0]?' + ':''}${bq[0]?`코스닥 ${won(bq[0].amt)}`:''}</div>
+      <div class="budget">${segs}${nexts}</div>
+      <div class="bscale"><span>0</span><span>파종 중 ${won(planted)} (${(planted/budget*100).toFixed(0)}%)</span><span>${won(budget)}</span></div>
+      <div class="bsteps">${steps.slice(0,4).map((st,j)=>`<span class="bstep ${st.ok?'ok':'short'}"><i>${j+1}</i>${st.s==='K'?'🐂':'🐎'} ${SYS[st.s]} ${st.n}번${st.n>1?`+${st.n-1}번`:''} <b class="num">${won(st.amt)}</b> ${st.ok?'✅':'⚠️'}</span>`).join('')}</div>
+      <div class="muted" style="font-size:.78rem">n번 신규 + (n-1)번 추가를 같은 금액으로 계산 · 1·2번 300만 · 3·4번 400만 · 5·6번 500만 · 7·8번 600만 · 한도는 CONFIG '운용한도'</div>
     </div>`;
+
 
   /* 8칸 밭 */
   const mx = Math.max(...accNow, 1);
@@ -1477,8 +1523,8 @@ function farm(S, L, P, again){
     const crop = k => bestR==null ? (k%3===2?'🌽':'🌾') : bestR>=0.3 ? (k%2?'🌽':'🌾') : worst<-3 ? (k%2?'🍂':'🌿') : (k%2?'🌱':'🌿');
     const sky = b<=0 ? ['calm','🌙'] : bestR==null ? ['calm','🌙'] : bestR>=0.3 ? ['sun','☀️'] : worst<-3 ? ['rain','🌧'] : ['calm','🌙'];
     const crops = b>0 ? Array.from({length:n},(_,k)=>`<span class="crop" style="animation-delay:${-(k*0.37+i*0.21).toFixed(2)}s;font-size:${18+Math.round(b/mx*8)}px">${crop(k)}</span>`).join('') : '<span style="position:relative;z-index:1;font-size:0.8571rem;color:var(--muted);padding-bottom:12px">휴경 중</span>';
-    const tr = (S.TR[L.d]||[]).filter(e=>e.n===i+1);
-    const emptied = b===0 && (accPrev[i]||0)>0;
+    const tr = live ? [] : (S.TR[L.d]||[]).filter(e=>e.n===i+1);
+    const emptied = !live && b===0 && (accPrev[i]||0)>0;
     const tag = tr.length ? tr.map(e=>TICON[e.t]+' 오늘 '+(e.s==='K'?'코스피':'코스닥')+' '+TNAME[e.t]).join(' · ') : emptied ? '🧺 오늘 비움' : (d===0?'변동 없음':won(d,true));
     const seed = (lab,a,p)=> a>0 ? `<div class="seed"><span>${lab}<span class="pd"> 평단</span></span><span class="num">${a.toLocaleString()}${p?` <span class="${cls(p/a-1)}">${pct((p/a-1)*100,1)}</span>`:''}</span></div>` : '';
     let gauge = '';
@@ -1493,7 +1539,7 @@ function farm(S, L, P, again){
     return `<div class="panel plot lift">
       <div class="plot-h"><b>${i+1}번 밭</b><span class="delta num ${tr.some(e=>e.t==='harvest')||emptied?'up':(d>0?'up':(d<0?'dn':'zero'))}">${tag}</span></div>
       <div class="field ${sky[0]}"><span class="sky">${sky[1]}</span>${crops}</div>
-      <div class="bal">${b>0?won(b):'0'}</div>
+      <div class="bal">${live&&b>0?'<span class="lv-dot" title="실시간 추정"></span>':''}${b>0?won(b):'0'}</div>
       ${seed('코스피',la,cl[0])}${seed('코스닥',qa,cl[1])}
       ${(()=>{ const sh = SH[i]||{}; if(!sh.k && !sh.q) return '';
         const un = (sh.k||0)*(la&&cl[0]?cl[0]-la:0) + (sh.q||0)*(qa&&cl[1]?cl[1]-qa:0);
