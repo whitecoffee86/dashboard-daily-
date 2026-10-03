@@ -68,9 +68,9 @@ def tr_text(e):
     return f"{icon} {SYS[e['s']]} {e['n']}번 {name}"
 
 
-def achievements(D):
-    """대시보드 업적 진열장과 같은 기준. 얻은 업적 이름 집합."""
-    if not D: return set()
+def ach_list(D):
+    """대시보드 업적 진열장과 같은 12개. [{ic,n,ok,v,p}]"""
+    if not D: return []
     L = D[-1]
     traded = [r for r in D if r['pnl'] != 0]
     run = longw = 0
@@ -90,20 +90,29 @@ def achievements(D):
     for v in navs:
         peak = max(peak, v); mdd = min(mdd, (v / peak - 1) * 100)
     navpk = max(r['nav'] for r in D)
-    got = set()
-    if longw >= 5: got.add('🔥 연승 장인')
-    if ath >= 10: got.add('🏔 신고가 사냥꾼')
-    if best >= 1e7: got.add('💥 하루 천만')
-    if maxret >= 100: got.add('🚀 더블')
-    if maxret >= 200: got.add('🌋 트리플')
-    if any(v >= 1e7 for v in mreal.values()): got.add('🧺 월 천만 수확')
-    if L['ret'] - L['kospi'] > 0: got.add('🐢 코스피 추월')
-    if len(D) >= 100: got.add('📅 100일 출석')
-    if mdd <= -30 and L['ret'] > 0: got.add('⛈ 폭풍 생존')
-    if L['nav'] >= navpk - 1e-9: got.add('🏔 전고점 탈환')
-    if real >= 1e8: got.add('🌾 1억 수확')
-    if maxret >= 300: got.add('👑 +300% 클럽')
-    return got
+    cur = (L['nav'] / navpk - 1) * 100
+    gap = L['ret'] - L['kospi']
+    bm = max(mreal.values()) if mreal else 0
+    c = lambda x: max(0.0, min(1.0, x))
+    return [
+        {'ic': '🔥', 'n': '연승 장인', 'ok': longw >= 5, 'v': f'최장 {longw}연승', 'p': c(longw / 5)},
+        {'ic': '🏔', 'n': '신고가 사냥꾼', 'ok': ath >= 10, 'v': f'{ath}회 갱신', 'p': c(ath / 10)},
+        {'ic': '💥', 'n': '하루 천만', 'ok': best >= 1e7, 'v': f'최고 {won(best, True)}', 'p': c(best / 1e7)},
+        {'ic': '🚀', 'n': '더블', 'ok': maxret >= 100, 'v': f'최고 {maxret:+.0f}%', 'p': c(maxret / 100)},
+        {'ic': '🌋', 'n': '트리플', 'ok': maxret >= 200, 'v': f'최고 {maxret:+.0f}%', 'p': c(maxret / 200)},
+        {'ic': '🧺', 'n': '월 천만 수확', 'ok': bm >= 1e7, 'v': f'최고 {won(bm)}', 'p': c(bm / 1e7)},
+        {'ic': '🐢', 'n': '코스피 추월', 'ok': gap > 0, 'v': f'{gap:+.1f}%p', 'p': 1.0 if gap > 0 else 0.0},
+        {'ic': '📅', 'n': '100일 출석', 'ok': len(D) >= 100, 'v': f'{len(D)}거래일', 'p': c(len(D) / 100)},
+        {'ic': '⛈', 'n': '폭풍 생존', 'ok': mdd <= -30 and L['ret'] > 0, 'v': f'최대낙폭 {mdd:.0f}%', 'p': c(mdd / -30)},
+        {'ic': '🏔', 'n': '전고점 탈환', 'ok': cur >= -1e-6, 'v': f'현재 {cur:.1f}%', 'p': c(L['nav'] / navpk)},
+        {'ic': '🌾', 'n': '1억 수확', 'ok': real >= 1e8, 'v': won(real), 'p': c(real / 1e8)},
+        {'ic': '👑', 'n': '+300% 클럽', 'ok': maxret >= 300, 'v': f'최고 {maxret:+.0f}%', 'p': c((1 + maxret / 100) / 4)},
+    ]
+
+
+def achievements(D):
+    """얻은 업적 이름 집합 (이벤트 판정용)."""
+    return {f"{a['ic']} {a['n']}" for a in ach_list(D) if a['ok']}
 
 
 def month_summary(D, ym, closes):
@@ -222,6 +231,37 @@ def main():
     real26 = sum((r.get('realized') or 0) for r in D)
     wk0 = dt.date.fromisoformat(L['d']); wk0 -= dt.timedelta(days=wk0.weekday())
     week = [r for r in D if dt.date.fromisoformat(r['d']) >= wk0]
+    # ── 대시보드 장면 데이터 ──
+    tmap = {}
+    for e in trades:
+        if e['s'] in SYS: tmap[(e['s'], e['n'])] = e['t']
+    cl = closes.get(L['d']) or [0, 0]
+    field = {}
+    for key, s_, ci in (('lever_avg', 'K', 0), ('kosdaq_avg', 'Q', 1)):
+        avgs = L.get(key) or [0] * 8
+        field[s_] = [{'n': j + 1, 'on': bool(avgs[j]),
+                      'ret': round((cl[ci] / avgs[j] - 1) * 100, 1) if avgs[j] and cl[ci] else None,
+                      't': tmap.get((s_, j + 1))} for j in range(8)]
+    d1 = dt.date.fromisoformat(L['d']); c0 = d1 - dt.timedelta(days=d1.weekday() + 21)   # 최근 4주(월~금)
+    MD = [r for r in D if r['d'] >= c0.isoformat()]
+    mbest = max(MD, key=lambda r: r['pnl'])
+    calendar = {'from': c0.isoformat(), 'to': L['d'], 'days': [{'d': r['d'], 'pnl': r['pnl'], 'txt': won(r['pnl'], True)} for r in MD],
+                'today': L['d'], 'best_d': mbest['d'] if mbest['pnl'] > 0 and mbest['d'] != L['d'] else None,
+                'total_txt': won(sum(r['pnl'] for r in MD), True)}
+    wins = [r for r in traded if r['pnl'] > 0]; losses = [r for r in traded if r['pnl'] < 0]
+    bday = max(traded, key=lambda r: r['pnl']); wday = min(traded, key=lambda r: r['pnl'])
+    run = longw = 0
+    for r in traded:
+        run = run + 1 if r['pnl'] > 0 else 0
+        longw = max(longw, run)
+    sw = sum(r['pnl'] for r in wins); sl = -sum(r['pnl'] for r in losses)
+    records = {'win_days': len(wins), 'loss_days': len(losses),
+               'win_rate': round(len(wins) / max(1, len(traded)) * 100, 1),
+               'best': {'d': bday['d'], 'txt': won(bday['pnl'], True), 'today': bday['d'] == L['d']},
+               'worst': {'d': wday['d'], 'txt': won(wday['pnl'], True), 'today': wday['d'] == L['d']},
+               'longw': longw, 'streak': run, 'pf': round(sw / sl, 2) if sl else None,
+               'avg_win': won(sw / max(1, len(wins)), True), 'avg_loss': won(-sl / max(1, len(losses)), True)}
+    trophies = [dict(a, new=f"{a['ic']} {a['n']}" in new_ach) for a in ach_list(D)]
     res = {
         'date': L['d'],
         'events': ev,
@@ -238,6 +278,7 @@ def main():
                  'realized_txt': won(sum((r.get('realized') or 0) for r in week))},
         'race': race_s,
         'new_achievements': new_ach,
+        'field': field, 'calendar': calendar, 'records': records, 'trophies': trophies,
     }
     txt = json.dumps(res, ensure_ascii=False, indent=1)
     if out: Path(out).write_text(txt)
