@@ -525,6 +525,34 @@ h2{display:flex;align-items:center;gap:.5em}
 @keyframes rainfall{from{background-position:0 0}to{background-position:-14px 40px}}
 .field .crop{z-index:2;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))}
 
+
+/* 수확 일기예보 */
+.wxf{display:grid;grid-template-columns:1.5rem repeat(4,minmax(0,1fr));gap:3px;align-items:stretch}
+.wxf-h{font-size:.72rem;color:var(--dim);text-align:center;white-space:nowrap}
+.wxf-l{display:grid;place-items:center;font-size:.95rem}
+.wxc{border-radius:8px;padding:3px 0 2px;text-align:center;display:flex;flex-direction:column;align-items:center;line-height:1.15;min-width:0;background:rgba(127,127,127,.08)}
+.wxc i{font-style:normal;font-size:1.05rem}
+.wxc b{font-family:var(--mono);font-size:.72rem;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.wxc.w0{background:rgba(255,196,64,.20)} .wxc.w1{background:rgba(255,196,64,.12)} .wxc.w2,.wxc.w3{background:rgba(160,170,190,.13)}
+.wxc.w4,.wxc.w5{background:rgba(79,157,255,.13)} .wxc.w6{background:rgba(140,110,200,.15)}
+.wxbox{display:flex;flex-direction:column;gap:3px;padding-top:6px;border-top:1px dashed var(--line)}
+.wxbox>.wxt{font-size:.76rem;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.step .wxi{font-size:.95rem;margin-right:4px;cursor:help}
+.wx-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:.78rem;color:var(--muted)}
+.wx-legend span{white-space:nowrap}
+
+/* 🧺 2026 수확 총액 */
+.reap{grid-column:1/-1;padding:16px 18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center;
+  background:linear-gradient(120deg,rgba(212,162,60,.22),rgba(212,162,60,.05) 70%);border-color:rgba(212,162,60,.5)}
+.reap .rp-big{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:clamp(1.6rem,3.2vw,2.3rem);color:var(--gold-hi);line-height:1.15;white-space:nowrap}
+.reap .rp-sub{display:flex;flex-wrap:wrap;gap:6px;grid-column:1/-1}
+.reap .rp-sub span{font-size:.82rem;color:var(--muted);background:rgba(127,127,127,.1);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.reap .rp-sub b{font-family:var(--mono);font-weight:600;color:var(--fg)}
+.rp-bars{display:flex;align-items:flex-end;gap:3px;height:44px}
+.rp-bars i{width:9px;border-radius:3px 3px 0 0;background:var(--gold);opacity:.55;min-height:2px}
+.rp-bars i.now{opacity:1;background:var(--gold-hi)}
+.rp-bars i.neg{background:var(--down);opacity:.5}
+@media (max-width:600px){.reap{grid-template-columns:1fr}.rp-bars{display:none}}
 /* 업적 메달 */
 .a .ic{width:2.6rem;height:2.6rem;display:grid;place-items:center;border-radius:50%;font-size:1.5rem;background:radial-gradient(circle at 35% 30%,#3a4a72,#1a2648);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 4px 10px -4px rgba(0,0,0,.7)}
 .a.got .ic{background:radial-gradient(circle at 35% 30%,#ffe7a3,#d4a23c 55%,#8a6420);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 0 rgba(0,0,0,.25),0 6px 16px -6px rgba(212,162,60,.8)}
@@ -608,6 +636,11 @@ h2{display:flex;align-items:center;gap:.5em}
       <div class="muted" style="font-size:0.8571rem" id="h-spark-cap"></div>
     </div>
     <div class="hero-side">
+      <div class="panel reap lift" id="reap">
+        <div style="min-width:0"><div class="eyebrow">🧺 2026 수확 총액 · 매도로 확정한 수익</div><div class="rp-big" id="rp-big">-</div></div>
+        <div class="rp-bars" id="rp-bars" aria-label="월별 실현"></div>
+        <div class="rp-sub" id="rp-sub"></div>
+      </div>
       <div class="panel tile lift"><span class="eyebrow">2026 수익률</span><span class="v" id="t-ret">-</span><span class="s" id="t-ret-s"></span></div>
       <div class="panel tile lift"><span class="eyebrow">KOSPI 대비</span><span class="v" id="t-alpha">-</span><span class="s" id="t-alpha-s"></span></div>
       <div class="panel tile lift"><span class="eyebrow">2024년부터 누적</span><span class="v" id="t-all">-</span><span class="s" id="t-all-s"></span></div>
@@ -680,6 +713,7 @@ h2{display:flex;align-items:center;gap:.5em}
     </div>
     <div class="panel seedbox" id="seedbox"></div>
     <div class="plots" id="plots"></div>
+    <div class="wx-legend" id="wx-legend"></div>
   </section>
 
   <!-- HARVEST LOG -->
@@ -1029,6 +1063,19 @@ load().then(raw=>{
     ...(()=>{ const hd = Object.keys(S.TR).sort().reverse().find(d=>S.TR[d].some(e=>e.t==='harvest')); return hd ? [['🧺','최근 수확', `<span class="muted">${md(hd)}</span> ${S.TR[hd].filter(e=>e.t==='harvest').map(e=>SYS[e.s]+' '+e.n+'번').join(' · ')}`]] : []; })(),
   ].map(t=>`<span class="tk">${t[0]} <span class="muted">${t[1]}</span> ${t[2]}</span>`).join('');
   $('ticker').innerHTML = tk + tk;
+
+  /* 🧺 2026 수확 총액 */
+  (function(){
+    countUp($('rp-big'), real26, v=>Math.round(v).toLocaleString()+'원');
+    const pnl26 = D.reduce((t,r)=>t+(r.pnl||0),0);
+    const ms = Object.keys(mReal).sort(), done = ms.filter(m=>m!==thisM);
+    const avgM = done.length ? done.reduce((t,m)=>t+mReal[m],0)/done.length : 0;
+    $('rp-sub').innerHTML = `<span>🌕 ${+thisM.slice(5)}월 <b class="gold">${won(mReal[thisM]||0)}</b></span>`
+      + `<span>📆 월평균 <b>${won(avgM)}</b></span>`
+      + `<span>📊 총 손익(평가 포함) <b class="${cls(pnl26)}">${won(pnl26,true)}</b></span>`;
+    const mx = Math.max(...ms.map(m=>Math.abs(mReal[m])), 1);
+    $('rp-bars').innerHTML = ms.map(m=>`<i class="${m===thisM?'now':''} ${mReal[m]<0?'neg':''}" style="height:${Math.max(4,Math.abs(mReal[m])/mx*100).toFixed(0)}%" title="${+m.slice(5)}월 ${won(mReal[m])}"></i>`).join('');
+  })();
 
   /* hero */
   countUp($('h-end'), L.end, v=>Math.round(v).toLocaleString()+'원');
@@ -1475,6 +1522,23 @@ function startLive(S, L, P){
   tick();
 }
 
+/* ════════ 수확 일기예보: 평단 +0.3%까지 필요한 상승률 → 과거 일봉으로 본 N거래일 안 도달 확률 ════════ */
+const WXP = {"g":[-5.0,-4.75,-4.5,-4.25,-4.0,-3.75,-3.5,-3.25,-3.0,-2.75,-2.5,-2.25,-2.0,-1.75,-1.5,-1.25,-1.0,-0.75,-0.5,-0.25,0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0,2.25,2.5,2.75,3.0,3.25,3.5,3.75,4.0,4.25,4.5,4.75,5.0,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,135,140,145,150],"from":{"k":"122630","q":"233740"},"H":[1,5,10,20],"k":[[97.3,96.8,96.5,96.1,95.8,95.2,94.4,93.6,92.4,91.1,89.6,87.7,85.3,82.8,80.4,78.0,74.5,70.6,65.6,60.8,54.7,47.6,41.2,35.3,30.0,26.4,22.7,19.4,16.8,14.1,12.4,10.2,8.3,7.0,6.0,5.4,4.5,3.7,3.4,3.0,2.8,1.9,1.5,1.0,0.9,0.7,0.7,0.5,0.3,0.3,0.3,0.2,0.2,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[98.9,98.8,98.6,98.5,98.3,98.0,97.8,97.3,96.9,96.3,95.9,94.9,94.0,93.1,92.0,90.5,88.9,86.6,84.2,81.2,78.3,74.8,71.4,66.7,63.0,59.6,56.7,52.9,49.4,46.2,43.4,40.3,37.4,34.6,31.8,29.7,27.9,26.1,23.8,21.8,20.4,15.8,11.6,8.8,7.2,5.9,5.1,4.3,3.8,3.1,2.7,2.3,1.9,1.6,1.4,1.1,0.9,0.9,0.8,0.7,0.7,0.6,0.6,0.5,0.4,0.4,0.1,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[99.2,99.1,99.0,98.9,98.9,98.7,98.6,98.2,97.9,97.6,97.3,96.6,96.1,95.4,94.7,93.4,92.0,90.4,88.6,86.2,84.2,81.9,79.7,76.7,73.8,71.5,69.4,66.4,63.3,60.4,57.4,54.4,51.9,48.8,46.2,44.6,42.8,41.1,39.3,37.2,35.6,29.5,23.9,19.1,15.9,13.4,11.6,9.5,8.4,7.4,6.8,6.1,5.5,5.0,4.4,3.9,3.5,3.2,2.9,2.6,2.4,2.1,1.9,1.8,1.7,1.6,1.2,0.8,0.5,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[99.4,99.3,99.3,99.2,99.2,99.1,99.1,98.8,98.6,98.5,98.3,97.7,97.3,96.7,96.2,95.2,94.3,93.2,92.0,90.1,88.4,86.8,85.4,83.4,81.4,79.9,78.6,76.5,74.4,72.3,70.2,67.9,65.9,63.5,61.2,59.5,58.0,56.5,54.7,53.0,51.2,44.3,37.9,32.9,28.2,25.2,22.1,19.5,17.5,15.8,14.5,13.1,11.9,11.4,10.3,9.5,9.0,8.5,8.1,7.7,7.1,6.6,6.1,5.7,5.6,5.2,4.0,3.0,2.2,1.8,1.3,0.9,0.7,0.5,0.4,0.3,0.3,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]],"q":[[93.0,92.0,91.2,89.9,89.1,88.0,87.0,85.6,83.8,82.1,80.1,78.2,76.7,74.5,71.9,69.3,66.5,62.9,59.3,55.8,52.6,47.6,43.7,40.1,36.5,33.7,30.3,27.5,24.6,22.2,20.0,18.2,16.3,14.6,12.8,11.7,10.4,9.5,8.4,7.4,6.7,4.3,3.0,2.1,1.4,1.1,0.9,0.6,0.6,0.4,0.3,0.3,0.2,0.2,0.2,0.2,0.2,0.2,0.1,0.1,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[97.7,97.4,97.2,96.7,96.3,95.8,95.2,94.7,93.9,93.3,92.3,91.4,90.4,88.9,87.1,85.8,84.3,82.9,80.7,78.6,76.9,73.8,71.1,68.6,65.8,62.9,60.4,58.2,56.2,54.1,51.8,49.4,47.2,45.5,43.6,41.7,39.8,37.9,36.2,34.5,32.8,26.6,21.0,16.0,12.4,9.7,7.6,6.0,4.7,3.6,3.1,2.7,2.5,2.2,1.8,1.5,1.3,1.2,1.1,1.0,1.0,1.0,1.0,0.8,0.6,0.6,0.4,0.3,0.2,0.2,0.2,0.1,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[98.5,98.4,98.3,97.9,97.6,97.1,96.5,96.3,95.4,94.9,94.2,93.6,92.9,91.7,90.4,89.7,88.5,87.2,85.8,84.1,83.0,80.7,78.7,76.4,73.8,71.5,69.4,67.7,66.3,64.6,62.6,60.7,59.3,58.0,56.2,54.4,52.7,50.8,49.4,47.8,46.5,40.9,36.0,31.3,26.6,22.4,19.3,15.9,13.6,11.4,9.5,7.8,7.0,5.9,4.9,4.2,3.8,3.3,3.1,2.9,2.8,2.5,2.4,2.1,1.9,1.9,1.3,0.8,0.5,0.5,0.5,0.4,0.3,0.2,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[98.8,98.7,98.7,98.4,98.2,97.9,97.6,97.4,96.8,96.5,95.8,95.4,94.8,93.8,92.7,92.0,91.2,90.4,89.3,88.0,87.0,85.2,83.7,82.3,80.4,78.8,77.3,75.6,74.3,72.9,71.3,69.6,68.3,67.0,65.3,64.0,62.5,61.2,59.9,58.9,57.8,52.9,48.8,44.3,40.6,36.8,34.1,30.9,28.1,25.5,23.2,21.4,19.7,17.7,16.2,14.5,13.1,11.8,11.0,9.9,8.9,7.8,7.0,6.3,5.7,5.1,3.5,2.5,1.8,1.5,1.2,1.1,1.0,0.6,0.3,0.2,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]],"asof":"2026-10-06"};
+const WX = [[80,'☀️','맑음'],[60,'🌤️','대체로 맑음'],[40,'⛅','구름 조금'],[20,'🌥️','흐림'],[5,'🌦️','가끔 비'],[1,'🌧️','비'],[-1,'⛈️','폭풍']];
+function wxProb(sys, need){ // sys 'k'|'q', need = 필요 상승률(%) → [1일,5일,10일,20일] %
+  const G = WXP.g, T = WXP[sys];
+  return T.map(row=>{
+    if(need<=G[0]) return row[0];
+    if(need>=G[G.length-1]) return row[row.length-1];
+    let i = 1; while(G[i] < need) i++;
+    const t = (need-G[i-1])/(G[i]-G[i-1]);
+    return row[i-1] + (row[i]-row[i-1])*t;
+  });
+}
+function wxOf(p){ const i = WX.findIndex(w=>p>=w[0]); return {i, ic:WX[i][1], nm:WX[i][2]}; }
+function wxPct(p){ return p<0.1 ? '0%' : p<1 ? '<1%' : Math.round(p)+'%'; }
+function wxNeed(avg, price){ return (avg*1.003/price - 1)*100; }
+
 /* ════════ FARM ════════ */
 function farm(S, L, P, again){
   const list = (S.acc.list||[]).slice(0,8);
@@ -1497,7 +1561,7 @@ function farm(S, L, P, again){
       const r = price? (price/a-1)*100 : null;
       const col = r==null? 'var(--gold)' : (r>=0.3?'var(--up)':(r>=0?'rgba(255,95,95,.55)':'var(--down)'));
       return `<div class="step ${i===deep?'next':''}"><span class="no">#${i+1}</span><div class="bar"><div data-w="${(a/maxAvg*100).toFixed(1)}" style="background:${col}"></div></div>
-        <span class="val">${a.toLocaleString()}${r==null?'':` <span class="${cls(r)}">${pct(r,1)}</span>`}</span></div>`;
+        <span class="val">${(()=>{ if(!price) return ''; const p = wxProb(key, wxNeed(a,price)), w = wxOf(p[1]); return `<span class="wxi" title="5거래일 안 수확 확률 ${wxPct(p[1])} · ${w.nm} (내일 ${wxPct(p[0])} · 20일 ${wxPct(p[3])})">${w.ic}</span>`; })()}${a.toLocaleString()}${r==null?'':` <span class="${cls(r)}">${pct(r,1)}</span>`}</span></div>`;
     }).join('');
     let note = '';
     if(deep>=0){
@@ -1558,7 +1622,11 @@ function farm(S, L, P, again){
     const worst = rets.length ? Math.min(...rets) : null, bestR = rets.length ? Math.max(...rets) : null;
     const n = b>0 ? Math.max(1, Math.round(b/mx*6)) : 0;
     const crop = k => bestR==null ? (k%3===2?'🌽':'🌾') : bestR>=0.3 ? (k%2?'🌽':'🌾') : worst<-3 ? (k%2?'🍂':'🌿') : (k%2?'🌱':'🌿');
-    const sky = b<=0 ? ['calm','🌙'] : bestR==null ? ['calm','🌙'] : bestR>=0.3 ? ['sun','☀️'] : worst<-3 ? ['rain','🌧'] : ['calm','🌙'];
+    const fk = la&&cl[0] ? wxProb('k', wxNeed(la,cl[0])) : null, fq = qa&&cl[1] ? wxProb('q', wxNeed(qa,cl[1])) : null;
+    const best5 = Math.max(fk?fk[1]:-1, fq?fq[1]:-1);
+    const sky = b<=0 || best5<0 ? ['calm','🌙'] : (()=>{ const w = wxOf(best5); return [w.i<=1?'sun':w.i<=3?'calm':'rain', w.ic]; })();
+    const wxRow = (lab,p) => p ? `<div class="wxf"><span class="wxf-l">${lab}</span>${p.map(v=>{ const w = wxOf(v); return `<span class="wxc w${w.i}" title="${w.nm}"><i>${w.ic}</i><b>${wxPct(v)}</b></span>`; }).join('')}</div>` : '';
+    const wxBox = (fk||fq) ? `<div class="wxbox"><div class="wxt"><span>🌦️ 수확 예보</span></div><div class="wxf"><span></span><span class="wxf-h">내일</span><span class="wxf-h">5일</span><span class="wxf-h">10일</span><span class="wxf-h">20일</span></div>${wxRow('🐂',fk)}${wxRow('🐎',fq)}</div>` : '';
     const crops = b>0 ? Array.from({length:n},(_,k)=>`<span class="crop" style="animation-delay:${-(k*0.37+i*0.21).toFixed(2)}s;font-size:${18+Math.round(b/mx*8)}px">${crop(k)}</span>`).join('') : '<span style="position:relative;z-index:1;font-size:0.8571rem;color:var(--muted);padding-bottom:12px">휴경 중</span>';
     const tr = live ? [] : (S.TR[L.d]||[]).filter(e=>e.n===i+1);
     const emptied = !live && b===0 && (accPrev[i]||0)>0;
@@ -1585,9 +1653,11 @@ function farm(S, L, P, again){
           + (live ? `<div class="pl"><span>⚡ 오늘</span><b class="num ${cls(td)}">${won(td,true)}</b></div>` : '')
           + `<div class="qty num">${sh.k?'레버 '+sh.k.toLocaleString()+'주':''}${sh.k&&sh.q?' · ':''}${sh.q?'코닥 '+sh.q.toLocaleString()+'주':''}</div>`; })()}
       ${!la&&!qa&&b>0?'<div class="seed"><span>보유 종목 없음</span><span>현금 대기</span></div>':''}
+      ${wxBox}
       ${gauge}
     </div>`;
   }).join('');
+  $('wx-legend').innerHTML = '🌦️ 수확 예보 = 지금 가격에서 평단 +0.3%를 N거래일 안에 넘을 확률(과거 일봉 기준, 앞으로의 매수 제외) · ' + WX.map((w,i)=>`<span>${w[1]} ${i===0?'80%+':i===6?'1% 미만':w[0]+'~'+WX[i-1][0]+'%'}</span>`).join('');
 }
 
 /* ════════ HARVEST LOG (7/23~) ════════ */
