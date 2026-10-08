@@ -41,6 +41,23 @@ HOOK = {
                  [("8번 계좌", "8번", 110, None), ("-5% 도달", "도착.", 124, 'red')], 'warning_sign'),
     'acc8_cut': ("8번 계좌<br><b>-15% 청산선</b>", "8번 계좌, -15% 청산선.", "8번 계좌, 마이너스15퍼센트 청산선.",
                  [("8번 계좌", "8번", 110, None), ("-15% 청산선", "청산선.", 110, 'red')], 'pose_falling_panic'),
+    # ── 새 사건 (2026-10) ──
+    'ret_milestone': (f"8계좌 농사<br>누적 <b>+{E.get('n', 0)}%</b> 돌파", f"누적 수익률 +{E.get('n', 0)}% 돌파.",
+                 f"누적 수익률 플러스{E.get('n', 0)}퍼센트 돌파.",
+                 [("올해 누적", "누적", 96, None), (f"+{E.get('n', 0)}% 돌파", "돌파.", 130, 'gold')], 'pose_rocket_ride'),
+    'streak':   (f"8계좌 농사<br><b>{E.get('n', 0)}연승</b> 중", f"{E.get('n', 0)}일 연속 수익.", None,
+                 [("연속 수익", "연속", 96, None), (f"{E.get('n', 0)}연승", "수익.", 160, 'gold')], 'jumping_joy_phone'),
+    'comeback': (f"{E.get('n', 0)}연패 끝<br><b>반등</b>", f"{E.get('n', 0)}연패 끝, 반등.", None,
+                 [(f"{E.get('n', 0)}연패 끝", "연패", 110, None), ("반등 ↗", "반등.", 160, 'gold')], 'spring_bounce'),
+    'beat_kospi': (f"코스피 {day['kospi_pct'] or 0:+.1f}%<br>내 밭 <b>{day['ret_pct']:+.1f}%</b>", "코스피를 크게 앞선 날.", None,
+                 [(f"코스피 {day['kospi_pct'] or 0:+.1f}%", "코스피를", 104, None), (f"내 밭 {day['ret_pct']:+.1f}%", "앞선", 124, 'gold')], 'confident_thumbs'),
+    'drawdown': (f"고점 대비<br><b>{E.get('n', 0)}%</b>", f"고점에서 {abs(E.get('n', 0))}% 내려왔다.",
+                 f"고점에서 {abs(E.get('n', 0))}퍼센트 내려왔다.",
+                 [("고점 대비", "고점에서", 96, None), (f"{E.get('n', 0)}%", "내려왔다.", 170, 'red')], 'umbrella_shield'),
+    'chain_seed': (f"하루에 <b>{E.get('n', 0)}계좌</b><br>씨앗 심기", f"하루에 {E.get('n', 0)}계좌 파종.", None,
+                 [("하루에", "하루에", 96, None), (f"{E.get('n', 0)}계좌 파종", "파종.", 124, 'gold')], 'pose_planting_coin'),
+    'week_summary': (f"이번 주<br>8계좌 농사 <b>{ev['week']['pnl_txt']}원</b>", "이번 주 농사 결산.", None,
+                 [("이번 주", "이번", 110, None), (f"{ev['week']['pnl_txt']}원", "결산.", 124, 'gold' if ev['week'].get('pnl', 0) >= 0 else 'red')], 'clipboard_check'),
 }
 header, hook_text, hook_tts, hook_lines, hook_actor = HOOK[key]
 hook_line = {"who": "A", "text": hook_text, **({"tts": hook_tts} if hook_tts else {})}
@@ -114,14 +131,16 @@ tro_sc = {"type": "custom", "lines": [], "hold": round(T_SPOT + (2.0 if has_new 
          + ([{"at": T_SPOT, "sound": "win"}, {"at": T_SPOT + 0.2, "sound": "sparkle"}] if has_new else [{"at": T_SPOT - 0.2, "sound": "sparkle"}])}
 hook_sc, log_sc, race_sc = scenes
 body = [log_sc, field_sc, cal_sc, rec_sc, tro_sc, race_sc]
-focus = {'achievement': tro_sc, 'ath': race_sc, 'chain_harvest': field_sc, 'acc8_add': field_sc, 'acc8_cut': field_sc}.get(key)
+focus = {'achievement': tro_sc, 'ath': race_sc, 'chain_harvest': field_sc, 'acc8_add': field_sc, 'acc8_cut': field_sc,
+         'ret_milestone': race_sc, 'beat_kospi': race_sc, 'drawdown': race_sc, 'streak': rec_sc, 'comeback': cal_sc,
+         'chain_seed': field_sc, 'week_summary': cal_sc}.get(key)
 if focus is not None:
     body.remove(focus); body.insert(0, focus)
 scenes = [hook_sc] + [b for b in body if (WORK / b['props']['script_file']).exists()]
 
 end_line = ({"who": "A", "text": "-5%마다 심고, -15%면 정리.", "tts": "마이너스5퍼센트마다 심고, 마이너스15퍼센트면 정리."},
             [{"text": "-5%마다 심고", "at": "심고,", "size": 92, "color": "gold"}, {"text": "-15%면 정리", "at": "정리.", "size": 92, "color": "red"}]) \
-    if key in ('acc8_add', 'acc8_cut') else \
+    if key in ('acc8_add', 'acc8_cut', 'drawdown', 'chain_seed') else \
            ({"who": "A", "text": "내리면 심고, 오르면 거둔다."},
             [{"text": "내리면 심고", "at": "내리면", "size": 92}, {"text": "오르면 거둔다", "at": "오르면", "color": "gold", "size": 104}])
 scenes.append({"type": "title", "lines": [end_line[0]], "min_dur": 3.2,
@@ -129,7 +148,10 @@ scenes.append({"type": "title", "lines": [end_line[0]], "min_dur": 3.2,
                          "sub": {"text": "8계좌 규칙 · 매일 매매일지는 고정댓글", "at": end_line[1][-1]["at"]}}})
 
 thumb_main = day['pnl_txt'] if key in ('big_day', 'storm_day') else {'top_day': f"{day['rank']}위", 'ath': '신고점', 'chain_harvest': f"{day['harvest_n']}계좌 수확",
-              'achievement': '업적 달성', 'acc8_add': '-5%', 'acc8_cut': '-15%'}[key]
+              'achievement': '업적 달성', 'acc8_add': '-5%', 'acc8_cut': '-15%',
+              'ret_milestone': f"+{E.get('n', 0)}%", 'streak': f"{E.get('n', 0)}연승", 'comeback': '반등',
+              'beat_kospi': f"{day['ret_pct']:+.1f}%", 'drawdown': f"{E.get('n', 0)}%", 'chain_seed': f"{E.get('n', 0)}계좌 파종",
+              'week_summary': ev['week']['pnl_txt']}[key]
 sb = {
     "slug": f"farm-event-{d}-{key.replace('_', '')}-shorts", "format": "vertical", "category": "단기 투자",
     "music": {"style": "bright" if up else "piano"},

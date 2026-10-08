@@ -180,7 +180,7 @@ def main():
     pnls = sorted((r['pnl'] for r in traded), reverse=True)
     rank = pnls.index(L['pnl']) + 1 if L['pnl'] in pnls else None
     worst_rank = len(pnls) - rank + 1 if rank else None
-    top = math.ceil(len(traded) * 0.05)
+    top = math.ceil(len(traded) * 0.10)          # 상위·하위 10%
     day_ret = (L['nav'] / P['nav'] - 1) * 100
     kospi_day = (L['kospiVal'] / P['kospiVal'] - 1) * 100 if L.get('kospiVal') and P.get('kospiVal') else None
     prev_peak = max(r['nav'] for r in D[:-1])
@@ -192,24 +192,56 @@ def main():
     new_ach = sorted(achievements(D) - ever)
     navpk = max(r['nav'] for r in D)
 
+    seeds = [e for e in trades if e['t'] in ('seed', 'add')]
+    # 연승·연패
+    win_run = 0
+    for r in traded:
+        win_run = win_run + 1 if r['pnl'] > 0 else 0
+    lose_run = 0
+    for r in reversed(traded[:-1]):
+        if r['pnl'] < 0: lose_run += 1
+        else: break
+
+    # group 'down' = 하락 계열(주 1개 제한용). 점수 높은 순으로 primary.
     ev = []
-    # 신고점: 직전 신고점 이후 10거래일 이상 지나서 다시 찍은 경우만 (연일 갱신은 제외)
+    # 신고점: 직전 신고점 이후 5거래일 이상 지나서 다시 찍은 경우만 (연일 갱신은 제외)
     if L['nav'] > prev_peak + 1e-9:
         last_pk_i = max(i for i, r in enumerate(D[:-1]) if r['nav'] >= prev_peak - 1e-9)
         gap_days = len(D) - 1 - last_pk_i
-        if gap_days >= 10:
-            ev.append({'key': 'ath', 'score': 90, 'title': f'{gap_days}거래일 만에 신고점', 'mood': 'up'})
+        if gap_days >= 5:
+            ev.append({'key': 'ath', 'score': 90, 'title': f'{gap_days}거래일 만에 신고점', 'mood': 'up', 'n': gap_days})
     for a in new_ach:
         if a in ('🏔 전고점 탈환',) and any(e['key'] == 'ath' for e in ev): continue
         ev.append({'key': 'achievement', 'score': 85, 'title': f'업적 달성 {a}', 'mood': 'up', 'badge': a})
-    if L['pnl'] >= 1e7:
+    # 누적 수익률 10%p 단위 첫 돌파
+    prev_max = max(r['ret'] for r in D[:-1])
+    if math.floor(L['ret'] / 10) > math.floor(prev_max / 10) and L['ret'] >= 10:
+        mile = int(math.floor(L['ret'] / 10) * 10)
+        ev.append({'key': 'ret_milestone', 'score': 82, 'title': f'누적 수익률 +{mile}% 돌파', 'mood': 'up', 'n': mile})
+    big = L['pnl'] >= 5e6
+    if big:
         ev.append({'key': 'big_day', 'score': 80, 'title': f'하루 {won(L["pnl"], True)}', 'mood': 'up'})
     elif rank and L['pnl'] > 0 and rank <= top:
         ev.append({'key': 'top_day', 'score': 70, 'title': f'올해 {len(traded)}거래일 중 {rank}위', 'mood': 'up'})
-    if len(harvests) >= 3:
+    if L['pnl'] > 0 and win_run >= 4:
+        ev.append({'key': 'streak', 'score': 68, 'title': f'{win_run}연승', 'mood': 'up', 'n': win_run})
+    if L['pnl'] > 0 and lose_run >= 3:
+        ev.append({'key': 'comeback', 'score': 66, 'title': f'{lose_run}연패 끝 반등', 'mood': 'up', 'n': lose_run})
+    if len(harvests) >= 2:
         ev.append({'key': 'chain_harvest', 'score': 65, 'title': f'하루 {len(harvests)}계좌 연쇄 수확', 'mood': 'up'})
-    if L['pnl'] <= -1e7 or (worst_rank and L['pnl'] < 0 and worst_rank <= top and len(traded) >= 60):
-        ev.append({'key': 'storm_day', 'score': 60, 'title': f'하루 {won(L["pnl"], True)}' if L['pnl'] <= -1e7 else f'올해 하위 {worst_rank}번째 하락일', 'mood': 'down'})
+    # 코스피 압승: 하루 수익률이 코스피보다 3%p 이상 높고, 대박 날과 겹치지 않을 때
+    if kospi_day is not None and day_ret - kospi_day >= 3 and not big:
+        ev.append({'key': 'beat_kospi', 'score': 58, 'title': f'코스피 {kospi_day:+.1f}% vs 내 밭 {day_ret:+.1f}%', 'mood': 'up'})
+    if L['pnl'] <= -5e6 or (worst_rank and L['pnl'] < 0 and worst_rank <= top and len(traded) >= 40):
+        ev.append({'key': 'storm_day', 'score': 60, 'title': f'하루 {won(L["pnl"], True)}' if L['pnl'] <= -5e6 else f'올해 하위 {worst_rank}번째 하락일', 'mood': 'down', 'group': 'down'})
+    # 고점 대비 -10%·-20% 처음 하회
+    dd = (L['nav'] / navpk - 1) * 100
+    ddp = (P['nav'] / prev_peak - 1) * 100
+    for th in (-20, -10):
+        if dd <= th < ddp:
+            ev.append({'key': 'drawdown', 'score': 62, 'title': f'고점 대비 {th}%', 'mood': 'down', 'group': 'down', 'n': th}); break
+    if len(seeds) >= 3:
+        ev.append({'key': 'chain_seed', 'score': 52, 'title': f'하루 {len(seeds)}계좌 파종', 'mood': 'up' if L['pnl'] >= 0 else 'down', 'n': len(seeds)})
     c = closes.get(L['d'])
     if c:
         for key, s, ci in (('lever_avg', 'K', 0), ('kosdaq_avg', 'Q', 1)):
@@ -218,9 +250,16 @@ def main():
             r8p = (cp[ci] / a8p - 1) * 100 if cp and cp[ci] and a8p else 0
             if a8 and c[ci]:
                 r8 = (c[ci] / a8 - 1) * 100
-                if r8 <= -15 and r8p > -15: ev.append({'key': 'acc8_cut', 'score': 75, 'title': f'{SYS[s]} 8번 -15% 청산선', 'mood': 'down'})
-                elif r8 <= -5 and r8p > -5: ev.append({'key': 'acc8_add', 'score': 55, 'title': f'{SYS[s]} 8번 -5% 추가 파종선', 'mood': 'down'})
+                if r8 <= -15 and r8p > -15: ev.append({'key': 'acc8_cut', 'score': 75, 'title': f'{SYS[s]} 8번 -15% 청산선', 'mood': 'down', 'group': 'down'})
+                elif r8 <= -5 and r8p > -5: ev.append({'key': 'acc8_add', 'score': 55, 'title': f'{SYS[s]} 8번 -5% 추가 파종선', 'mood': 'down', 'group': 'down'})
     ev.sort(key=lambda e: -e['score'])
+
+    # 주간 요약(--weekly): 그 주에 이벤트 쇼츠가 0편일 때 금요일에 쓰는 보장용
+    wk0_ = dt.date.fromisoformat(L['d']); wk0_ -= dt.timedelta(days=wk0_.weekday())
+    wk_days = [r for r in D if dt.date.fromisoformat(r['d']) >= wk0_]
+    wk_pnl = sum(r['pnl'] for r in wk_days)
+    if '--weekly' in sys.argv:
+        ev = [{'key': 'week_summary', 'score': 0, 'title': f'이번 주 {won(wk_pnl, True)}', 'mood': 'up' if wk_pnl >= 0 else 'down'}]
 
     # 장면 데이터 (금액 공개 2번: 손익·실현은 원, 자산은 %만)
     race = [{'d': '2026-01-01', 'me': 0.0, 'kp': 0.0}] + [{'d': r['d'], 'me': round(r['ret'], 2), 'kp': round(r['kospi'], 2)} for r in D]
@@ -266,7 +305,8 @@ def main():
         'date': L['d'],
         'events': ev,
         'primary': ev[0] if ev else None,
-        'day': {'pnl': L['pnl'], 'pnl_txt': won(L['pnl'], True), 'ret_pct': round(day_ret, 2),
+        'day': {'win_run': win_run, 'lose_run': lose_run, 'seed_n': len(seeds),
+                'pnl': L['pnl'], 'pnl_txt': won(L['pnl'], True), 'ret_pct': round(day_ret, 2),
                 'kospi_pct': round(kospi_day, 2) if kospi_day is not None else None,
                 'realized': L.get('realized') or 0, 'realized_txt': won(L.get('realized') or 0),
                 'rank': rank, 'n_traded': len(traded),
@@ -274,7 +314,9 @@ def main():
         'ytd': {'ret': round(L['ret'], 1), 'kospi': round(L['kospi'], 1), 'gap': round(L['ret'] - L['kospi'], 1),
                 'dd_from_peak': round((L['nav'] / navpk - 1) * 100, 1),
                 'month_realized_txt': won(mreal), 'ytd_realized_txt': won(real26)},
-        'week': {'from': week[0]['d'] if week else None, 'pnl_txt': won(sum(r['pnl'] for r in week), True),
+        'week': {'from': week[0]['d'] if week else None, 'pnl': sum(r['pnl'] for r in week), 'pnl_txt': won(sum(r['pnl'] for r in week), True),
+                 'days': len(week), 'win_days': sum(1 for r in week if r['pnl'] > 0),
+                 'ret_pct': round((L['nav'] / (D[-len(week) - 1]['nav'] if len(D) > len(week) else 1000.0) - 1) * 100, 2) if week else 0,
                  'realized_txt': won(sum((r.get('realized') or 0) for r in week))},
         'race': race_s,
         'new_achievements': new_ach,
