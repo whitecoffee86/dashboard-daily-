@@ -350,6 +350,15 @@ body{background-image:none}
 .lb-setup{padding:14px 16px;font-size:.9rem;color:var(--muted)}
 .close-chip.is-live{color:var(--up);border-color:rgba(255,95,95,.4)}
 .pl{display:flex;justify-content:space-between;font-size:.86rem;color:var(--muted)}
+.seed .sl{display:inline-flex;align-items:baseline;gap:6px}
+.seed .sq{font-size:.78rem;color:var(--dim);font-weight:400}
+.plot{gap:6px}
+.plot .field{height:72px;padding-bottom:12px}
+@media (max-width:600px){
+  .seed{align-items:flex-start}
+  .seed .sl{flex-direction:column;align-items:flex-start;gap:0;line-height:1.25}
+  .seed .sq{font-size:.72rem}
+}
 .pl b{font-weight:600}
 .qty{font-size:.76rem;color:var(--dim)}
 @media (max-width:1100px){ .lb-grid{grid-template-columns:1fr} }
@@ -1642,7 +1651,7 @@ function farm(S, L, P, again){
     const tr = live ? [] : (S.TR[L.d]||[]).filter(e=>e.n===i+1);
     const emptied = !live && b===0 && (accPrev[i]||0)>0;
     const tag = tr.length ? tr.map(e=>TICON[e.t]+' 오늘 '+(e.s==='K'?'코스피':'코스닥')+' '+TNAME[e.t]).join(' · ') : emptied ? '🧺 오늘 비움' : (d===0?'변동 없음':won(d,true));
-    const seed = (lab,a,p)=> a>0 ? `<div class="seed"><span>${lab}<span class="pd"> 평단</span></span><span class="num">${a.toLocaleString()}${p?` <span class="${cls(p/a-1)}">${pct((p/a-1)*100,1)}</span>`:''}</span></div>` : '';
+    const seed = (lab,a,p,q)=> a>0 ? `<div class="seed"><span class="sl">${lab}<span class="pd"> 평단</span>${q?`<span class="sq num">${q.toLocaleString()}주</span>`:''}</span><span class="num">${a.toLocaleString()}${p?` <span class="${cls(p/a-1)}">${pct((p/a-1)*100,1)}</span>`:''}</span></div>` : '';
     let gauge = '';
     if(i===7){
       const r8 = [la&&cl[0]?(cl[0]/la-1)*100:null, qa&&cl[1]?(cl[1]/qa-1)*100:null].filter(v=>v!=null);
@@ -1656,13 +1665,11 @@ function farm(S, L, P, again){
       <div class="plot-h"><b>${i+1}번 밭</b><span class="delta num ${tr.some(e=>e.t==='harvest')||emptied?'up':(d>0?'up':(d<0?'dn':'zero'))}">${tag}</span></div>
       <div class="field ${sky[0]}"><span class="sky">${sky[1]}</span>${crops}</div>
       <div class="bal">${live&&b>0?'<span class="lv-dot" title="실시간 추정"></span>':''}${b>0?won(b):'0'}</div>
-      ${seed('코스피',la,cl[0])}${seed('코스닥',qa,cl[1])}
+      ${seed('코스피',la,cl[0],(SH[i]||{}).k)}${seed('코스닥',qa,cl[1],(SH[i]||{}).q)}
       ${(()=>{ const sh = SH[i]||{}; if(!sh.k && !sh.q) return '';
         const un = (sh.k||0)*(la&&cl[0]?cl[0]-la:0) + (sh.q||0)*(qa&&cl[1]?cl[1]-qa:0);
-        const td = (sh.k&&pcl[0]?sh.k*(cl[0]-pcl[0]):0) + (sh.q&&pcl[1]?sh.q*(cl[1]-pcl[1]):0);
         return `<div class="pl"><span>평가손익</span><b class="num ${cls(un)}">${won(un,true)}</b></div>`
-          + (live ? `<div class="pl"><span>⚡ 오늘</span><b class="num ${cls(td)}">${won(td,true)}</b></div>` : '')
-          + `<div class="qty num">${sh.k?'레버 '+sh.k.toLocaleString()+'주':''}${sh.k&&sh.q?' · ':''}${sh.q?'코닥 '+sh.q.toLocaleString()+'주':''}</div>`; })()}
+; })()}
       ${!la&&!qa&&b>0?'<div class="seed"><span>보유 종목 없음</span><span>현금 대기</span></div>':''}
       ${wxBox}
       ${gauge}
