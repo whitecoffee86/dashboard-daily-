@@ -16,7 +16,7 @@ E, day, ytd = ev['primary'], ev['day'], ev['ytd']
 key, up = E['key'], E['mood'] == 'up'
 d = ev['date']; md = f"{int(d[5:7])}/{int(d[8:10])}"
 import datetime as _dt
-_today = (_dt.datetime.utcnow() + _dt.timedelta(hours=9)).date().isoformat()
+_today = (_dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(hours=9)).date().isoformat()
 DAYW = '오늘' if d == _today else f"{int(d[5:7])}월 {int(d[8:10])}일" 
 pnl_full = f"{day['pnl']:+,}원"
 man = day['pnl_txt'].lstrip('+-')          # "1,093만"
@@ -72,64 +72,83 @@ if day.get('rank') and day['pnl'] > 0 and day['rank'] <= max(20, day['n_traded']
 elif day.get('kospi_pct') is not None:
     badges.append({"label": "오늘 코스피", "value": f"{day['kospi_pct']:+.2f}%"})
 badges = badges[:2]
-T_CHIP = 1.9; T_RANK = T_CHIP + 0.45 * len(trades) + 0.3
-HARVEST_HOLD = round(T_RANK + 0.35 * len(badges) + 1.4, 1)
-RUN = 3.4; T_GAP = 0.4 + RUN + 0.3; RACE_HOLD = round(T_GAP + 1.8, 1)
+T_CHIP = 1.3; T_RANK = T_CHIP + 0.38 * len(trades) + 0.2
+HARVEST_HOLD = round(T_RANK + 0.3 * len(badges) + 0.8, 1)
+RUN = 2.8; T_GAP = 0.1 + RUN + 0.2; RACE_HOLD = round(T_GAP + 1.0, 1)
 mood_a, mood_b = ('drive', 'up') if up else ('soft', 'soft')
 
 scenes = [
     {"type": "stage", "lines": [hook_line], "min_dur": 2.6,
      "props": {"lines": [{"text": t, "at": a, "size": s, **({"color": c} if c else {})} for t, a, s, c in hook_lines], "y": 600},
-     "actors": [{"id": hook_actor, "x": 540, "y": 1390, "h": 430, "enter": "drop", "at": 0.1, "anim": "bounce" if up else "idle"}],
-     "fx": ([{"type": "coins", "at": hook_lines[-1][1], "n": 26}] if up else [{"type": "tint", "color": "rgba(10,16,40,.4)", "at": 0}, {"type": "rain", "at": 0, "n": 120}])},
+     "actors": [{"id": hook_actor, "x": 540, "y": 1390, "h": 430, "enter": "drop", "at": 0, "anim": "bounce" if up else "wobble",
+                 "react": [{"anim": "jump" if up else "shake", "at": hook_lines[-1][1]}]}],
+     "fx": ([{"type": "coins", "at": hook_lines[-1][1], "n": 30}, {"type": "confetti", "at": hook_lines[-1][1]}] if up else
+            [{"type": "tint", "color": "rgba(10,16,40,.4)", "at": 0}, {"type": "rain", "at": 0, "n": 140},
+             {"type": "lightning", "hits": [{"at": hook_lines[-1][1]}]}])},
     {"type": "custom", "lines": [], "hold": HARVEST_HOLD, "music": mood_a,
      "props": {"script_file": "harvest.js",
                "data": {"title_v": f"{md} 농사일지", "subtitle": "KODEX 레버리지 · 코스닥150 레버리지", "pnl": pnl_full,
                         "sub": f"하루 수익률 {day['ret_pct']:+.2f}%", "trades": trades, "badges": badges, "up": day['pnl'] >= 0},
-               "cues": {"start": {"at": 0.2}, "chips": {"at": T_CHIP}, "rank": {"at": T_RANK}}},
-     "sfx": [{"at": 0.2, "sound": "ticks", "dur": 1.3}, {"at": 1.45, "sound": "hit" if up else "thud"},
+               "cues": {"start": {"at": 0.05}, "chips": {"at": T_CHIP}, "rank": {"at": T_RANK}}},
+     "sfx": [{"at": 0, "sound": "whoosh"}, {"at": 0.05, "sound": "ticks", "dur": 1.0}, {"at": 1.05, "sound": "hit" if up else "thud", "big": False},
              {"at": T_CHIP, "offset": 0.15, "sound": "coin" if nh else "pop", "repeat": len(trades), "every": 0.45},
              {"at": T_RANK, "offset": 0.1, "sound": "win" if up else "thud"}]},
     {"type": "custom", "lines": [], "hold": RACE_HOLD, "music": mood_b,
      "props": {"script_file": "race.js",
                "data": {"title_v": "2026 코스피와 달리기", "subtitle": "누적 수익률 · 좌수법(NAV) 기준", "series": ev['race'], "run": RUN,
                         "from": "1/1", "to": md},
-               "cues": {"start": {"at": 0.4}, "gap": {"at": T_GAP}}},
-     "sfx": [{"at": 0.4, "sound": "riser"}, {"at": T_GAP, "sound": "sparkle"}]},
+               "cues": {"start": {"at": 0.1}, "gap": {"at": T_GAP}}},
+     "sfx": [{"at": 0, "sound": "whoosh"}, {"at": 0.1, "sound": "riser"}, {"at": T_GAP, "sound": "win" if ev['ytd']['gap'] > 0 else "sparkle"}]},
 ]
 
 # ── 대시보드 장면들 (대사 없음 — 화면이 보여준다) ──
 F, C, R, TR = ev['field'], ev['calendar'], ev['records'], ev['trophies']
 acts = sum(1 for s_ in 'KQ' for x in F[s_] if x['t'])
-ACT = 1.9; FIELD_HOLD = round(ACT + 0.4 * acts + 0.5 + 1.5, 1)
+ACT = 1.3; FIELD_HOLD = round(ACT + 0.35 * acts + 0.3 + 0.8, 1)
 field_sc = {"type": "custom", "lines": [], "hold": FIELD_HOLD, "music": mood_a,
     "props": {"script_file": "field.js",
               "data": {"title_v": "🌾 8계좌 밭", "subtitle": f"평단 대비 수익률 · {md} 종가", "K": F['K'], "Q": F['Q']},
-              "cues": {"start": {"at": 0.2}, "act": {"at": ACT}}},
-    "sfx": [{"at": 0.25, "sound": "pop", "repeat": 8, "every": 0.14, "db": -16}]
+              "cues": {"start": {"at": 0.05}, "act": {"at": ACT}}},
+    "sfx": [{"at": 0, "sound": "whoosh"}, {"at": 0.1, "sound": "pop", "repeat": 8, "every": 0.12, "db": -16}]
          + ([{"at": ACT, "offset": 0.15, "sound": "coin", "repeat": acts, "every": 0.4}] if acts else [])}
-n_cal = len(C['days']); FILL = 2.4
-cal_sc = {"type": "custom", "lines": [], "hold": round(0.4 + FILL + 1.6, 1), "music": mood_b,
+n_cal = len(C['days']); FILL = 2.0
+cal_sc = {"type": "custom", "lines": [], "hold": round(0.1 + FILL + 1.0, 1), "music": mood_b,
     "props": {"script_file": "calendar.js",
               "data": {"title_v": "📅 최근 4주 밭 달력", "subtitle": "빨강 수익 · 파랑 손실 · 오늘은 금테", "from": C['from'], "to": C['to'],
                        "today": C['today'], "best_d": C['best_d'], "days": C['days'], "fill": FILL, "total_label": "4주 누적"},
-              "cues": {"start": {"at": 0.4}, "best": {"at": 0.4 + FILL}}},
-    "sfx": [{"at": 0.4, "sound": "ticks", "dur": FILL}, {"at": 0.4 + FILL, "sound": "sparkle"}]}
-rec_sc = {"type": "custom", "lines": [], "hold": 4.8, "music": mood_a,
+              "cues": {"start": {"at": 0.1}, "best": {"at": 0.1 + FILL}}},
+    "sfx": [{"at": 0, "sound": "whoosh"}, {"at": 0.1, "sound": "ticks", "dur": FILL}, {"at": 0.1 + FILL, "sound": "sparkle"}]}
+rec_sc = {"type": "custom", "lines": [], "hold": 3.3, "music": mood_a,
     "props": {"script_file": "records.js",
               "data": dict(R, title_v="📊 기록실", subtitle=f"2026 거래일 {day['n_traded']}일 기준"),
-              "cues": {"start": {"at": 0.25}, "cards": {"at": 1.6}}},
-    "sfx": [{"at": 0.25, "sound": "up"}, {"at": 1.6, "sound": "check", "repeat": 4, "every": 0.3}]
-         + ([{"at": 2.0, "sound": "hit"}] if R['best']['today'] else [])}
+              "cues": {"start": {"at": 0.05}, "cards": {"at": 1.0}}},
+    "sfx": [{"at": 0, "sound": "whoosh"}, {"at": 0.05, "sound": "up"}, {"at": 1.0, "sound": "check", "repeat": 4, "every": 0.25}]
+         + ([{"at": 1.4, "sound": "hit"}] if R['best']['today'] else [])}
 got = sum(1 for x in TR if x['ok']); has_new = any(x['new'] for x in TR)
-T_SPOT = round(0.25 + len(TR) * 0.13 + 0.5, 2)
-tro_sc = {"type": "custom", "lines": [], "hold": round(T_SPOT + (2.0 if has_new else 1.4), 1), "music": 'up' if up else 'soft',
+T_SPOT = round(0.05 + len(TR) * 0.1 + 0.3, 2)
+tro_sc = {"type": "custom", "lines": [], "hold": round(T_SPOT + (1.4 if has_new else 0.9), 1), "music": 'up' if up else 'soft',
     "props": {"script_file": "trophy.js",
               "data": {"title_v": "🏆 업적 진열장", "subtitle": f"{len(TR)}개 중 {got}개 획득", "items": TR},
-              "cues": {"start": {"at": 0.25}, "spot": {"at": T_SPOT}}},
-    "sfx": [{"at": 0.25, "sound": "pop", "repeat": len(TR), "every": 0.13, "db": -15}]
+              "cues": {"start": {"at": 0.05}, "spot": {"at": T_SPOT}}},
+    "sfx": [{"at": 0, "sound": "whoosh"}, {"at": 0.05, "sound": "pop", "repeat": len(TR), "every": 0.1, "db": -15}]
          + ([{"at": T_SPOT, "sound": "win"}, {"at": T_SPOT + 0.2, "sound": "sparkle"}] if has_new else [{"at": T_SPOT - 0.2, "sound": "sparkle"}])}
 hook_sc, log_sc, race_sc = scenes
+
+# ── 구석 쿼카: 장면마다 다른 포즈·말풍선으로 리액션 (왼쪽 아래, 오른쪽 x>960 은 쇼츠 버튼 구역이라 피함) ──
+def buddy(sc, up_id, down_id, up_txt, down_txt, at, react='jump'):
+    sc.setdefault('actors', []).append({"id": up_id if up else down_id, "x": 140, "y": 1580, "h": 200,
+        "enter": "left", "at": 0.05, "anim": "bounce" if up else "idle",
+        "react": [{"anim": react if up else 'shake', "at": at}]})   # 말풍선은 대시보드 숫자를 가려서 쓰지 않음
+buddy(log_sc, 'calculator_happy', 'sad_red_chart', '오늘 정산!', '아야…', T_CHIP)
+buddy(field_sc, 'pose_planting_coin', 'watering_dca', '밭 점검!', '물 줘야지', ACT)
+buddy(cal_sc, 'pointer_explain', 'pointer_explain', '빨강 많다!', '파랑이 많네', round(0.1 + FILL, 2), 'grow')
+buddy(rec_sc, 'magnifier_phone', 'magnifier_phone', '기록 보자', '버티는 중', 1.0)
+buddy(tro_sc, 'pose_trophy_cheer', 'pose_chest_cheer', '진열장!', '언젠가 다 딴다', T_SPOT)
+buddy(race_sc, 'pose_rocket_ride', 'umbrella_shield', '코스피 나와!', '버틴다', T_GAP)
+# 상승일엔 포인트 순간에 폭죽·동전
+if up:
+    race_sc.setdefault('fx', []).append({"type": "coins", "at": T_GAP, "n": 18})
+    if has_new: tro_sc.setdefault('fx', []).append({"type": "confetti", "at": T_SPOT})
 body = [log_sc, field_sc, cal_sc, rec_sc, tro_sc, race_sc]
 focus = {'achievement': tro_sc, 'ath': race_sc, 'chain_harvest': field_sc, 'acc8_add': field_sc, 'acc8_cut': field_sc,
          'ret_milestone': race_sc, 'beat_kospi': race_sc, 'drawdown': race_sc, 'streak': rec_sc, 'comeback': cal_sc,
@@ -143,7 +162,7 @@ end_line = ({"who": "A", "text": "-5%마다 심고, -15%면 정리.", "tts": "�
     if key in ('acc8_add', 'acc8_cut', 'drawdown', 'chain_seed') else \
            ({"who": "A", "text": "내리면 심고, 오르면 거둔다."},
             [{"text": "내리면 심고", "at": "내리면", "size": 92}, {"text": "오르면 거둔다", "at": "오르면", "color": "gold", "size": 104}])
-scenes.append({"type": "title", "lines": [end_line[0]], "min_dur": 3.2,
+scenes.append({"type": "title", "lines": [end_line[0]], "min_dur": 2.6,
                "props": {"asset": "field_sowing_walk", "focus": [50, 35], "lines": end_line[1],
                          "sub": {"text": "8계좌 규칙 · 매일 매매일지는 고정댓글", "at": end_line[1][-1]["at"]}}})
 
