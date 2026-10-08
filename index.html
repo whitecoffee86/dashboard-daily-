@@ -967,11 +967,22 @@ function deriveShares(D, CL){
       if(ak && !aq) return {k:Math.round(y/pk), q:0};
       if(!ak && aq) return {k:0, q:Math.round(y/pq)};
       const cand = [];
+      // 두 종목 동시 보유: 잔고 = k×레버종가 + q×코닥종가 를 정수로 딱 맞추는 해를 먼저 찾음
+      // (전날 정보가 없는 첫 날·한 계좌 동시 매수에도 정확). 해가 여러 개면 전날 수량과 가까운 쪽.
+      const exact = [];
+      for(let k=1;k*pk<y;k++){ const q=(y-k*pk)/pq; if(q>=1 && frac(q)<0.001) exact.push({k,q:Math.round(q)}); }
+      if(exact.length){
+        const dist = o => (pv.k!=null?Math.abs(o.k-pv.k)*pk:0) + (pv.q!=null?Math.abs(o.q-pv.q)*pq:0);
+        exact.sort((a,b)=>dist(a)-dist(b));
+        return exact[0];
+      }
       if(pv.k!=null){ const q=(y-pv.k*pk)/pq; if(q>=0) cand.push({k:pv.k,q,e:frac(q)}); }
       if(pv.q!=null){ const k=(y-pv.q*pq)/pk; if(k>=0) cand.push({k,q:pv.q,e:frac(k)}); }
       const sys2 = o => { if(!o||!CL[o.d]) return; const [k2,q2]=CL[o.d], y2=(o.acc||[])[i]||0, det=pk*q2-k2*pq; if(!det) return;
         const k=(y*q2-y2*pq)/det, q=(pk*y2-k2*y)/det; if(k>=0&&q>=0) cand.push({k,q,e:frac(k)+frac(q)}); };
       sys2(pr); sys2(nx);
+      const both = cand.filter(c=>Math.round(c.k)>0 && Math.round(c.q)>0);
+      if(both.length) cand.splice(0, cand.length, ...both);
       if(!cand.length) return {k:null,q:null};
       cand.sort((a,b)=>a.e-b.e);
       return {k:Math.round(cand[0].k), q:Math.round(cand[0].q)};
