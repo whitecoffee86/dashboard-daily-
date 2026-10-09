@@ -3,7 +3,7 @@
 // props.cues = {start, gap}
 heading((vertical && P.title_v) || P.title || '코스피와 달리기', P.subtitle);
 const S = P.series, n = S.length;
-const B = vertical ? {x: 110, y: 780, w: 560, h: 520} : {x: 220, y: 230, w: 1260, h: 600};
+const B = vertical ? {x: 130, y: 780, w: 770, h: 520} : {x: 220, y: 230, w: 1260, h: 600};
 let mn = Infinity, mx = -Infinity;
 S.forEach(p => { mn = Math.min(mn, p.me, p.kp); mx = Math.max(mx, p.me, p.kp); });
 const pad = (mx - mn) * 0.08; mn -= pad; mx += pad * 1.6;
@@ -44,8 +44,9 @@ return t => {
   [dm, dk].forEach(c => c.style.opacity = show);
   LM.textContent = `나 ${cur('me') >= 0 ? '+' : ''}${cur('me').toFixed(1)}%`;
   LK.textContent = `코스피 ${cur('kp') >= 0 ? '+' : ''}${cur('kp').toFixed(1)}%`;
-  const lx = vertical ? xm + 24 : Math.min(xm + 22, B.x + B.w - 280);
-  let lyM = ym - 64, lyK = yk + 14;
+  const lx = vertical ? xm + 24 * (1 - 2 * q) : Math.min(xm + 22, B.x + B.w - 280);
+  if (vertical) { LM.style.transform = LK.style.transform = `translateX(${-100 * q}%)`; }
+  let lyM = ym - (vertical ? 84 : 64), lyK = yk + (vertical ? 34 : 14);
   if (lyK - lyM < 60) lyK = lyM + 60;
   LM.style.left = lx + 'px'; LM.style.top = lyM + 'px'; LM.style.opacity = show;
   LK.style.left = lx + 'px'; LK.style.top = lyK + 'px'; LK.style.opacity = show;

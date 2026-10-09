@@ -62,7 +62,7 @@ HOOK = {
 header, hook_text, hook_tts, hook_lines, hook_actor = HOOK[key]
 hook_line = {"who": "A", "text": hook_text, **({"tts": hook_tts} if hook_tts else {})}
 
-# ── 농사일지: 대사 없이 숫자·칩·배지가 보여준다 ──
+# ── 농사일지: 숫자·칩·배지 + 한 줄 대사(아래 say) ──
 trades = day['trades'][:4] or ['🌾 매매 없음 · 그대로 보유']
 nh = sum('수확' in t for t in trades)
 badges = []
@@ -101,7 +101,7 @@ scenes = [
      "sfx": [{"at": 0, "sound": "whoosh"}, {"at": 0.1, "sound": "riser"}, {"at": T_GAP, "sound": "win" if ev['ytd']['gap'] > 0 else "sparkle"}]},
 ]
 
-# ── 대시보드 장면들 (대사 없음 — 화면이 보여준다) ──
+# ── 대시보드 장면들 (대사는 아래 say 에서 한 줄씩) ──
 F, C, R, TR = ev['field'], ev['calendar'], ev['records'], ev['trophies']
 acts = sum(1 for s_ in 'KQ' for x in F[s_] if x['t'])
 ACT = 1.3; FIELD_HOLD = round(ACT + 0.35 * acts + 0.3 + 0.8, 1)
@@ -134,6 +134,40 @@ tro_sc = {"type": "custom", "lines": [], "hold": round(T_SPOT + (1.4 if has_new 
          + ([{"at": T_SPOT, "sound": "win"}, {"at": T_SPOT + 0.2, "sound": "sparkle"}] if has_new else [{"at": T_SPOT - 0.2, "sound": "sparkle"}])}
 hook_sc, log_sc, race_sc = scenes
 
+# ── 장면마다 한 줄 대사 (2026-10-09 사용자 요청: 무대사 구간 없애기). 숫자는 데이터 값만 ──
+import re as _re
+def _pt(v, nd=1):   # 퍼센트 → tts
+    v = round(v, nd); t = f"{abs(v):.{nd}f}".rstrip('0').rstrip('.')
+    return ("마이너스 " if v < 0 else "") + t + "퍼센트"
+def _pc(v, nd=1):   # 퍼센트 → 화면 글자
+    v = round(v, nd); t = f"{abs(v):.{nd}f}".rstrip('0').rstrip('.')
+    return ("-" if v < 0 else "+") + t + "%"
+def _man_tts(txt):  # "+819만" → "플러스 819만 원"
+    t = txt.strip(); sg = "마이너스 " if t.startswith('-') else ("플러스 " if t.startswith('+') else "")
+    return sg + t.lstrip('+-') + " 원"
+def _acts(word):    # 매매 칩에서 (시장, 계좌번호) 뽑기
+    return [(m.group(1), m.group(2)) for t in trades for m in [_re.search(r'(코스피|코스닥)\s*(\d+)번\s*' + word, t)] if m]
+def _acct_phrase(xs):
+    nums = {n for _, n in xs}
+    if len(nums) == 1: return f"{'·'.join(dict.fromkeys(m for m, _ in xs))} {nums.pop()}번 계좌"
+    return f"{len(xs)}계좌"
+def say(sc, text, tts=None, min_extra=0.0):
+    sc['lines'] = [{"who": "A", "text": text, **({"tts": tts} if tts and tts != text else {})}]
+    sc['min_dur'] = round(float(sc.pop('hold', 3.0)) + min_extra, 1)
+
+kp = day.get('kospi_pct')
+hv, sd = _acts('수확'), _acts('파종')
+if hv and day.get('realized'):
+    t = f"{_acct_phrase(hv)} 수확, 실현 +{day['realized_txt']}원."
+    say(log_sc, t, f"{_acct_phrase(hv)} 수확, 실현 플러스 {day['realized_txt']}원.")
+elif sd:
+    pre = (f"코스피 {_pc(kp)} 날, ", f"코스피가 {_pt(abs(kp))} {'빠진' if kp < 0 else '오른'} 날, ") if kp is not None else ("", "")
+    say(log_sc, f"{pre[0]}{_acct_phrase(sd)}를 새로 심었다.", f"{pre[1]}{_acct_phrase(sd)}를 새로 심었다.")
+elif kp is not None:
+    say(log_sc, f"매매 없이 보유. 코스피는 {_pc(kp)}.", f"매매 없이 보유. 코스피는 {_pt(kp)}.")
+else:
+    say(log_sc, "오늘은 매매 없이 그대로 보유.")
+
 # ── 구석 쿼카: 장면마다 다른 포즈·말풍선으로 리액션 (왼쪽 아래, 오른쪽 x>960 은 쇼츠 버튼 구역이라 피함) ──
 def buddy(sc, up_id, down_id, up_txt, down_txt, at, react='jump'):
     sc.setdefault('actors', []).append({"id": up_id if up else down_id, "x": 140, "y": 1580, "h": 200,
@@ -149,22 +183,33 @@ buddy(race_sc, 'pose_rocket_ride', 'umbrella_shield', '코스피 나와!', '버�
 if up:
     race_sc.setdefault('fx', []).append({"type": "coins", "at": T_GAP, "n": 18})
     if has_new: tro_sc.setdefault('fx', []).append({"type": "confetti", "at": T_SPOT})
+tot = len(F['K']) + len(F['Q']); on = sum(1 for s_ in 'KQ' for x in F[s_] if x['on'])
+if on == tot: say(field_sc, f"이제 {tot}칸이 전부 찼다. 빈 계좌가 없다.")
+elif on == 0: say(field_sc, f"{tot}칸이 전부 비었다. 다음 하락을 기다린다.")
+else: say(field_sc, f"{tot}칸 중 {on}칸 보유, 빈칸은 {tot - on}칸.")
+if C.get('total_txt'):
+    pre = "그래도 " if (day['pnl'] < 0) != C['total_txt'].startswith('-') else ""
+    say(cal_sc, f"{pre}최근 4주 합계는 {C['total_txt']}.", f"{pre}최근 4주 합계는 {_man_tts(C['total_txt'])}.")
+say(rec_sc, f"올해 {day['n_traded']}일 중 {R['win_days']}일 수익, 승률 {R['win_rate']}%.",
+    f"올해 {day['n_traded']}일 중 {R['win_days']}일이 수익, 승률 {R['win_rate']}퍼센트.")
+new_n = [x['n'] for x in TR if x['new']]
+dd = ytd.get('dd_from_peak') or 0
+t1 = f"새 업적 {new_n[0]}! {len(TR)}개 중 {got}개." if new_n else f"업적은 {len(TR)}개 중 {got}개."
+t2 = (f" 전고점까진 아직 {dd:.0f}%.", f" 전고점까지는 아직 {_pt(dd, 0)}.") if dd <= -1 and not new_n else ("", "")
+say(tro_sc, t1 + t2[0], t1 + t2[1])
+pre = "그래도 " if day['pnl'] < 0 and ytd['ret'] > ytd['kospi'] else ""
+say(race_sc, f"{pre}올해 나는 {_pc(ytd['ret'], 0)}, 코스피는 {_pc(ytd['kospi'], 0)}.",
+    f"{pre}올해 나는 {_pt(ytd['ret'], 0)}, 코스피는 {_pt(ytd['kospi'], 0)}.", min_extra=1.0)
+race_sc['min_dur'] = max(race_sc['min_dur'], 5.0)
 body = [log_sc, field_sc, cal_sc, rec_sc, tro_sc, race_sc]
 focus = {'achievement': tro_sc, 'ath': race_sc, 'chain_harvest': field_sc, 'acc8_add': field_sc, 'acc8_cut': field_sc,
          'ret_milestone': race_sc, 'beat_kospi': race_sc, 'drawdown': race_sc, 'streak': rec_sc, 'comeback': cal_sc,
          'chain_seed': field_sc, 'week_summary': cal_sc}.get(key)
-if focus is not None:
+if focus is not None and focus is not race_sc:   # 코스피 달리기는 항상 마지막(결론) 장면
     body.remove(focus); body.insert(0, focus)
 scenes = [hook_sc] + [b for b in body if (WORK / b['props']['script_file']).exists()]
 
-end_line = ({"who": "A", "text": "-5%마다 심고, -15%면 정리.", "tts": "마이너스5퍼센트마다 심고, 마이너스15퍼센트면 정리."},
-            [{"text": "-5%마다 심고", "at": "심고,", "size": 92, "color": "gold"}, {"text": "-15%면 정리", "at": "정리.", "size": 92, "color": "red"}]) \
-    if key in ('acc8_add', 'acc8_cut', 'drawdown', 'chain_seed') else \
-           ({"who": "A", "text": "내리면 심고, 오르면 거둔다."},
-            [{"text": "내리면 심고", "at": "내리면", "size": 92}, {"text": "오르면 거둔다", "at": "오르면", "color": "gold", "size": 104}])
-scenes.append({"type": "title", "lines": [end_line[0]], "min_dur": 2.6,
-               "props": {"asset": "field_sowing_walk", "focus": [50, 35], "lines": end_line[1],
-                         "sub": {"text": "8계좌 규칙 · 매일 매매일지는 고정댓글", "at": end_line[1][-1]["at"]}}})
+# 마지막은 코스피 달리기로 끝낸다 — 구호형 엔딩 카드('내리면 심고…')는 2026-10-09 사용자 요청으로 제거
 
 thumb_main = day['pnl_txt'] if key in ('big_day', 'storm_day') else {'top_day': f"{day['rank']}위", 'ath': '신고점', 'chain_harvest': f"{day['harvest_n']}계좌 수확",
               'achievement': '업적 달성', 'acc8_add': '-5%', 'acc8_cut': '-15%',
@@ -174,6 +219,7 @@ thumb_main = day['pnl_txt'] if key in ('big_day', 'storm_day') else {'top_day': 
 sb = {
     "slug": f"farm-event-{d}-{key.replace('_', '')}-shorts", "format": "vertical", "category": "단기 투자",
     "music": {"style": "bright" if up else "piano"},
+    "voices": {"A": ["ko-KR-SunHiNeural", "+12%", "+30Hz"]},   # 쿼카 목소리(선히 톤업). pitch 는 whitecoffee-video 스킬 2026-10-09판부터 적용
     "header": header, "hot_words": ["수확", "파종", "8계좌", "코스피"],
     "meta": {
         "titles": [f"레버리지 ETF 8계좌 분할매매 | {E['title']} ({md})",
