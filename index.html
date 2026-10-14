@@ -973,13 +973,19 @@ function deriveShares(D, CL){
     prev = prev.map((pv,i)=>{
       const ak = (r.lever_avg||[])[i]||0, aq = (r.kosdaq_avg||[])[i]||0, y = (r.acc||[])[i]||0;
       if(!y || (!ak && !aq)) return {k:0,q:0};
-      if(ak && !aq) return {k:Math.round(y/pk), q:0};
-      if(!ak && aq) return {k:0, q:Math.round(y/pq)};
+      // 계좌 잔고에 매도 대금(예수금)이 남아 있으면 잔고 ≠ 주식 평가액 → 행의 cash를 빼고 다시 맞춰 봄 (2026-10-14)
+      const cash = r.cash||0, useCash = cash>0 && y>cash;
+      const one = p => { const a=y/p; if(frac(a)<0.001) return Math.round(a);
+        if(useCash){ const b=(y-cash)/p; if(frac(b)<0.001) return Math.round(b); }
+        return Math.floor(a); };   // 잔고 ≥ 주식 평가액이므로 반올림 대신 내림
+      if(ak && !aq) return {k:one(pk), q:0};
+      if(!ak && aq) return {k:0, q:one(pq)};
       const cand = [];
       // 두 종목 동시 보유: 잔고 = k×레버종가 + q×코닥종가 를 정수로 딱 맞추는 해를 먼저 찾음
       // (전날 정보가 없는 첫 날·한 계좌 동시 매수에도 정확). 해가 여러 개면 전날 수량과 가까운 쪽.
-      const exact = [];
-      for(let k=1;k*pk<y;k++){ const q=(y-k*pk)/pq; if(q>=1 && frac(q)<0.001) exact.push({k,q:Math.round(q)}); }
+      const exactFor = yy => { const out=[]; for(let k=1;k*pk<yy;k++){ const q=(yy-k*pk)/pq; if(q>=1 && frac(q)<0.001) out.push({k,q:Math.round(q)}); } return out; };
+      let exact = exactFor(y);
+      if(!exact.length && useCash) exact = exactFor(y-cash);
       if(exact.length){
         const dist = o => (pv.k!=null?Math.abs(o.k-pv.k)*pk:0) + (pv.q!=null?Math.abs(o.q-pv.q)*pq:0);
         exact.sort((a,b)=>dist(a)-dist(b));
