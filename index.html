@@ -1405,7 +1405,7 @@ function pnlRace(S){
     const xe = P[P.length-1].x, pe = {tot:val(st.i,'tot'), re:val(st.i,'re')}; pe.un = pe.tot-pe.re;
     const unC = pe.un>=0?C.up:C.dn;
     const gridC = C.light ? 'rgba(20,30,60,.07)' : 'rgba(150,175,230,.08)';
-    const W_TOT = narrow?1.8:2, W_SUB = narrow?1.4:1.5;
+    const W_TOT = narrow?2.5:3, W_SUB = narrow?2:2.5;
 
     // 끝값 알약 위치 (3개, 겹치면 위아래로 벌림)
     const tags = [{k:'tot', v:pe.tot, y:Y(pe.tot)}, {k:'re', v:pe.re, y:Y(pe.re)}, {k:'un', v:pe.un, y:Y(pe.un)}].sort((a,b)=>a.y-b.y);
