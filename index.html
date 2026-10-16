@@ -608,6 +608,51 @@ h2{display:flex;align-items:center;gap:.5em}
   *,*::before,*::after{animation:none!important;transition:none!important}
   .ticker{overflow-x:auto}
 }
+
+/* ── 💰 거둔 돈 vs 밭에 남은 돈 (2026-10-16) ── */
+#pr{width:100%;height:100%;display:block;touch-action:pan-y;cursor:crosshair}
+#pr-scrub{width:100%;margin-top:10px;accent-color:var(--gold)}
+#pnlrace .pr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:2px 0 10px}
+#pnlrace .pr-date{font-family:var(--display);font-size:1.6rem;min-width:7.5ch;font-variant-numeric:tabular-nums}
+#pnlrace .pr-date .pr-live{color:var(--gold-hi)}
+#pnlrace .pr-head .diary{margin:0;flex:1}
+#pnlrace .pr-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+#pnlrace .pr-k{position:relative;display:flex;flex-direction:column;gap:3px;padding:12px 14px 11px 16px;border-radius:14px;background:var(--panel2);border:1px solid var(--line2);overflow:hidden}
+#pnlrace .pr-k::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--accent,var(--line2))}
+#pnlrace .k-tot{--accent:var(--fg)}
+#pnlrace .k-re{--accent:var(--gold-hi)}
+#pnlrace .k-un.up{--accent:var(--up)} #pnlrace .k-un.dn{--accent:var(--down)}
+#pnlrace .pr-k .lab{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pnlrace .pr-k .lab em{font-style:normal;color:var(--dim);font-size:.74rem;margin-left:2px}
+#pnlrace .pr-k b{font-family:var(--mono);font-size:1.55rem;font-weight:700;letter-spacing:-.02em;white-space:nowrap;font-variant-numeric:tabular-nums}
+#pnlrace .k-re b{color:var(--gold-hi)}
+#pnlrace .pr-k small{font-size:.8rem;color:var(--dim);white-space:nowrap}
+#pnlrace .pr-k small .up{color:var(--up)} #pnlrace .pr-k small .dn{color:var(--down)}
+#pnlrace .pr-mh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin:18px 0 8px;font-size:.86rem}
+#pnlrace .pr-mh .muted{font-size:.78rem}
+#pnlrace .pr-months{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(132px,1fr);gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
+#pnlrace .pm{border:1px solid var(--line2);border-radius:12px;padding:9px 11px 10px;display:flex;flex-direction:column;gap:4px;font-size:.8rem;background:var(--panel2);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;text-align:left;color:inherit;font:inherit}
+#pnlrace .pm:hover,#pnlrace .pm:focus-visible{transform:translateY(-2px);border-color:rgba(212,162,60,.55);box-shadow:0 8px 18px -12px rgba(0,0,0,.5)}
+#pnlrace .pm.now{border-color:rgba(212,162,60,.6)}
+#pnlrace .pm .mt{display:flex;justify-content:space-between;align-items:baseline}
+#pnlrace .pm .mt b{font-size:.95rem;color:var(--fg)}
+#pnlrace .pm .mt .num{font-family:var(--mono);font-weight:700;font-size:.92rem}
+#pnlrace .pm svg{width:100%;height:22px;display:block;margin:2px 0}
+#pnlrace .pm .r{display:flex;justify-content:space-between;gap:6px;color:var(--muted);font-size:.76rem}
+#pnlrace .pm .r .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+#pnlrace .pr-note{font-size:.76rem;margin:10px 0 0;line-height:1.5}
+#pnlrace .up{color:var(--up)} #pnlrace .dn{color:var(--down)}
+@media (max-width:600px){
+  #pnlrace .pr-date{font-size:1.3rem}
+  #pnlrace .pr-kpis{gap:6px}
+  #pnlrace .pr-k{padding:9px 8px 8px 11px;border-radius:12px}
+  #pnlrace .pr-k::before{width:3px}
+  #pnlrace .pr-k .lab{font-size:.72rem}
+  #pnlrace .pr-k .lab em{display:none}
+  #pnlrace .pr-k b{font-size:clamp(.82rem,3.9vw,1rem)}
+  #pnlrace .pr-k small{font-size:.68rem}
+  #pnlrace .pr-months{grid-auto-columns:minmax(124px,1fr)}
+}
 </style>
 </head>
 <body>
@@ -707,6 +752,42 @@ h2{display:flex;align-items:center;gap:.5em}
       <div class="diary" id="sb-diary" aria-live="polite"></div>
       <div class="cv-wrap"><canvas id="rp" aria-label="누적수익률 리플레이 차트"></canvas></div>
       <input type="range" id="scrub" min="0" max="1" value="1" aria-label="날짜 이동">
+    </div>
+  </section>
+
+  <!-- PNL RACE (실현 vs 평가, 2026-10-16) -->
+  <section id="pnlrace">
+    <div class="sec-head">
+      <div><span class="eyebrow">Realized vs Unrealized</span><h2><span class="hi" aria-hidden="true">💰</span>거둔 돈 vs 밭에 남은 돈</h2><p>2026년 1월부터 누적 실현(거둔 돈)과 평가손익(아직 밭에 있는 작물)이 금액으로 어떻게 움직였는지 재생해요. 금색 선과 흰 선 사이 색칠된 폭이 그날의 평가손익이에요.</p></div>
+    </div>
+    <div class="panel stage">
+      <div class="stage-ctl">
+        <button class="play" id="pr-play" type="button">▶ 처음부터 재생</button>
+        <div class="ctl-group" role="group" aria-label="구간">
+          <button class="chip" data-prmode="all" aria-pressed="true" type="button">2026 전체</button>
+          <button class="chip" data-prmode="3m" aria-pressed="false" type="button">최근 3개월</button>
+          <button class="chip" data-prmode="1m" aria-pressed="false" type="button">최근 1개월</button>
+        </div>
+        <div class="ctl-group" role="group" aria-label="속도">
+          <button class="chip" data-prspeed="1" aria-pressed="true" type="button">1x</button>
+          <button class="chip" data-prspeed="3" aria-pressed="false" type="button">3x</button>
+          <button class="chip" data-prspeed="8" aria-pressed="false" type="button">8x</button>
+        </div>
+      </div>
+      <div class="pr-head">
+        <span class="pr-date num" id="pr-date">-</span>
+        <div class="diary" id="pr-diary" aria-live="polite"></div>
+      </div>
+      <div class="pr-kpis">
+        <div class="pr-k k-tot"><span class="lab">📊 총 손익</span><b class="num" id="pr-tot">-</b><small class="num" id="pr-tot-d"></small></div>
+        <div class="pr-k k-re"><span class="lab">🧺 거둔 돈 <em>누적 실현</em></span><b class="num" id="pr-re">-</b><small class="num" id="pr-re-d"></small></div>
+        <div class="pr-k k-un" id="pr-k-un"><span class="lab">🌱 밭에 남은 돈 <em>평가손익</em></span><b class="num" id="pr-un">-</b><small class="num" id="pr-un-d"></small></div>
+      </div>
+      <div class="cv-wrap pr-cv"><canvas id="pr" aria-label="실현손익·평가손익·총 손익 누적 금액 리플레이 차트"></canvas></div>
+      <input type="range" id="pr-scrub" min="0" max="1" value="1" aria-label="날짜 이동">
+      <div class="pr-mh"><b>🗓 월별로 보면</b><span class="muted">막대: 🧺 실현 → 🌱 평가 변화 → ◆ 합계 · 누르면 그 달로 이동</span></div>
+      <div class="pr-months" id="pr-months"></div>
+      <p class="pr-note muted">평가손익 = 총 손익 − 누적 실현 (7/23 이후 평단으로 직접 계산한 값과 수수료·세금 정도만 차이). 장중엔 오늘 점이 실시간으로 움직여요(장중 매매는 반영 전).</p>
     </div>
   </section>
 
@@ -1146,6 +1227,7 @@ load().then(raw=>{
 
   /* replay */
   replay(S);
+  pnlRace(S);
 
   /* farm */
   farm(S, L, P);
@@ -1174,6 +1256,7 @@ load().then(raw=>{
     $('t-dd-s').textContent = dd<-0.05 ? `탈환까지 ${pct((pk/nav-1)*100)} · 실시간` : '🏔 지금이 신고점!';
   };
 
+  if(S.pnlLive){ const _hl = S.heroLive; S.heroLive = (td, kp, open) => { _hl(td, kp, open); try{ S.pnlLive(td, open); }catch(e){} }; }
   /* live quotes */
   startLive(S, L, P);
 
@@ -1225,6 +1308,316 @@ load().then(raw=>{
     setMood(k, lines);
   }
 });
+
+/* ════════ 💰 거둔 돈 vs 밭에 남은 돈 (실현 vs 평가 리플레이, 2026-10-16) ════════ */
+function pnlRace(S){
+  const cv = $('pr'); if(!cv) return;
+  const ctx = cv.getContext('2d');
+  // tot = 누적 손익, re = 누적 실현, un = tot - re (밭에 남은 평가손익)
+  const ALL = []; let cp = 0, cr = 0;
+  S.D.forEach((r,i)=>{
+    cp += r.pnl||0; cr += r.realized||0;
+    if(i===0 || isWd(r.d) || i===S.D.length-1) ALL.push({d:r.d, tot:cp, re:cr, un:cp-cr, day:r.pnl||0, dre:r.realized||0});
+  });
+  if(ALL.length<2) return;
+  const st = {mode:'all', data:ALL, i:ALL.length-1, playing:false, speed:1, hover:-1, pops:[]};
+  const C = {};
+  const colors = ()=>Object.assign(C,{gold:css('--gold-hi'), fg:css('--fg'), muted:css('--muted'), dim:css('--dim'), up:css('--up'), dn:css('--down'), panel:css('--panel'), light: document.documentElement.getAttribute('data-theme')==='light'});
+  colors();
+  let W=0, Hh=0, dpr=1, ev=[], yr={min:0,max:1}, narrow=false;
+  const pad = {l:10, r:120, t:22, b:26};
+  const padFit = ()=>{ const k=RS(); narrow = (cv.getBoundingClientRect().width||innerWidth) < 600; pad.r=Math.round((narrow?76:132)*k); pad.t=Math.round(22*k); pad.b=Math.round(26*k); pad.l=Math.round(10*k); };
+  const ax = v => { const a=Math.abs(v), s=v<0?'−':(v>0?'+':''); if(a===0) return '0'; if(a>=1e8) return s+(+(a/1e8).toFixed(2))+'억'; return s+Math.round(a/1e4).toLocaleString()+'만'; };
+  const short = v => { const a=Math.abs(v), s=v<0?'−':(v>0?'+':''); if(a>=1e8) return s+(a/1e8).toFixed(2)+'억'; return s+Math.round(a/1e4).toLocaleString()+'만'; };
+  const sgn = v => v>0?'up':(v<0?'dn':'');
+  const rgba = (hex,a) => { const m = hex.replace('#','').match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i); if(!m) return hex; return `rgba(${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)},${a})`; };
+
+  function events(data){
+    const out = [];
+    let ti=0, bi=0, wi=0;
+    data.forEach((p,i)=>{ if(p.tot>data[ti].tot) ti=i; if(p.day>data[bi].day) bi=i; if(p.day<data[wi].day) wi=i; });
+    if(data[ti].tot>0) out.push({i:ti, k:'tot', ic:'🏔', t:'총 손익 최고 '+won(data[ti].tot,true), up:true});
+    if(data[bi].day>0) out.push({i:bi, k:'tot', ic:'💥', t:'최고의 날 '+won(data[bi].day,true), up:true});
+    if(data[wi].day<0) out.push({i:wi, k:'tot', ic:'🥶', t:'최악의 날 '+won(data[wi].day,true), up:false});
+    for(let i=data.length-1;i>0;i--){ if(data[i].tot<0 && data[i-1].tot>=0){ out.push({i, k:'tot', ic:'⚠️', t:'총 손익 마이너스 전환', up:true}); break; } }
+    return out.sort((a,b)=>a.i-b.i);
+  }
+  function setData(){
+    const n = ALL.length, cut = st.mode==='3m' ? 63 : st.mode==='1m' ? 21 : n;
+    st.data = ALL.slice(Math.max(0, n-cut));
+    ev = events(st.data);
+    let mn = 0, mx = 0;
+    st.data.forEach(p=>{ mn=Math.min(mn,p.tot,p.re); mx=Math.max(mx,p.tot,p.re); });
+    const span = (mx-mn)||1; yr = {min:mn-span*0.08, max:mx+span*0.12};
+    $('pr-scrub').max = st.data.length-1;
+  }
+  function size(){
+    const r = cv.getBoundingClientRect(); dpr = Math.min(3, devicePixelRatio||1);
+    W = r.width; Hh = r.height; cv.width = Math.round(W*dpr); cv.height = Math.round(Hh*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  const X = i => pad.l + (i/Math.max(1,st.data.length-1))*(W-pad.l-pad.r);
+  const Y = v => pad.t + (1-(v-yr.min)/(yr.max-yr.min))*(Hh-pad.t-pad.b);
+  const stride = () => Math.max(1, Math.round(st.data.length / ((W-pad.l-pad.r)/2.2)));
+  function niceStep(range,n){ const raw=range/n, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p; return (f<1.5?1:f<3?2:f<7?5:10)*p; }
+  const val = (k, key) => { const n=Math.floor(k), f=k-n, a=st.data[n], b=st.data[Math.min(n+1,st.data.length-1)]; return a[key]+(b[key]-a[key])*f; };
+  // 지금까지 그릴 점들 (재생 중이면 끝점 보간)
+  function pts(){
+    const n = Math.floor(st.i), out = [];
+    for(let i=0;i<=n;i+=stride()) out.push({x:X(i), re:st.data[i].re, tot:st.data[i].tot});
+    if(out[out.length-1].x !== X(n)) out.push({x:X(n), re:st.data[n].re, tot:st.data[n].tot});
+    if(st.i>n && n+1<st.data.length) out.push({x:X(st.i), re:val(st.i,'re'), tot:val(st.i,'tot')});
+    return out;
+  }
+
+  function board(k){
+    const p = st.data[k]; if(!p) return;
+    const d = dObj(p.d);
+    $('pr-date').innerHTML = p.live ? `<span class="pr-live">${p.open?'⚡ 지금':'📌 오늘'}</span>` : d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+    const gi = ALL.indexOf(p), prev = ALL[gi-1];
+    const dUn = prev ? p.un-prev.un : p.un;
+    $('pr-tot').textContent = won(p.tot,true); $('pr-tot').className = 'num '+sgn(p.tot);
+    $('pr-re').textContent = won(p.re,true);
+    $('pr-un').textContent = won(p.un,true); $('pr-un').className = 'num '+sgn(p.un);
+    $('pr-k-un').className = 'pr-k k-un '+(p.un>=0?'up':'dn');
+    const dd = (v,lab) => v ? `${lab} <span class="${sgn(v)}">${won(v,true)}</span>` : `${lab} 변화 없음`;
+    $('pr-tot-d').innerHTML = dd(p.day, p.live?'지금까지':'그날');
+    $('pr-re-d').innerHTML = p.live ? '장중엔 그대로' : dd(p.dre, '그날');
+    $('pr-un-d').innerHTML = dd(dUn, p.live?'지금까지':'그날');
+    const tr = S.TR[p.d];
+    $('pr-diary').innerHTML = p.live ? `<span class="muted">${p.open?'장중 실시간 추정':'시트 입력 전 · 종가로 추정'}</span>`
+      : (tr ? '<span class="muted">농사일지</span> '+tr.map(e=>`<span class="tchip t-${e.t}">${trText(e)}</span>`).join('') : '');
+  }
+
+  function pill(x, y, txt, bg, fg, align){
+    ctx.font = `700 ${Math.round((narrow?10.5:12)*RS())}px "IBM Plex Mono", monospace`;
+    const tw = ctx.measureText(txt).width, h = Math.round((narrow?18:22)*RS()), w = tw + (narrow?10:14);
+    const x0 = align==='right' ? x-w : x;
+    ctx.fillStyle = bg; rr(x0, y-h/2, w, h, h/2); ctx.fill();
+    ctx.fillStyle = fg; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(txt, x0+(w-tw)/2, y+0.5);
+    return {y0:y-h/2, y1:y+h/2};
+  }
+
+  function draw(now){
+    ctx.clearRect(0,0,W,Hh);
+    if(!W) return;
+    const n = Math.floor(st.i), P = pts(), y0 = Y(0), k = RS();
+    const xe = P[P.length-1].x, pe = {tot:val(st.i,'tot'), re:val(st.i,'re')}; pe.un = pe.tot-pe.re;
+    const unC = pe.un>=0?C.up:C.dn;
+    const gridC = C.light ? 'rgba(20,30,60,.07)' : 'rgba(150,175,230,.09)';
+
+    // 끝값 알약 자리 먼저 계산 (축 라벨이 겹치면 숨김)
+    const tags = [{k:'tot', v:pe.tot, y:Y(pe.tot)}, {k:'re', v:pe.re, y:Y(pe.re)}].sort((a,b)=>a.y-b.y);
+    const gapMin = (narrow?20:24)*k; if(tags[1].y - tags[0].y < gapMin){ const m=(tags[0].y+tags[1].y)/2; tags[0].y=m-gapMin/2; tags[1].y=m+gapMin/2; }
+    tags.forEach(t=>{ t.y = Math.max(pad.t+8, Math.min(Hh-pad.b-8, t.y)); });
+    // 두 알약 사이가 넉넉하면 가운데에 평가 알약
+    if(tags[1].y - tags[0].y > gapMin*2.2) tags.push({k:'un', v:pe.un, y:(Y(pe.tot)+Y(pe.re))/2});
+
+    // grid + y 라벨
+    const step = niceStep(yr.max-yr.min, narrow?4:5);
+    ctx.font = `500 ${Math.round((narrow?10:11)*k)}px "IBM Plex Mono", monospace`; ctx.textBaseline='middle'; ctx.textAlign='left';
+    for(let v=Math.ceil(yr.min/step)*step; v<=yr.max; v+=step){
+      const y = Y(v), zero = Math.abs(v)<step*1e-6;
+      ctx.strokeStyle = zero ? (C.light?'rgba(20,30,60,.28)':'rgba(170,190,235,.32)') : gridC; ctx.lineWidth = 1;
+      if(!zero) ctx.setLineDash([2,4]);
+      ctx.beginPath(); ctx.moveTo(pad.l,Math.round(y)+.5); ctx.lineTo(W-pad.r+2,Math.round(y)+.5); ctx.stroke(); ctx.setLineDash([]);
+      if(xe > W-pad.r-40*k && tags.some(t=>Math.abs(t.y-y)<17*k)) continue;
+      ctx.fillStyle = zero ? C.muted : C.dim; ctx.fillText(ax(zero?0:v), W-pad.r+(narrow?13:18)*k, y);
+    }
+    // 월 라벨
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font = `500 ${Math.round((narrow?10:11)*k)}px "IBM Plex Sans KR", sans-serif`;
+    let lastM = '', lastX = -99;
+    st.data.forEach((p,i)=>{ const m=p.d.slice(5,7); if(m===lastM) return; lastM=m; const x=X(i); if(x-lastX < (narrow?34:40)*k) return; lastX=x;
+      ctx.fillStyle=C.dim; ctx.fillText(+m+'월', x+2, Hh-7*k); });
+    // 수확한 날 눈금
+    for(let i=0;i<=n;i++){ const p=st.data[i]; if(!(p.dre>0)) continue; ctx.fillStyle=rgba(C.gold,.75); ctx.fillRect(Math.round(X(i))-0.5, Hh-pad.b-5*k, 1.5, 4*k); }
+
+    // ① 실현 면적 (0 → 실현선), 금색이 아래로 옅어짐
+    ctx.beginPath(); ctx.moveTo(P[0].x, y0); P.forEach(q=>ctx.lineTo(q.x, Y(q.re))); ctx.lineTo(xe, y0); ctx.closePath();
+    const gg = ctx.createLinearGradient(0, Y(Math.max(...P.map(q=>q.re))), 0, y0);
+    gg.addColorStop(0, rgba(C.gold, C.light?.20:.16)); gg.addColorStop(1, rgba(C.gold, .02));
+    ctx.fillStyle = gg; ctx.fill();
+
+    // ② 평가 밴드 (실현선 ↔ 총 손익선), 부호가 바뀌는 곳에서 잘라 색 나눔
+    const runs = []; let cur = null;
+    for(let j=0;j<P.length;j++){
+      const q = P[j], u = q.tot-q.re, sg = u>=0;
+      if(!cur){ cur = {sg, a:[q]}; continue; }
+      if(sg !== cur.sg){ const pq = P[j-1], pu = pq.tot-pq.re, t = pu/(pu-u);
+        const cx = pq.x+(q.x-pq.x)*t, cre = pq.re+(q.re-pq.re)*t, c = {x:cx, re:cre, tot:cre};
+        cur.a.push(c); runs.push(cur); cur = {sg, a:[c, q]}; }
+      else cur.a.push(q);
+    }
+    if(cur) runs.push(cur);
+    runs.forEach(rn=>{ if(rn.a.length<2) return;
+      ctx.beginPath(); rn.a.forEach((q,j)=> j?ctx.lineTo(q.x,Y(q.tot)):ctx.moveTo(q.x,Y(q.tot)));
+      for(let j=rn.a.length-1;j>=0;j--) ctx.lineTo(rn.a[j].x, Y(rn.a[j].re));
+      ctx.closePath(); ctx.fillStyle = rgba(rn.sg?C.up:C.dn, C.light?.16:.22); ctx.fill(); });
+
+    // ③ 선 (패널색 테두리 + 본선, 빛번짐 없음)
+    const stroke = (key, col, w) => {
+      ctx.beginPath(); P.forEach((q,j)=> j?ctx.lineTo(q.x,Y(q[key])):ctx.moveTo(q.x,Y(q[key])));
+      ctx.lineJoin='round'; ctx.lineCap='round';
+      ctx.save(); ctx.strokeStyle=C.panel; ctx.globalAlpha=.9; ctx.lineWidth=w+3.5; ctx.stroke(); ctx.restore();
+      ctx.strokeStyle=col; ctx.lineWidth=w; ctx.stroke();
+    };
+    stroke('re', C.gold, narrow?2:2.4);
+    stroke('tot', C.fg, narrow?2:2.6);
+
+    // ④ 끝: 평가 브래킷 + 점 + 알약
+    const yRe = Y(pe.re), yTot = Y(pe.tot);
+    if(Math.abs(yRe-yTot) > 14*k){
+      const bx = xe + (narrow?6:8)*k;
+      ctx.strokeStyle = unC; ctx.lineWidth = 1.6; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(bx, yRe); ctx.lineTo(bx, yTot); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(bx-3,yRe); ctx.lineTo(bx+3,yRe); ctx.moveTo(bx-3,yTot); ctx.lineTo(bx+3,yTot); ctx.stroke();
+    }
+    [[yRe,C.gold],[yTot,C.fg]].forEach(([y,c])=>{ ctx.beginPath(); ctx.arc(xe,y,narrow?3.6:4.6,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2.2; ctx.strokeStyle=C.panel; ctx.stroke(); });
+    if(st.playing){ ctx.font=`${Math.round(16*k)}px serif`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('🧺', xe, yRe-7); }
+    tags.forEach(t=>{
+      const x = xe+(narrow?11:16)*k;
+      if(t.k==='un'){ const txt = (narrow?'':'🌱 ')+(narrow ? short(t.v) : won(t.v,true));
+        ctx.font = `700 ${Math.round((narrow?10.5:12)*k)}px "IBM Plex Mono", monospace`;
+        const tw = ctx.measureText(txt).width, hh = Math.round((narrow?18:22)*k), w = tw + (narrow?10:14);
+        ctx.fillStyle = C.light ? '#fff' : 'rgba(10,16,30,.92)'; ctx.strokeStyle = unC; ctx.lineWidth = 1.4;
+        rr(x, t.y-hh/2, w, hh, hh/2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = unC; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(txt, x+(w-tw)/2, t.y+0.5); return; }
+      const txt = narrow ? short(t.v) : won(t.v,true);
+      pill(x, t.y, txt, t.k==='re' ? C.gold : C.fg, C.panel, 'left');
+    });
+
+    // ⑤ 이벤트
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ev.forEach(e=>{ if(e.i>n) return; if(narrow && e.ic==='💥') return;
+      const x=X(e.i), y=Y(st.data[e.i][e.k]); ctx.font=`${Math.round(13*k)}px serif`;
+      ctx.fillText(e.ic, x, e.up ? y-13*k : y+13*k); });
+    st.pops = st.pops.filter(q=>now-q.t0<2200);
+    st.pops.forEach(q=>{
+      const age=(now-q.t0)/2200, a = age<.15? age/.15 : 1-Math.max(0,(age-.6)/.4);
+      const x = Math.min(W-pad.r-80, Math.max(pad.l+80, X(q.i))), y = Math.max(pad.t+14, Y(st.data[q.i][q.k]) - 34*k - age*14);
+      ctx.globalAlpha = Math.max(0,a);
+      ctx.font = `600 ${Math.round(12.5*k)}px "IBM Plex Sans KR", sans-serif`;
+      const txt = q.ic+' '+q.t, tw = ctx.measureText(txt).width+18;
+      ctx.fillStyle = C.light ? 'rgba(255,255,255,.96)' : 'rgba(7,16,34,.92)'; ctx.strokeStyle=rgba(C.gold,.6); ctx.lineWidth=1;
+      rr(x-tw/2, y-14, tw, 28, 14); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = C.fg; ctx.textAlign='center'; ctx.fillText(txt, x, y+0.5); ctx.globalAlpha=1;
+    });
+
+    // ⑥ 호버: 세로선 + 점 + 툴팁 카드
+    if(st.hover>=0 && !st.playing){
+      const h=st.data[st.hover], x=X(st.hover);
+      ctx.strokeStyle = C.light ? 'rgba(20,30,60,.25)' : 'rgba(234,240,252,.28)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(Math.round(x)+.5,pad.t); ctx.lineTo(Math.round(x)+.5,Hh-pad.b); ctx.stroke();
+      [[h.re,C.gold],[h.tot,C.fg]].forEach(([v,c])=>{ ctx.beginPath(); ctx.arc(x,Y(v),4.2,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=C.panel; ctx.stroke(); });
+      const rows = [['📊 총 손익', h.tot, C.fg], ['🧺 실현', h.re, C.gold], ['🌱 평가', h.un, h.un>=0?C.up:C.dn]];
+      const fs = Math.round((narrow?11:12)*k), lh = fs+7;
+      ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`;
+      const wl = Math.max(...rows.map(r=>ctx.measureText(r[0]).width));
+      ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`;
+      const wv = Math.max(...rows.map(r=>ctx.measureText(won(r[1],true)).width));
+      const bw = wl+wv+34, bh = lh*4+10;
+      let bx = x+14; if(bx+bw > W-pad.r) bx = x-14-bw; bx = Math.max(pad.l, bx);
+      const by = Math.max(pad.t, Math.min(Hh-pad.b-bh, Y(h.tot)-bh/2));
+      ctx.fillStyle = C.light ? 'rgba(255,255,255,.97)' : 'rgba(12,18,32,.94)'; ctx.strokeStyle = C.light?'rgba(20,30,60,.14)':'rgba(150,175,230,.22)'; ctx.lineWidth=1;
+      rr(bx,by,bw,bh,10); ctx.fill(); ctx.stroke();
+      ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`; ctx.fillStyle = C.muted;
+      ctx.fillText(md(h.d), bx+12, by+5+lh/2);
+      rows.forEach((r,j)=>{ const yy = by+5+lh*(j+1)+lh/2;
+        ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`; ctx.fillStyle = C.muted; ctx.textAlign='left'; ctx.fillText(r[0], bx+12, yy);
+        ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`; ctx.fillStyle = r[2]; ctx.textAlign='right'; ctx.fillText(won(r[1],true), bx+bw-12, yy); });
+    }
+  }
+  function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+  // 월별 카드: 미니 워터폴(실현 → 평가 변화 → 합계)
+  function months(){
+    const M = {}; let prevUn = 0;
+    ALL.forEach(p=>{ if(p.live) return; const m=p.d.slice(0,7); M[m] = M[m] || {re:0, tot:0, un0:prevUn}; M[m].re += p.dre; M[m].tot += p.day; M[m].un1 = p.un; prevUn = p.un; });
+    const keys = Object.keys(M).sort(), cur = ALL[ALL.length-1].d.slice(0,7);
+    $('pr-months').innerHTML = keys.map(m=>{ const o=M[m], du=o.un1-o.un0, mx=Math.max(1,Math.abs(o.re),Math.abs(o.re+du),Math.abs(du)), sx=v=>50+v/mx*46, x0=sx(0), x1=sx(o.re), x2=sx(o.re+du);
+      return `<button type="button" class="pm ${m===cur?'now':''}" data-m="${m}" aria-label="${+m.slice(5)}월로 이동">
+        <span class="mt"><b>${+m.slice(5)}월</b><span class="num ${sgn(o.tot)}">${won(o.tot,true)}</span></span>
+        <svg viewBox="0 0 100 22" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="${x0}" y1="1" x2="${x0}" y2="21" stroke="currentColor" stroke-opacity=".25" stroke-width="1" vector-effect="non-scaling-stroke"/>
+          <rect x="${Math.min(x0,x1)}" y="3" width="${Math.max(.6,Math.abs(x1-x0))}" height="7" rx="1.5" fill="var(--gold-hi)"/>
+          <rect x="${Math.min(x1,x2)}" y="12" width="${Math.max(.6,Math.abs(x2-x1))}" height="7" rx="1.5" fill="${du>=0?'var(--up)':'var(--down)'}" fill-opacity=".85"/>
+          <path d="M${x2} 8 L${x2+2.4} 11 L${x2} 14 L${x2-2.4} 11 Z" fill="var(--fg)"/>
+        </svg>
+        <span class="r">🧺 실현 <span class="num gold">${won(o.re,true)}</span></span>
+        <span class="r">🌱 평가 <span class="num ${sgn(du)}">${won(du,true)}</span></span></button>`; }).join('');
+    const box = $('pr-months'); box.scrollLeft = box.scrollWidth;
+    box.querySelectorAll('.pm').forEach(el=>el.addEventListener('click',()=>{
+      if(st.mode!=='all'){ document.querySelectorAll('[data-prmode]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.prmode==='all')); st.mode='all'; setData(); }
+      let k=-1; st.data.forEach((p,i)=>{ if(p.d.slice(0,7)===el.dataset.m) k=i; });
+      if(k<0) return; if(st.playing) stop(false); st.i=k; st.hover=-1; $('pr-scrub').value=k; board(k); draw(performance.now());
+      cv.scrollIntoView({behavior:RM?'auto':'smooth', block:'center'});
+    }));
+  }
+
+  let last = 0;
+  function frame(t){
+    if(!st.playing) return;
+    const dt = Math.min(64, t-(last||t)); last = t;
+    const prev = Math.floor(st.i);
+    st.i = Math.min(st.data.length-1, st.i + dt/1000*(st.mode==='all'?45:st.mode==='3m'?22:10)*st.speed);
+    const now = Math.floor(st.i);
+    ev.forEach(e=>{ if(e.i>prev && e.i<=now) st.pops.push({...e, t0:t}); });
+    board(now); $('pr-scrub').value = now;
+    draw(t);
+    if(st.i>=st.data.length-1){ stop(true); return; }
+    requestAnimationFrame(frame);
+  }
+  function play(){
+    if(st.i>=st.data.length-1) st.i = 0;
+    st.playing = true; st.pops=[]; last=0; st.hover=-1;
+    $('pr-play').classList.add('on'); $('pr-play').textContent='⏸ 일시정지';
+    if(RM){ st.i = st.data.length-1; stop(true); return; }
+    requestAnimationFrame(frame);
+  }
+  function stop(end){
+    st.playing = false;
+    $('pr-play').classList.remove('on');
+    $('pr-play').textContent = end ? '↻ 다시 재생' : '▶ 이어서 재생';
+    st.i = Math.floor(st.i); board(st.i); draw(performance.now());
+  }
+  $('pr-play').addEventListener('click', ()=> st.playing ? stop(false) : play());
+  document.querySelectorAll('[data-prmode]').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-prmode]').forEach(x=>x.setAttribute('aria-pressed', x===b));
+    st.mode = b.dataset.prmode; st.playing=false; setData(); st.i = st.data.length-1; st.hover=-1;
+    $('pr-play').classList.remove('on'); $('pr-play').textContent='▶ 처음부터 재생';
+    $('pr-scrub').value = st.i; board(st.i); draw(performance.now());
+  }));
+  document.querySelectorAll('[data-prspeed]').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-prspeed]').forEach(x=>x.setAttribute('aria-pressed', x===b));
+    st.speed = +b.dataset.prspeed;
+  }));
+  $('pr-scrub').addEventListener('input', e=>{ if(st.playing) stop(false); st.i = +e.target.value; st.hover=-1; board(st.i); draw(performance.now()); });
+  cv.addEventListener('pointermove', e=>{
+    if(st.playing) return;
+    const r = cv.getBoundingClientRect(), x = e.clientX-r.left;
+    const k = Math.round((x-pad.l)/(W-pad.l-pad.r)*(st.data.length-1));
+    if(k<0||k>st.i){ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); return; }
+    st.hover = k; board(k); draw(performance.now());
+  });
+  cv.addEventListener('pointerleave', ()=>{ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); });
+  RESIZE.push(()=>{ colors(); padFit(); size(); draw(performance.now()); });
+  new MutationObserver(()=>{ colors(); draw(performance.now()); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+
+  // 장중 실시간: 오늘 행이 아직 없을 때 오늘 점을 붙여 움직임 (실현은 그대로, 평가·총 손익만 td만큼)
+  S.pnlLive = (td, open) => {
+    const base = ALL[ALL.length-1].live ? ALL[ALL.length-2] : ALL[ALL.length-1];
+    const kn = kstNow(), today = kn.getFullYear()+'-'+String(kn.getMonth()+1).padStart(2,'0')+'-'+String(kn.getDate()).padStart(2,'0');
+    if(!(today > base.d)) return;
+    const pt = {d:today, tot:base.tot+td, re:base.re, un:base.un+td, day:td, dre:0, live:true, open:!!open};
+    const atEnd = Math.floor(st.i) >= st.data.length-1;
+    if(ALL[ALL.length-1].live) ALL[ALL.length-1] = pt; else ALL.push(pt);
+    if(st.playing) return;
+    setData(); if(atEnd){ st.i = st.data.length-1; $('pr-scrub').value = st.i; }
+    if(st.hover<0) board(Math.floor(st.i)); draw(performance.now());
+  };
+
+  padFit();
+  setData(); size(); st.i = st.data.length-1; $('pr-scrub').value = st.i; board(st.i); months(); draw(performance.now());
+}
 
 /* ════════ REPLAY ════════ */
 function replay(S){
@@ -1313,20 +1706,20 @@ function replay(S){
       for(let i=0;i<=n;i+=stride()){ const x=X(i), y=Y(st.data[i][key]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
       ctx.lineTo(X(n), Y(st.data[n][key]));
       if(st.i>n && n+1<st.data.length){ const f=st.i-n, a=st.data[n], b=st.data[n+1]; ctx.lineTo(X(n+f), Y(a[key]+(b[key]-a[key])*f)); }
-      ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineJoin='round';
-      if(glow){ ctx.shadowColor = col; ctx.shadowBlur = 5; }
-      ctx.stroke(); ctx.shadowBlur = 0;
+      /* rp-crisp */ ctx.lineJoin='round'; ctx.lineCap='round';
+      if(glow){ ctx.save(); ctx.strokeStyle = css('--panel'); ctx.globalAlpha = .9; ctx.lineWidth = w+3.5; ctx.stroke(); ctx.restore(); }
+      ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke();
     }
     // area under mine
     ctx.beginPath(); ctx.moveTo(X(0),Y(Math.max(yr.min,0)));
     for(let i=0;i<=n;i+=stride()) ctx.lineTo(X(i),Y(st.data[i].me));
     ctx.lineTo(X(n),Y(st.data[n].me));
     ctx.lineTo(X(n),Y(Math.max(yr.min,0))); ctx.closePath();
-    const g = ctx.createLinearGradient(0,pad.t,0,Hh-pad.b); g.addColorStop(0,'rgba(242,199,95,.12)'); g.addColorStop(1,'rgba(242,199,95,0)');
+    const g = ctx.createLinearGradient(0,pad.t,0,Hh-pad.b); g.addColorStop(0,'rgba(242,199,95,.10)'); g.addColorStop(.55,'rgba(242,199,95,.03)'); g.addColorStop(1,'rgba(242,199,95,0)');
     ctx.fillStyle = g; ctx.fill();
     const narrow = W < 600;
     ctx.globalAlpha = .85; line('kp', C.kospi, narrow ? 1.1 : 1.5, false); ctx.globalAlpha = 1;
-    line('me', C.gold, narrow ? 1.5 : 2, !narrow);
+    line('me', C.gold, narrow ? 1.9 : 2.4, true);
     // endpoints + labels
     const e = st.data[n];
     const ym = Y(e.me), yk = Y(e.kp), xe = X(n);
@@ -1365,10 +1758,11 @@ function replay(S){
     // direct labels at end (when not hovering)
     if(st.hover<0 || st.playing){
       ctx.font=`600 ${Math.round(12*RS())}px "IBM Plex Sans KR", sans-serif`; ctx.textAlign='right'; ctx.textBaseline='middle';
-      let la = ym, lb = yk; if(Math.abs(la-lb)<16){ if(la<lb){la-=8;lb+=8;} else {la+=8;lb-=8;} }
-      const lx = Math.max(pad.l+50, xe-10);
-      ctx.fillStyle=C.gold; ctx.fillText('나', lx, la-12 < pad.t ? la+14 : la-12);
-      ctx.fillStyle=C.kospi; ctx.fillText('KOSPI', lx, lb+14 > Hh-pad.b ? lb-12 : lb+14);
+      const lx = Math.max(pad.l+50, xe-10), meUp = ym <= yk;
+      const top = Math.min(ym,yk), bot = Math.max(ym,yk);
+      let ty = top-13, by = bot+15; if(ty < pad.t+4) ty = pad.t+4; if(by > Hh-pad.b-12) by = Hh-pad.b-12; if(by-ty < 18) by = ty+18;
+      ctx.fillStyle=C.gold; ctx.fillText('나', lx, meUp ? ty : by);
+      ctx.fillStyle=C.kospi; ctx.fillText('KOSPI', lx, meUp ? by : ty);
     }
   }
   function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
@@ -1421,6 +1815,7 @@ function replay(S){
   });
   cv.addEventListener('pointerleave', ()=>{ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); });
   RESIZE.push(()=>{ Object.assign(C,{leaf:css('--leaf'), gold:css('--gold-hi'), kospi:css('--kospi'), muted:css('--muted'), dim:css('--dim'), fg:css('--fg'), up:css('--up'), dn:css('--down')}); padFit(); size(); draw(performance.now()); });
+  new MutationObserver(()=>{ Object.assign(C,{leaf:css('--leaf'), gold:css('--gold-hi'), kospi:css('--kospi'), muted:css('--muted'), dim:css('--dim'), fg:css('--fg'), up:css('--up'), dn:css('--down')}); draw(performance.now()); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
   padFit();
   setData(); size(); st.i = st.data.length-1; $('scrub').value = st.i; board(st.i); draw(performance.now());
 }
