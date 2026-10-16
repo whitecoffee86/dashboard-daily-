@@ -667,6 +667,12 @@ h2{display:flex;align-items:center;gap:.5em}
 #sb-date{width:4.9em;white-space:nowrap}
 #sb-me,#sb-kp{min-width:7.6ch}
 #sb-gap{min-width:8.4ch}
+
+/* 🎮 농장 게임 토큰 (섀도 DOM 안으로 상속) */
+:root{--leaf-soft:rgba(99,208,126,.15);--r0:#c08a5b;--r1:#b9c3d1;--r2:#f2c75f;--r3:#7fe3ff;--hp:#ff5f5f;--hp2:#ff9a5f;--track:#0f1217;
+  --arena:radial-gradient(120% 90% at 85% 0%,rgba(79,157,255,.10),transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(212,162,60,.10),transparent 60%),var(--panel)}
+:root[data-theme="light"]{--leaf-soft:rgba(32,169,91,.12);--r0:#a86b3c;--r1:#7d8796;--r2:#c98f22;--r3:#0aa4c9;--hp:#f04452;--hp2:#ff8a3d;--track:#eef0f3;
+  --arena:radial-gradient(120% 90% at 85% 0%,rgba(49,130,246,.08),transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(210,154,46,.10),transparent 60%),#fff}
 </style>
 </head>
 <body>
@@ -685,7 +691,7 @@ h2{display:flex;align-items:center;gap:.5em}
 <div class="top">
   <div class="top-row">
     <div class="brand"><div class="mono">WC</div><b>주식농사 라이브</b></div>
-    <nav class="topnav" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#harvest" data-sec="harvest"><span>🧺</span><b>수확</b></a><a href="#badges" data-sec="badges"><span>🏆</span><b>업적</b></a></nav>
+    <nav class="topnav" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#harvest" data-sec="harvest"><span>🧺</span><b>수확</b></a><a href="#badges" data-sec="badges"><span>🎮</span><b>게임</b></a></nav>
     <div class="top-right"><span class="live"><i></i><span id="asof">불러오는 중</span></span><button class="theme-btn" id="theme-btn" type="button" aria-label="화면 테마 바꾸기"></button></div>
   </div>
   <div class="ticker" aria-label="오늘의 요약 전광판"><div class="ticker-track" id="ticker"></div></div>
@@ -864,13 +870,395 @@ h2{display:flex;align-items:center;gap:.5em}
     </div>
   </section>
 
-  <!-- ACHIEVEMENTS -->
+  <!-- FARM GAME (업적 진열장 자리) -->
   <section id="badges">
     <div class="sec-head">
-      <div><span class="eyebrow">Badges</span><h2><span class="hi" aria-hidden="true">🏆</span>업적 진열장</h2><p id="ach-sub">데이터에서 자동으로 계산됩니다.</p></div>
+      <div><span class="eyebrow">Farm Game</span><h2><span class="hi" aria-hidden="true">🎮</span>농장 게임</h2><p id="game-sub">계단 산 보스전 · 주간 퀘스트 · 업적 · 수확 도감 — 마감 기록으로 자동 계산</p></div>
       <img class="sec-q" data-q="piggy" alt="" aria-hidden="true">
     </div>
-    <div class="ach" id="ach"></div>
+    <div id="farmgame"><p class="muted">불러오는 중…</p></div>
+    <template id="farmgame-tpl"><style>:host{display:block;color:var(--fg);font-family:var(--body);line-height:1.5}
+.stack{display:flex;flex-direction:column;gap:18px}
+h2{font-size:1.45rem}
+*{box-sizing:border-box}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .dn{color:var(--down)} .muted{color:var(--muted)}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.2px}
+h1{font-size:2.3rem;line-height:1.15} h2{font-size:1.55rem} h3{font-size:1.15rem}
+.eyebrow{font-size:.78rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);font-size:.82rem;color:var(--muted);white-space:nowrap}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.head p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.sec-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.sec-h small{color:var(--muted)}
+
+/* ── 아레나 ── */
+.arena{background:var(--arena);padding:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;overflow:hidden;position:relative}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1.15fr);align-items:end;gap:10px}
+.fighter{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;text-align:center}
+.say{position:relative;background:var(--panel2);border:1px solid var(--line2);border-radius:14px;padding:8px 12px;font-size:.88rem;max-width:26ch;line-height:1.4}
+.say::after{content:"";position:absolute;bottom:-7px;left:50%;width:12px;height:12px;background:var(--panel2);border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);transform:translateX(-50%) rotate(45deg)}
+.qk{width:min(200px,34vw);aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(0,0,0,.35));animation:bob 2.8s ease-in-out infinite}
+.bossbox{position:relative;width:min(230px,40vw)}
+.bear{width:100%;height:auto;display:block;overflow:visible}
+.bear .bk-hurt,.bear .bk-smug{display:none}
+.bossbox .goat{width:100%;height:auto;display:none}
+.bossbox.is-goat .bear{display:none} .bossbox.is-goat .goat{display:block}
+.stp .goat.mini{display:block;width:1.9rem;height:auto}
+.bossbox.hurt .bk-angry,.bossbox.healed .bk-angry{display:none}
+.bossbox.hurt .bk-hurt{display:inline} .bossbox.healed .bk-smug{display:inline}
+.bossbox.hurt .bear{animation:hit .55s ease-out .5s 2}
+.bossbox:not(.hurt) .bear{animation:breathe 3.4s ease-in-out infinite}
+.dmgpop{position:absolute;top:2%;left:-4%;font-family:var(--display);font-size:1.7rem;color:var(--up);text-shadow:0 2px 0 var(--bg);animation:pop 2.4s ease-out .5s both}
+.bossbox.healed .dmgpop{color:var(--down)}
+@keyframes bob{50%{transform:translateY(-6px)}}
+@keyframes breathe{50%{transform:scale(1.02,.985)}}
+@keyframes hit{0%,100%{transform:none}20%{transform:translateX(-7px) rotate(-2deg)}45%{transform:translateX(6px) rotate(1.5deg)}70%{transform:translateX(-3px)}}
+@keyframes pop{0%{opacity:0;transform:translateY(10px) scale(.7)}18%{opacity:1;transform:translateY(-4px) scale(1.1)}70%{opacity:1;transform:translateY(-14px)}100%{opacity:.85;transform:translateY(-16px)}}
+.vs{font-family:var(--display);font-size:2rem;color:var(--gold-hi);padding-bottom:70px;opacity:.9}
+
+.bars{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px}
+.bar-l{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:6px;flex-wrap:wrap}
+.bar-l b{font-family:var(--display);font-weight:400;font-size:1.25rem}
+.meter{height:16px;border-radius:999px;background:var(--track);border:1px solid var(--line2);overflow:hidden;position:relative}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:999px;transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.meter .xp{background:linear-gradient(90deg,var(--gold),var(--gold-hi))}
+.meter .hp{background:linear-gradient(90deg,var(--hp),var(--hp2))}
+.meter .ghost{background:var(--fg);opacity:.35}
+.bar-s{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:.82rem;color:var(--muted);flex-wrap:wrap}
+.title-chip{border-color:var(--gold);color:var(--gold-hi);background:var(--gold-soft)}
+
+.log{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
+.hit{flex:0 0 auto;display:flex;flex-direction:column;gap:2px;padding:8px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);min-width:6.4rem}
+.hit small{color:var(--muted);font-size:.75rem}
+.hit b{font-family:var(--mono);font-weight:600;font-size:.95rem}
+.hit.dmg{background:var(--up-soft);border-color:transparent} .hit.dmg b{color:var(--up)}
+.hit.heal{background:var(--down-soft);border-color:transparent} .hit.heal b{color:var(--down)}
+.hit.today{outline:2px solid var(--gold);outline-offset:-2px}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.fact{padding:10px 12px;border-radius:12px;background:var(--panel2);min-width:0}
+.fact small{display:block;color:var(--muted);font-size:.75rem}
+.fact b{font-family:var(--mono);font-weight:600}
+.slain{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.slain span{font-size:.75rem;padding:1px 6px;border-radius:6px;background:var(--panel3);color:var(--muted)}
+.wk{font-size:.9rem;color:var(--muted)} .wk b{color:var(--fg)} .wk b.up{color:var(--up)} .wk b.dn{color:var(--down)}
+
+/* 칸으로 나뉜 HP */
+.hpcells{display:flex;gap:3px;height:18px}
+.hpc{flex:1;position:relative;border-radius:5px;background:var(--track);border:1px solid var(--line2);overflow:hidden}
+.hpc i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--hp),var(--hp2));transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.hpc.crown{flex:.8}
+.hpc.crown::after{content:"👑";position:absolute;inset:0;display:grid;place-items:center;font-size:.7rem}
+.hpc.cleared{background:transparent;border-style:dashed}
+.hp-ticks{display:flex;gap:3px;margin-top:3px}
+.hp-ticks span{flex:1;text-align:center;font-family:var(--mono);font-size:.62rem;color:var(--dim);white-space:nowrap;overflow:hidden}
+.hp-ticks span.crown{flex:.8}
+
+/* ── 계단 산 ── */
+.tower{display:flex;flex-direction:column;gap:4px}
+.stp{display:grid;grid-template-columns:2rem minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 12px;border-radius:10px;background:var(--panel2);font-size:.9rem}
+.stp .lv{font-family:var(--mono);font-weight:600;font-size:.82rem;color:var(--muted)}
+.stp .ic{font-size:1.2rem;text-align:center}
+.stp small{display:block;color:var(--muted);font-size:.75rem}
+.stp .need{font-family:var(--mono);font-size:.85rem;text-align:right;white-space:nowrap}
+.stp.lost{background:var(--down-soft)}
+.stp.got{background:var(--leaf-soft)} .stp.got .need{color:var(--leaf)}
+.stp.target{outline:2px solid var(--gold);outline-offset:-2px;background:var(--gold-soft)}
+.stp.peak{background:linear-gradient(90deg,var(--gold-soft),transparent),var(--panel2)}
+.stp.new{border:1px dashed var(--line2);background:transparent}
+.stp .goat{width:2rem;height:auto;display:block}
+.here{display:flex;align-items:center;gap:8px;padding:2px 12px;font-size:.82rem;color:var(--gold-hi);font-weight:700}
+.here::before,.here::after{content:"";flex:1;height:2px;background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 10px)}
+.floor{font-size:.78rem;color:var(--muted);text-align:center;padding-top:4px}
+
+/* ── 시즌 일지 ── */
+.season{display:flex;flex-direction:column;max-height:30rem;overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+.sev{display:grid;grid-template-columns:3.4rem 1.8rem minmax(0,1fr);gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line)}
+.sev:last-child{border-bottom:0}
+.sev .d{font-family:var(--mono);font-size:.8rem;color:var(--muted);padding-top:2px}
+.sev .ic{font-size:1.15rem;text-align:center}
+.sev b{font-weight:600}
+.sev small{display:block;color:var(--muted);font-size:.76rem}
+.sev.k-raid b{color:var(--down)} .sev.k-slay b,.sev.k-new b{color:var(--up)}
+.sev-sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+
+/* ── 퀘스트 · 경험치 ── */
+.duo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px}
+.card{padding:18px;min-width:0}
+.qlist{display:flex;flex-direction:column;gap:10px}
+.q{display:grid;grid-template-columns:2.2rem minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--panel2)}
+.q .ic{font-size:1.4rem;text-align:center}
+.q b{font-weight:600;display:block}
+.q small{color:var(--muted);font-size:.78rem}
+.q .st{font-size:.82rem;text-align:right;white-space:nowrap}
+.q.ok{background:var(--leaf-soft)} .q.ok .st{color:var(--leaf);font-weight:700}
+.mini{height:5px;border-radius:9px;background:var(--track);margin-top:6px;overflow:hidden}
+.mini i{display:block;height:100%;background:var(--gold)}
+.q.ok .mini i{background:var(--leaf)}
+.q.next{background:transparent;border:1px dashed var(--line2)}
+.stamps{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.stamp{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.7rem;color:var(--muted);min-width:2.6rem}
+.stamp i{font-style:normal;font-size:.72rem;letter-spacing:-1px;color:var(--gold-hi)}
+.stamp.full{color:var(--leaf)}
+.sub-h{font-size:.82rem;color:var(--muted);margin:16px 0 8px;letter-spacing:.4px}
+
+.xpbar{display:flex;height:22px;border-radius:8px;overflow:hidden;gap:2px;margin:6px 0 12px}
+.xpbar i{display:block;min-width:4px}
+.legend{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 10px;font-size:.88rem;align-items:center}
+.legend .sw{width:10px;height:10px;border-radius:3px}
+.ladder{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.rung{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:10px;background:var(--panel2);font-size:.8rem;color:var(--muted)}
+.rung.on{background:var(--gold-soft);color:var(--gold-hi);font-weight:700}
+.rung.done{color:var(--fg)}
+
+/* ── 진열장 ── */
+.tabs{display:flex;gap:6px;background:var(--panel2);padding:4px;border-radius:12px;width:max-content;max-width:100%;overflow-x:auto}
+.tabs button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:.9rem;padding:7px 14px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--panel);color:var(--fg);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.tabs button:focus-visible,.ach:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,13.5rem),1fr));gap:10px;margin-top:12px}
+.ach{position:relative;display:grid;grid-template-columns:2.6rem minmax(0,1fr);gap:4px 10px;padding:12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);text-align:left;color:inherit;font:inherit}
+.ach .ic{grid-row:span 3;font-size:1.9rem;line-height:1;align-self:center;text-align:center}
+.ach b{font-weight:700}
+.ach .ds{font-size:.8rem;color:var(--muted)}
+.ach .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.76rem}
+.rar{padding:1px 7px;border-radius:6px;font-weight:700;border:1px solid currentColor}
+.rar.t0{color:var(--r0)} .rar.t1{color:var(--r1)} .rar.t2{color:var(--r2)} .rar.t3{color:var(--r3)}
+.cnt{font-family:var(--mono);font-weight:600;color:var(--fg)}
+.ach.now{border-color:var(--leaf);background:linear-gradient(180deg,var(--leaf-soft),transparent 70%),var(--panel2)}
+.ach.now::after{content:"이번에 획득";position:absolute;top:8px;right:10px;font-size:.68rem;font-weight:700;color:var(--leaf)}
+.ach.locked .ic{filter:grayscale(1);opacity:.45}
+.ach.locked b{color:var(--muted)}
+.ach.secret .ic{filter:none;opacity:.6}
+.ach.equip{border-color:var(--gold)}
+.ach.equip::after{content:"칭호 장착";position:absolute;top:8px;right:10px;font-size:.68rem;font-weight:700;color:var(--gold-hi)}
+.ach.got.life{cursor:pointer}
+.ach .pb{grid-column:2;height:4px;border-radius:9px;background:var(--track);overflow:hidden}
+.ach .pb i{display:block;height:100%;background:var(--muted)}
+.tabnote{margin-top:10px;font-size:.82rem;color:var(--muted)}
+
+/* ── 도감 ── */
+.dex{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.dex-row{display:contents}
+.dex-lab{grid-column:1/-1;font-size:.85rem;color:var(--muted);margin-top:4px}
+.cardx{position:relative;aspect-ratio:4/5;border-radius:12px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;background:var(--panel2);border:2px solid var(--line2);min-width:0;max-width:100%}
+.cardx .no{font-family:var(--display);font-size:1.5rem;line-height:1}
+.cardx .em{font-size:1.5rem;line-height:1}
+.cardx small{font-size:.68rem;color:var(--muted);line-height:1.25}
+.cardx.t0{border-color:var(--r0)} .cardx.t1{border-color:var(--r1)} .cardx.t2{border-color:var(--r2)} .cardx.t3{border-color:var(--r3)}
+.cardx.have{background:linear-gradient(160deg,var(--gold-soft),transparent 60%),var(--panel2)}
+.cardx.have .x{font-family:var(--mono);font-weight:600;font-size:.85rem}
+.cardx.lock{border-style:dashed;opacity:.8}
+.cardx.lock .em,.cardx.lock .no{filter:grayscale(1);opacity:.4}
+.dex-foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:.8rem;color:var(--muted)}
+
+.note{font-size:.8rem;color:var(--dim)}
+
+@media (max-width:820px){
+  .duo,.bars{grid-template-columns:minmax(0,1fr)}
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dex{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (max-width:520px){
+  h1{font-size:1.9rem}
+  .arena{padding:14px}
+  .vs{font-size:1.4rem;padding-bottom:50px}
+  .say{font-size:.8rem;padding:6px 9px}
+  .cardx .no{font-size:1.2rem} .cardx .em{font-size:1.15rem}
+}
+@media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+</style><div class="stack">
+
+  <!-- 보스 아레나 -->
+  <section class="panel arena" aria-label="보스전">
+    <div class="sec-h"><h2>🐉 보스전</h2><small id="boss-sub"></small></div>
+    <div class="stage">
+      <div class="fighter">
+        <div class="say" id="say-me"></div>
+        <img class="qk" id="qk" alt="주식농부 쿼카">
+      </div>
+      <div class="vs" aria-hidden="true">VS</div>
+      <div class="fighter">
+        <div class="say" id="say-boss"></div>
+        <div class="bossbox" id="bossbox"><svg class="bear" viewBox="0 0 260 280" overflow="visible" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="보스 베어킹">
+  <defs>
+    <radialGradient id="bk-fur" cx="45%" cy="35%" r="75%"><stop offset="0" stop-color="#6b4630"/><stop offset=".6" stop-color="#4a2f20"/><stop offset="1" stop-color="#2b1a12"/></radialGradient>
+    <radialGradient id="bk-head" cx="42%" cy="32%" r="70%"><stop offset="0" stop-color="#7a5138"/><stop offset=".65" stop-color="#523424"/><stop offset="1" stop-color="#2f1d14"/></radialGradient>
+    <radialGradient id="bk-belly" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#b98a62"/><stop offset="1" stop-color="#8a6243"/></radialGradient>
+    <linearGradient id="bk-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".55" stop-color="#e2a93a"/><stop offset="1" stop-color="#a8721c"/></linearGradient>
+    <linearGradient id="bk-arrow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cb6ff"/><stop offset="1" stop-color="#2a6fd6"/></linearGradient>
+  </defs>
+  <ellipse cx="130" cy="266" rx="88" ry="10" fill="#000" opacity=".28"/>
+  <!-- 몸 -->
+  <path d="M60 250 C40 214 44 160 78 136 C102 120 158 120 182 136 C216 160 220 214 200 250 Z" fill="url(#bk-fur)"/>
+  <ellipse cx="130" cy="206" rx="46" ry="44" fill="url(#bk-belly)"/>
+  <path d="M112 186 q6 -6 12 0 M136 196 q6 -6 12 0 M118 214 q6 -6 12 0" stroke="#7a553a" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".55"/>
+  <!-- 다리 -->
+  <ellipse cx="88" cy="252" rx="28" ry="15" fill="#3a251a"/><ellipse cx="172" cy="252" rx="28" ry="15" fill="#3a251a"/>
+  <g fill="#c9a07c" opacity=".9"><circle cx="78" cy="252" r="4"/><circle cx="88" cy="248" r="4"/><circle cx="98" cy="252" r="4"/><circle cx="162" cy="252" r="4"/><circle cx="172" cy="248" r="4"/><circle cx="182" cy="252" r="4"/></g>
+  <!-- 팔 -->
+  <path d="M66 156 C40 170 34 200 48 214 C58 222 70 214 72 200 C74 186 80 176 86 168 Z" fill="#45291c"/>
+  <path d="M184 146 C198 140 214 140 220 148 C226 158 218 166 208 162 C200 158 192 160 184 166 Z" fill="#45291c"/>
+  <!-- 🔻 하락 화살표 지팡이 -->
+  <g class="bk-staff">
+    <rect x="211" y="40" width="10" height="170" rx="5" fill="#3b2a1e"/>
+    <path d="M190 200 L216 256 L242 200 L225 200 L225 160 L207 160 L207 200 Z" fill="url(#bk-arrow)" stroke="#173a73" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M212 168 L212 204" stroke="#cfe4ff" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  </g>
+  <circle cx="214" cy="150" r="15" fill="#3d261a"/>
+  <!-- 머리 -->
+  <g class="bk-head">
+    <circle cx="74" cy="64" r="24" fill="#3e271b"/><circle cx="74" cy="64" r="12" fill="#a8705a"/>
+    <circle cx="186" cy="64" r="24" fill="#3e271b"/><circle cx="186" cy="64" r="12" fill="#a8705a"/>
+    <ellipse cx="130" cy="98" rx="66" ry="58" fill="url(#bk-head)"/>
+    <!-- 왕관 -->
+    <g class="bk-crown">
+      <path d="M92 50 L100 18 L116 40 L130 10 L144 40 L160 18 L168 50 Z" fill="url(#bk-gold)" stroke="#8a5a12" stroke-width="2.5" stroke-linejoin="round"/>
+      <rect x="90" y="46" width="80" height="12" rx="4" fill="url(#bk-gold)" stroke="#8a5a12" stroke-width="2.5"/>
+      <circle cx="130" cy="52" r="4.5" fill="#3182f6"/><circle cx="108" cy="52" r="3.5" fill="#ff5f5f"/><circle cx="152" cy="52" r="3.5" fill="#ff5f5f"/>
+      <circle cx="130" cy="12" r="3.5" fill="#fff3c4"/>
+    </g>
+    <!-- 주둥이 -->
+    <ellipse cx="130" cy="120" rx="34" ry="25" fill="#b88760"/>
+    <ellipse cx="130" cy="106" rx="11" ry="8" fill="#1d120c"/>
+    <ellipse cx="127" cy="103" rx="3.5" ry="2" fill="#fff" opacity=".5"/>
+    <!-- 화난 표정 -->
+    <g class="bk-angry">
+      <path d="M92 72 L120 84" stroke="#1d120c" stroke-width="7" stroke-linecap="round"/>
+      <path d="M168 72 L140 84" stroke="#1d120c" stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="108" cy="92" rx="8" ry="7" fill="#fff4e6"/><circle cx="110" cy="93" r="4.5" fill="#d93636"/><circle cx="111" cy="92" r="1.5" fill="#fff"/>
+      <ellipse cx="152" cy="92" rx="8" ry="7" fill="#fff4e6"/><circle cx="150" cy="93" r="4.5" fill="#d93636"/><circle cx="151" cy="92" r="1.5" fill="#fff"/>
+      <path d="M114 128 Q130 120 146 128" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M118 126 l3 8 l3 -9 Z M136 125 l3 9 l3 -8 Z" fill="#fff"/>
+    </g>
+    <!-- 맞았을 때 표정 -->
+    <g class="bk-hurt">
+      <path d="M99 86 L115 93 L99 100" stroke="#1d120c" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M161 86 L145 93 L161 100" stroke="#1d120c" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M116 134 Q123 124 130 134 Q137 124 144 134" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M176 70 q6 10 0 14 q-6 -4 0 -14 Z" fill="#8fd0ff"/>
+    </g>
+    <!-- 회복했을 때 표정 -->
+    <g class="bk-smug">
+      <path d="M96 80 L120 84" stroke="#1d120c" stroke-width="6" stroke-linecap="round"/>
+      <path d="M164 80 L140 84" stroke="#1d120c" stroke-width="6" stroke-linecap="round"/>
+      <path d="M100 94 q8 -6 16 0" stroke="#1d120c" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M144 94 q8 -6 16 0" stroke="#1d120c" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M112 126 Q130 142 148 124" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M120 130 l3 7 l3 -6 Z M134 131 l3 6 l3 -7 Z" fill="#fff"/>
+    </g>
+  </g>
+</svg><svg class="goat" viewBox="0 0 220 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="개척 보스 산양 수문장" overflow="visible">
+  <defs>
+    <linearGradient id="gt-rock" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d96a6"/><stop offset="1" stop-color="#4e5563"/></linearGradient>
+    <radialGradient id="gt-fur" cx="45%" cy="35%" r="75%"><stop offset="0" stop-color="#fbf6ec"/><stop offset=".7" stop-color="#e3d6bf"/><stop offset="1" stop-color="#bfae90"/></radialGradient>
+    <linearGradient id="gt-horn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9c98a"/><stop offset="1" stop-color="#9c7a3c"/></linearGradient>
+  </defs>
+  <!-- 바위 + 깃발 -->
+  <path d="M18 222 L42 176 L84 166 L120 172 L170 162 L204 188 L212 222 Z" fill="url(#gt-rock)"/>
+  <path d="M60 188 l14 -6 M140 186 l18 -4" stroke="#3a404b" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+  <rect x="176" y="70" width="5" height="100" rx="2.5" fill="#6b5a3c"/>
+  <path d="M181 72 L214 82 L181 94 Z" fill="#ff5f5f"/>
+  <!-- 몸 -->
+  <ellipse cx="104" cy="140" rx="54" ry="34" fill="url(#gt-fur)"/>
+  <rect x="66" y="150" width="11" height="26" rx="5" fill="#d8c8aa"/><rect x="86" y="154" width="11" height="24" rx="5" fill="#cdbb9b"/>
+  <rect x="116" y="154" width="11" height="24" rx="5" fill="#cdbb9b"/><rect x="134" y="150" width="11" height="26" rx="5" fill="#d8c8aa"/>
+  <g fill="#3a3027"><rect x="66" y="172" width="11" height="6" rx="2"/><rect x="86" y="174" width="11" height="6" rx="2"/><rect x="116" y="174" width="11" height="6" rx="2"/><rect x="134" y="172" width="11" height="6" rx="2"/></g>
+  <path d="M154 128 q14 -6 12 -20" stroke="#e3d6bf" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <!-- 머리 -->
+  <g class="gt-head">
+    <path d="M54 60 C46 34 18 26 12 46 C8 62 26 68 30 56" stroke="url(#gt-horn)" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M86 60 C94 34 122 26 128 46 C132 62 114 68 110 56" stroke="url(#gt-horn)" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <ellipse cx="38" cy="82" rx="16" ry="8" fill="#e3d6bf" transform="rotate(-20 38 82)"/>
+    <ellipse cx="102" cy="82" rx="16" ry="8" fill="#e3d6bf" transform="rotate(20 102 82)"/>
+    <path d="M44 70 C44 52 96 52 96 70 L92 112 C88 128 52 128 48 112 Z" fill="url(#gt-fur)"/>
+    <path d="M60 120 L70 150 L80 120 Z" fill="#efe5d2"/>
+    <path d="M50 78 L64 84" stroke="#3a3027" stroke-width="4" stroke-linecap="round"/>
+    <path d="M90 78 L76 84" stroke="#3a3027" stroke-width="4" stroke-linecap="round"/>
+    <rect x="54" y="86" width="12" height="7" rx="3.5" fill="#3a3027"/><rect x="74" y="86" width="12" height="7" rx="3.5" fill="#3a3027"/>
+    <circle cx="58" cy="88" r="1.6" fill="#fff"/><circle cx="78" cy="88" r="1.6" fill="#fff"/>
+    <ellipse cx="70" cy="110" rx="14" ry="9" fill="#d7c2a2"/>
+    <circle cx="65" cy="108" r="2.2" fill="#3a3027"/><circle cx="75" cy="108" r="2.2" fill="#3a3027"/>
+    <path d="M62 116 q8 5 16 0" stroke="#3a3027" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </g>
+</svg><span class="dmgpop" id="dmgpop"></span></div>
+      </div>
+    </div>
+    <div class="bars">
+      <div>
+        <div class="bar-l"><b id="lv-name"></b><span class="chip title-chip" id="title"></span></div>
+        <div class="meter" role="progressbar" aria-label="경험치" id="xp-m"><i class="xp" id="xp-bar" style="width:0"></i></div>
+        <div class="bar-s"><span class="num" id="xp-t"></span><span id="xp-n"></span></div>
+      </div>
+      <div>
+        <div class="bar-l"><b id="boss-name"></b><span class="num" id="hp-t"></span></div>
+        <div class="hpcells" role="img" id="hpcells"></div>
+        <div class="hp-ticks" id="hpticks" aria-hidden="true"></div>
+        <div class="bar-s"><span id="hp-s"></span><span id="hp-need"></span></div>
+      </div>
+    </div>
+    <div>
+      <div class="sub-h">⚔️ 최근 전투 기록</div>
+      <div class="log" id="log"></div>
+    </div>
+    <div class="wk" id="wk"></div>
+    <div class="facts" id="facts"></div>
+  </section>
+
+  <!-- 계단 산 · 퀘스트 -->
+  <div class="duo">
+    <section class="panel card" aria-label="계단 산">
+      <div class="sec-h"><h2>🏔️ 계단 산</h2><small id="tw-sub"></small></div>
+      <div class="tower" id="tower"></div>
+      <p class="note" id="tw-note"></p>
+    </section>
+    <section class="panel card" aria-label="주간 퀘스트">
+      <div class="sec-h"><h2>📜 주간 퀘스트</h2><span class="chip num" id="q-chip"></span></div>
+      <div class="qlist" id="qlist"></div>
+      <div class="sub-h">🔮 다음 주 퀘스트 예고</div>
+      <div class="qlist" id="qnext"></div>
+      <div class="sub-h">🗓️ 지난 퀘스트 도장 (7/27부터)</div>
+      <div class="stamps" id="stamps"></div>
+    </section>
+  </div>
+
+  <!-- 시즌 일지 · 경험치 -->
+  <div class="duo">
+    <section class="panel card" aria-label="시즌 일지">
+      <div class="sec-h"><h2 id="sn-h">📓 시즌 일지</h2><small>새 계단 · 습격 · 탈환 · 처치</small></div>
+      <div class="sev-sum" id="sn-sum"></div>
+      <div class="season" id="season"></div>
+    </section>
+    <section class="panel card" aria-label="경험치">
+      <div class="sec-h"><h2>⭐ 경험치</h2><span class="chip num" id="xp-chip"></span></div>
+      <div class="xpbar" id="xpbar"></div>
+      <div class="legend" id="legend"></div>
+      <div class="sub-h">🧑‍🌾 농부 등급</div>
+      <div class="ladder" id="ladder"></div>
+      <p class="note">실현 1만원 = 1 XP · 업적은 희귀할수록 XP가 커요 (🥉30 · 🥈80 · 🥇200 · 💎500, 평생 업적은 따로) · 퀘스트 1개 50 XP, 올클리어 +100</p>
+    </section>
+  </div>
+
+  <!-- 진열장 -->
+  <section class="panel card" aria-label="업적 진열장">
+    <div class="sec-h"><h2>🏆 업적 진열장</h2><small id="ach-sum"></small></div>
+    <div class="tabs" role="tablist" aria-label="업적 기간">
+      <button role="tab" id="tab-w" aria-selected="true" data-t="w">📆 이번 주</button>
+      <button role="tab" id="tab-m" aria-selected="false" data-t="m">🗓️ 이번 달</button>
+      <button role="tab" id="tab-l" aria-selected="false" data-t="l">🏆 올해·평생</button>
+    </div>
+    <div class="achs" id="achs" role="tabpanel"></div>
+    <div class="tabnote" id="tabnote"></div>
+  </section>
+
+  <!-- 도감 -->
+  <section class="panel card" aria-label="수확 도감">
+    <div class="sec-h"><h2>📖 수확 도감</h2><span class="chip num" id="dex-chip"></span></div>
+    <div class="dex" id="dex"></div>
+    <div class="dex-foot"><span><b style="color:var(--r0)">■</b> 7·8번 흔함</span><span><b style="color:var(--r1)">■</b> 5·6번 레어</span><span><b style="color:var(--r2)">■</b> 3·4번 에픽</span><span><b style="color:var(--r3)">■</b> 1·2번 전설</span><span>칸이 완전히 비워진 날 = 수확 1회 · 7/23부터 집계</span></div>
+  </section>
+</div></template>
   </section>
 
   <!-- RECORDS -->
@@ -886,7 +1274,7 @@ h2{display:flex;align-items:center;gap:.5em}
     </div>
   </section>
 
-  <nav class="tabbar" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#badges" data-sec="badges"><span>🏆</span><b>업적</b></a></nav>
+  <nav class="tabbar" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#badges" data-sec="badges"><span>🎮</span><b>게임</b></a></nav>
   <footer><span id="src"></span><span>수익률은 좌수법(NAV) 기준 · 상승 빨강 / 하락 파랑</span></footer>
 </div>
 
@@ -1135,6 +1523,398 @@ function drawdowns(series){
   return out;
 }
 
+
+/* farm-game v1 — 🎮 농장 게임: 계단 산 보스전 · 주간 퀘스트 · 경험치 · 업적 · 수확 도감 (2026-10-16) */
+/* 🎮 농장 게임 엔진 — daily.json(+closes)만으로 보스·퀘스트·도감·업적·XP 계산.
+   대시보드 index.html에 그대로 옮길 수 있게 DOM과 분리. */
+function farmGame(D, CL, opt){
+  opt = opt || {};
+  const GOAL = opt.goal || 1e7, TRACK = '2026-07-23';
+  const STK = [['lever_avg','🐂','레버'],['kosdaq_avg','🐎','코닥']];
+  const iso = s => { const d=new Date(s+'T00:00:00Z'); const t=new Date(d); t.setUTCDate(d.getUTCDate()+3-((d.getUTCDay()+6)%7)); const w1=new Date(Date.UTC(t.getUTCFullYear(),0,4)); return t.getUTCFullYear()+'-W'+String(1+Math.round(((t-w1)/864e5-3+((w1.getUTCDay()+6)%7))/7)).padStart(2,'0'); };
+  const wday = s => new Date(s+'T00:00:00Z').getUTCDay();
+  const T = D.filter(r=>r.pnl!==0 || (r.realized||0)!==0);          // 거래일
+  const close = d => CL[d] || null;
+
+  /* ── 하루 단위: 수확·파종·보스 데미지 ── */
+  const ev = {};   // d -> {harv:[cell], sow:[cell]}
+  for(let i=1;i<D.length;i++){
+    const a=D[i-1], b=D[i]; if(b.d<TRACK) continue;
+    const o={harv:[],sow:[]};
+    STK.forEach(([k,e])=>{ (b[k]||[]).forEach((y,j)=>{ const x=(a[k]||[])[j]||0;
+      if(x>0 && !y) o.harv.push(e+(j+1));
+      else if(y>0 && (!x || Math.abs(y-x)>0.5)) o.sow.push(e+(j+1)); }); });
+    ev[b.d]=o;
+  }
+  const H = d => (ev[d]||{harv:[]}).harv.length;
+
+  /* ── ⛰️ 계단 산: 2024-01-01부터 이어 붙인 기준가, +15%마다 고정 계단 ──
+     고점 대비 10% 넘게 빠지면 탈환 보스 등장(잃은 계단 수로 종류 결정), 고점을 넘으면 처치.
+     그 밖엔 다음 새 계단을 지키는 개척 보스(산양). 탈환 이벤트는 반등 중 처음 되찾은 계단만 센다. */
+  const STEP=opt.step||1.15, LS=Math.log(STEP), lvOf=v=>Math.floor(Math.log(v)/LS+1e-9), lineOf=n=>Math.pow(STEP,n);
+  const HIST=opt.hist||[], hEnd=HIST.length? 1+HIST[HIST.length-1][1]/100 : 1;
+  const IX=[...HIST.map(h=>({d:h[0],v:1+h[1]/100})), ...D.map(r=>({d:r.d,v:hEnd*r.nav/1000}))];
+  const ixOf={}; IX.forEach(x=>ixOf[x.d]=x.v);
+  const season=D[0].d.slice(0,4), sBase=hEnd;                              // 시즌 수익률 = v/sBase-1
+  const KIND = lost => lost>=5 ? {e:'🐻',n:'베어킹',k:'bear'} : lost>=3 ? {e:'🐗',n:'멧돼지 장군',k:'boar'} : {e:'🐺',n:'하락 늑대',k:'wolf'};
+  let pk=IX[0].v, pkD=IX[0].d, best=lvOf(pk), raid=null; const raids=[], mtn=[];
+  IX.forEach(x=>{
+    const l=lvOf(x.v);
+    if(x.v>pk){
+      if(raid){ raid.end=x.d; Object.assign(raid,KIND(raid.maxLost)); raids.push(raid); mtn.push({d:x.d,k:'slay',raid}); raid=null; }
+      pk=x.v; pkD=x.d;
+      for(let n=best+1;n<=l;n++) mtn.push({d:x.d,k:'new',n});
+      best=Math.max(best,l);
+    } else if(!raid && x.v/pk-1<=-0.10){
+      const top=lvOf(pk); raid={start:x.d, peak:pk, peakD:pkD, top, low:l, mark:l, maxLost:top-l, lowV:x.v, lowD:x.d, retakes:0};
+      mtn.push({d:x.d,k:'raid',raid});
+    } else if(raid){
+      if(l<raid.low){ raid.low=raid.mark=l; }
+      else if(l>raid.mark){ for(let n=raid.mark+1;n<=l;n++){ mtn.push({d:x.d,k:'retake',n,raid}); raid.retakes++; } raid.mark=l; }
+      raid.maxLost=Math.max(raid.maxLost, raid.top-l);
+      if(x.v<raid.lowV){ raid.lowV=x.v; raid.lowD=x.d; }
+    }
+  });
+  const L=D[D.length-1], now=ixOf[L.d], lNow=lvOf(now);
+  const kan = (a,b) => Math.log(b/a)/LS;                                  // 두 기준가 사이 계단 수
+  const dmgOf = r => { const i=D.indexOf(r); return i>0 ? kan(ixOf[D[i-1].d], ixOf[r.d]) : 0; };
+  const sret = v => (v/sBase-1)*100;
+  let boss;
+  if(raid){
+    Object.assign(raid, KIND(raid.maxLost));
+    const cells=[];                                                       // 아래(최저점 쪽)부터 고점까지
+    for(let n=raid.top-raid.maxLost+1;n<=raid.top;n++) cells.push({n, lo:lineOf(n-1), hi:lineOf(n), line:lineOf(n)});
+    cells.push({n:'crown', lo:lineOf(raid.top), hi:raid.peak, line:raid.peak});
+    cells.forEach(c=>{ c.fill = Math.max(0,Math.min(1,(Math.log(now)-Math.log(c.lo))/(Math.log(c.hi)-Math.log(c.lo)))); c.need=(c.line/now-1)*100; c.sret=sret(c.line);
+      const evs=mtn.filter(m=>m.k==='retake'&&m.raid===raid&&m.n===c.n&&m.d>=raid.lowD);
+      c.got = c.fill>=1 && evs.length ? evs.at(-1).d : null;                 // 지금 되찾은 상태
+      c.lostAgain = c.fill<1 && evs.length ? evs.at(-1).d : null; });       // 되찾았다가 다시 빼앗김
+    const left = raid.top-lNow;                                           // 남은 계단 수 (+ 👑)
+    boss = {mode:'raid', ...raid, cells, left, hpCells: cells.reduce((s,c)=>s+(1-c.fill),0), total:cells.length,
+      need:(raid.peak/now-1)*100, next:(lineOf(lNow+1)/now-1)*100, nextS:sret(Math.min(lineOf(lNow+1),raid.peak))};
+  } else {
+    const n=best+1, lo=Math.max(lineOf(best), pk/STEP), hi=lineOf(n);
+    boss = {mode:'climb', e:'🐐', n:'산양 수문장', k:'goat', line:hi, hp:Math.max(0,Math.min(1.2,(Math.log(hi)-Math.log(now))/(Math.log(hi)-Math.log(lo)))), next:(hi/now-1)*100, nextS:sret(hi), peak:pk, peakD:pkD};
+  }
+  const since = boss.mode==='raid' ? boss.start : (mtn.filter(m=>m.k==='new'||m.k==='slay').at(-1)||{d:D[0].d}).d;
+  const fightRows = T.filter(r=>r.d>since);
+  boss.fights=fightRows.length; boss.dmgOf=dmgOf;
+  boss.log=fightRows.slice(-6).map(r=>({d:r.d, dmg:dmgOf(r)}));
+  boss.best=fightRows.map(r=>({d:r.d,dmg:dmgOf(r)})).sort((a,b)=>b.dmg-a.dmg)[0];
+  boss.nextLine = {sret:sret(lineOf(best+1)), need:(lineOf(best+1)/now-1)*100};   // 고점 위 첫 새 계단
+  const bosses = raids;                                                  // 처치한 보스(2024~)
+  const sEvents = mtn.filter(m=>m.d>=season);
+
+  /* ── 주 단위 묶음 ── */
+  const weeks=[]; const wmap={};
+  T.forEach(r=>{ const k=iso(r.d); if(!wmap[k]){ wmap[k]={k,rows:[]}; weeks.push(wmap[k]); } wmap[k].rows.push(r); });
+  weeks.forEach(w=>{
+    const f=w.rows[0], l=w.rows.at(-1), i0=D.indexOf(f), base=D[Math.max(0,i0-1)];
+    w.from=f.d; w.to=l.d; w.n=w.rows.length;
+    w.pnl=w.rows.reduce((s,r)=>s+r.pnl,0); w.real=w.rows.reduce((s,r)=>s+(r.realized||0),0);
+    w.ret=(l.nav/base.nav-1)*100; w.kret=((1+l.kospi/100)/(1+base.kospi/100)-1)*100;
+    w.wins=w.rows.filter(r=>r.pnl>0).length; w.base=base;
+    w.tracked = f.d>='2026-07-27';
+    w.harv=w.rows.reduce((s,r)=>s+H(r.d),0); w.maxCombo=Math.max(0,...w.rows.map(r=>H(r.d)));
+    w.bossDmg = w.rows.reduce((s,r)=>s+dmgOf(r),0);
+  });
+
+  /* ── 주간 퀘스트 3개: 지난주 마감 상태로 생성 ── */
+  const need = (row) => { const c=close(row.d); if(!c) return null; let best=null;
+    STK.forEach(([k,e],si)=>(row[k]||[]).forEach((a,j)=>{ if(a>0){ const g=(a*1.003/c[si]-1)*100; if(!best||g<best.g) best={cell:e+(j+1),g}; } })); return best; };
+  const sowTarget = row => { for(const [k,e] of STK){ const a=row[k]||[]; const n=a.filter(x=>x>0).length; if(n<8) return e+(n+1); } return null; };
+  const Q3 = [
+    {id:'kospi', ic:'🐯', t:'미니보스 코스피 이기기', test:w=>({ok:w.ret>w.kret, v:`나 ${sg(w.ret)} · 코스피 ${sg(w.kret)}`, p:w.ret>w.kret?1:0.5})},
+    {id:'dmg',   ic:'⚔️', t:'보스에게 0.5칸 데미지', test:w=>({ok:w.bossDmg>=0.5, v:`${w.bossDmg>=0?'':'−'}${Math.abs(w.bossDmg).toFixed(2)}칸`, p:Math.max(0,w.bossDmg/0.5)})},
+    {id:'combo', ic:'⛓️', t:'하루 2칸 연쇄 수확',     test:w=>({ok:w.maxCombo>=2, v:`최고 ${w.maxCombo}콤보`, p:w.maxCombo/2})},
+  ];
+  weeks.forEach((w,wi)=>{
+    if(!w.tracked){ w.quests=null; return; }
+    const tgt=need(w.base), q=[];
+    const sw=sowTarget(w.base);
+    if(tgt && (tgt.g<=8 || !sw)){ const hit=w.rows.find(r=>(ev[r.d]?.harv||[]).includes(tgt.cell));
+      q.push({ic:'🧺', t:`${tgt.cell}번 칸 수확하기`, sub:`수확선까지 ${sg(tgt.g,1)}`, ok:!!hit, v:hit?`${md(hit.d)} 수확!`:'아직', p:hit?1:0}); }
+    else if(sw){ const hit=w.rows.find(r=>(ev[r.d]?.sow||[]).includes(sw));
+      q.push({ic:'🌱', t:`${sw}번 칸 다시 심기`, sub:'내린 날 규칙대로', ok:!!hit, v:hit?`${md(hit.d)} 파종!`:'아직', p:hit?1:0}); }
+    const wantW = w.n>=4 ? 3 : 2;
+    q.push({ic:'☀️', t:`수익 낸 날 ${wantW}일`, sub:`${w.n}거래일 중`, ok:w.wins>=wantW, v:`${w.wins}/${wantW}일`, p:w.wins/wantW});
+    const Q=Q3[wi%Q3.length], r=Q.test(w); q.push({ic:Q.ic, t:Q.t, sub:'', ...r});
+    q.forEach(x=>x.p=Math.max(0,Math.min(1,x.p)));
+    w.quests=q; w.qDone=q.filter(x=>x.ok).length;
+  });
+
+  /* ── 반복 업적: 주간 · 월간 ── */
+  const W_DEF = [
+    {id:'w-green', ic:'🌤️', n:'흑자 주간',   d:'한 주 손익 플러스',            ok:w=>w.pnl>0},
+    {id:'w-crop',  ic:'🧺', n:'주간 풍년',   d:'한 주 실현 300만 이상',         ok:w=>w.real>=3e6},
+    {id:'w-kospi', ic:'🐯', n:'미니보스 처치', d:'한 주 수익률이 코스피보다 높음', ok:w=>w.ret>w.kret},
+    {id:'w-v',     ic:'🔄', n:'V자 반등',    d:'첫날 손실 → 한 주는 플러스',    ok:w=>w.rows[0].pnl<0 && w.pnl>0},
+    {id:'w-combo', ic:'⛓️', n:'연쇄 수확',   d:'하루에 2칸 이상 수확',          ok:w=>w.maxCombo>=2, from:'2026-07-27'},
+    {id:'w-quest', ic:'📜', n:'퀘스트 올클리어', d:'주간 퀘스트 3/3',          ok:w=>w.qDone===3, from:'2026-07-27'},
+    {id:'w-hit',   ic:'⚔️', n:'회심의 일격', d:'한 주에 보스 1칸 이상 데미지',   ok:w=>w.bossDmg>=1},
+    {id:'w-perfect',ic:'🌞', n:'무패 주간',  d:'4거래일 이상 모두 수익',         ok:w=>w.n>=4 && w.wins===w.n},
+  ];
+  const months=[]; const mm={};
+  T.forEach(r=>{ const k=r.d.slice(0,7); if(!mm[k]){ mm[k]={k,rows:[]}; months.push(mm[k]); } mm[k].rows.push(r); });
+  months.forEach(m=>{ const f=m.rows[0], l=m.rows.at(-1), base=D[Math.max(0,D.indexOf(f)-1)];
+    m.pnl=m.rows.reduce((s,r)=>s+r.pnl,0); m.real=m.rows.reduce((s,r)=>s+(r.realized||0),0);
+    m.ret=(l.nav/base.nav-1)*100; m.kret=((1+l.kospi/100)/(1+base.kospi/100)-1)*100; m.n=m.rows.length; m.wins=m.rows.filter(r=>r.pnl>0).length;
+    m.worst=Math.min(...m.rows.map(r=>r.pnl));
+    const hv=m.rows.flatMap(r=>ev[r.d]?.harv||[]); m.both = hv.some(c=>c[0]==='🐂'||c.startsWith('🐂')) && hv.some(c=>c.startsWith('🐎'));
+    m.harv=hv.length; m.quests=weeks.filter(w=>w.quests && w.to.slice(0,7)===m.k).reduce((s,w)=>s+w.qDone,0);
+  });
+  const M_DEF = [
+    {id:'m-green', ic:'📈', n:'흑자 달',     d:'한 달 손익 플러스',            ok:m=>m.pnl>0},
+    {id:'m-crop',  ic:'🧺', n:'월 천만 수확', d:'한 달 실현 1,000만 이상',     ok:m=>m.real>=GOAL},
+    {id:'m-win',   ic:'🎯', n:'승률 60%',    d:'수익 난 날이 60% 이상',        ok:m=>m.wins/m.n>=0.6},
+    {id:'m-kospi', ic:'🐢', n:'코스피 추월 달', d:'한 달 수익률이 코스피보다 높음', ok:m=>m.ret>m.kret},
+    {id:'m-safe',  ic:'🛡️', n:'무사고 달',   d:'하루 -500만 아래로 안 빠짐',    ok:m=>m.worst>-5e6},
+    {id:'m-both',  ic:'🐂', n:'쌍끌이',      d:'🐂·🐎 둘 다 수확한 달',          ok:m=>m.both, from:'2026-07'},
+  ];
+  const tierOf = rate => rate>=0.5?0 : rate>=0.2?1 : rate>=0.05?2 : 3;
+  const evalRep = (DEF, list, cur) => DEF.map(a=>{
+    const done=list.filter(x=>x!==cur), base=done.filter(x=>!a.from || (x.from||x.k)>=a.from);
+    const got=base.filter(a.ok), rate=base.length?got.length/base.length:0;
+    const now=cur && (!a.from || (cur.from||cur.k)>=a.from) ? a.ok(cur) : null;
+    const cnt=got.length + (now?1:0);
+    return {...a, cnt, rate, tier:tierOf(rate), now, base:base.length, last:(now?cur:got.at(-1))};
+  });
+  const curW=weeks.at(-1), curM=months.at(-1);
+  const nextQ = (()=>{ const t=need(L), sw=sowTarget(L); return t && (t.g<=8||!sw) ? {ic:'🧺',t:t.cell+'번 칸 수확하기',sub:'수확선까지 '+sg(t.g,1)} : {ic:'🌱',t:sw+'번 칸 다시 심기',sub:'내린 날 규칙대로'}; })();                                               // 다음 주 퀘스트 1번 미리보기
+  const nextQ3 = Q3[weeks.length%Q3.length];
+  const repW=evalRep(W_DEF, weeks, curW), repM=evalRep(M_DEF, months, curM);
+
+  /* ── 도감 16칸 ── */
+  const dex=[]; STK.forEach(([k,e,nm])=>{ for(let j=0;j<8;j++){ const cell=e+(j+1);
+    const ds=Object.keys(ev).filter(d=>ev[d].harv.includes(cell)).sort();
+    const avg=L[k][j]||0, c=close(L.d), g=avg&&c? (c[STK.findIndex(s=>s[0]===k)]/avg-1)*100 : null;
+    dex.push({cell, stock:nm, no:j+1, e, n:ds.length, first:ds[0], lastD:ds.at(-1), avg, g, rar: j<2?3:j<4?2:j<6?1:0}); } });
+
+  /* ── 평생 업적 ── */
+  const maxRet=Math.max(...D.map(r=>r.ret)), real26=D.reduce((s,r)=>s+(r.realized||0),0);
+  let run=0,longW=0; T.forEach(r=>{ run=r.pnl>0?run+1:0; longW=Math.max(longW,run); });
+  const bestDay=T.reduce((a,b)=>b.pnl>a.pnl?b:a);
+  let mdd=0,p2=0; D.forEach(r=>{ p2=Math.max(p2,r.nav); mdd=Math.min(mdd,(r.nav/p2-1)*100); });
+  let athN=0,pk3=1000; D.forEach(r=>{ if(r.nav>pk3+1e-9){athN++;pk3=r.nav;} });
+  const dexN=dex.filter(x=>x.n).length, qAll=weeks.reduce((s,w)=>s+(w.qDone||0),0);
+  const rev=T.filter((r,i)=>{ const p=D[D.indexOf(r)-1]; return p && r.pnl>0 && r.kospi<p.kospi-1.5; });
+  const mon=T.filter(r=>wday(r.d)===1 && H(r.d)>0);
+  const sweep=T.filter(r=>{ const i=D.indexOf(r), p=D[i-1]; return r.d>=TRACK && STK.some(([k])=>(p[k]||[]).filter(x=>x>0).length>=3 && (r[k]||[]).every(x=>!x)); });
+  const life = [
+    {ic:'🔥',n:'연승 장인',d:'5거래일 연속 수익',tier:1,ok:longW>=5,v:`최장 ${longW}연승`,p:longW/5},
+    {ic:'💥',n:'하루 천만',d:'하루 1,000만 이상 수익',tier:1,ok:bestDay.pnl>=1e7,v:`최고 ${man(bestDay.pnl)}`,p:bestDay.pnl/1e7},
+    {ic:'🚀',n:'더블',d:'2026 수익률 +100%',tier:1,ok:maxRet>=100,v:`최고 ${sg(maxRet)}`,p:maxRet/100},
+    {ic:'🌋',n:'트리플',d:'2026 수익률 +200%',tier:2,ok:maxRet>=200,v:`최고 ${sg(maxRet)}`,p:maxRet/200},
+    {ic:'⛈️',n:'폭풍 생존',d:'-30% 낙폭을 겪고도 올해 플러스',tier:2,ok:mdd<=-30&&L.ret>0,v:`최대낙폭 ${sg(mdd)}`,p:mdd<=-30?1:mdd/-30},
+    {ic:'⚔️',n:'보스 사냥꾼',d:'탈환 보스 3마리 처치 (2024~)',tier:1,ok:bosses.length>=3,v:`${bosses.length}마리 처치`,p:bosses.length/3},
+    {ic:'⛰️',n:'개척자',d:`${season} 시즌 새 계단 5개`,tier:1,ok:sEvents.filter(m=>m.k==='new').length>=5,v:`${sEvents.filter(m=>m.k==='new').length}개`,p:sEvents.filter(m=>m.k==='new').length/5},
+    {ic:'🔁',n:'탈환 장인',d:`${season} 시즌 계단 탈환 10번`,tier:1,ok:sEvents.filter(m=>m.k==='retake').length>=10,v:`${sEvents.filter(m=>m.k==='retake').length}번`,p:sEvents.filter(m=>m.k==='retake').length/10},
+    {ic:'📅',n:'100일 출석',d:'2026 거래일 100일',tier:0,ok:T.length>=100,v:`${T.length}거래일`,p:T.length/100},
+    {ic:'🏔️',n:'신고가 사냥꾼',d:'2026 신고가 10회',tier:1,ok:athN>=10,v:`${athN}회`,p:athN/10},
+    {ic:'📖',n:'도감 절반',d:'수확 도감 8장',tier:2,ok:dexN>=8,v:`${dexN}/16장`,p:dexN/8},
+    {ic:'📜',n:'퀘스트 장인',d:'주간 퀘스트 30개 클리어',tier:2,ok:qAll>=30,v:`${qAll}개`,p:qAll/30},
+    {ic:'🌾',n:'1억 수확',d:'2026 누적 실현 1억',tier:2,ok:real26>=1e8,v:man(real26),p:real26/1e8},
+    {ic:boss.mode==='raid'?boss.e:'🐻',n:boss.mode==='raid'?boss.n+' 처치':'최종 보스 처치',d:boss.mode==='raid'?`${md(boss.peakD)} 고점 탈환`:'고점 탈환',tier:3,ok:boss.mode!=='raid',v:boss.mode==='raid'?`HP ${boss.left}칸 + 👑`:'처치!',p:boss.mode==='raid'?1-boss.hpCells/boss.total:1},
+    {ic:'👑',n:'+300% 클럽',d:'2026 수익률 +300%',tier:3,ok:maxRet>=300,v:`최고 ${sg(maxRet)}`,p:(1+maxRet/100)/4},
+    {ic:'💎',n:'전설 카드',d:'1·2번 칸 수확',tier:3,ok:dex.some(x=>x.no<=2&&x.n),v:'앞번호 칸',p:0},
+    /* 숨겨진 업적 */
+    {ic:'🦭',n:'역주행',d:'코스피 -1.5%p 넘게 빠진 날 수익',tier:1,hidden:true,ok:rev.length>0,v:`${rev.length}번`,p:0},
+    {ic:'🌅',n:'월요병 퇴치',d:'월요일에 수확',tier:1,hidden:true,ok:mon.length>0,v:`${mon.length}번`,p:0},
+    {ic:'🧹',n:'밭 정리',d:'3칸 넘게 찬 종목을 하루에 다 비움',tier:2,hidden:true,ok:sweep.length>0,v:`${sweep.length}번`,p:0},
+    {ic:'🍀',n:'럭키 세븐',d:'7연승',tier:3,hidden:true,ok:longW>=7,v:`최장 ${longW}연승`,p:0},
+  ];
+
+  /* ── XP · 레벨 · 칭호 ── */
+  const TX=[30,80,200,500], LX=[200,500,1000,2500];
+  const xpParts = {
+    harvest: Math.floor(real26/1e4),                                       // 실현 1만원 = 1XP
+    weekly: repW.reduce((s,a)=>s+a.cnt*TX[a.tier],0),
+    monthly: repM.reduce((s,a)=>s+a.cnt*TX[Math.min(3,a.tier+1)],0),        // 월간은 한 단계 위 XP
+    life: life.filter(a=>a.ok).reduce((s,a)=>s+LX[a.tier],0),
+    quest: weeks.reduce((s,w)=>s+(w.qDone||0)*50+(w.qDone===3?100:0),0),
+  };
+  const xp=Object.values(xpParts).reduce((a,b)=>a+b,0);
+  const need_ = n => 250*n*(n+1)/2;                                        // Lv.n → n+1 누적 필요 XP
+  let lv=1; while(xp>=need_(lv)) lv++;
+  const lo=need_(lv-1), hi=need_(lv);
+  const TITLES=[[1,'🌱','새싹 농부'],[5,'🧑‍🌾','견습 농부'],[10,'🚜','숙련 농부'],[15,'🌾','베테랑 농부'],[20,'🏆','명인 농부'],[25,'👑','전설의 농부']];
+  const tt=TITLES.filter(t=>lv>=t[0]).pop(), nt=TITLES.find(t=>t[0]>lv);
+  const earned=life.filter(a=>a.ok).sort((a,b)=>b.tier-a.tier);
+  const title = earned[0] ? earned[0].n.replace(/ 장인| 사냥꾼/,'')+' ' : '';
+
+  return {season, IX, mtn, sEvents, raids, sret, STEP, nextQ, nextQ3:{ic:nextQ3.ic,t:nextQ3.t}, L, T, boss, bosses, weeks, months, curW, curM, repW, repM, dex, dexN, life, xp, xpParts, lv, lo, hi, tt, nt, title:earned[0], qAll, real26, ev};
+
+  function sg(v,k=1){ return (v>0?'+':v<0?'-':'')+Math.abs(v).toFixed(k)+'%'; }
+  function md(d){ return +d.slice(5,7)+'/'+ +d.slice(8); }
+  function man(v){ return (v<0?'-':'')+Math.round(Math.abs(v)/1e4).toLocaleString('ko-KR')+'만'; }
+}
+
+
+function mountFarmGame(raw, S){
+  const host=document.getElementById('farmgame'); if(!host) return null;
+  const root=host.shadowRoot||host.attachShadow({mode:'open'});
+  root.innerHTML=document.getElementById('farmgame-tpl').innerHTML;
+  const $=id=>root.getElementById(id);
+  const QKIMG={thumbs:QK.thumbs||'', shock:QK.shock||''};
+  const G=farmGame(raw.daily, S.CL, {goal:(S.monthly&&S.monthly.goal)||1e7, hist:raw.hist});
+  const md=d=>+d.slice(5,7)+'/'+ +d.slice(8);
+const sg=(v,k=1)=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(k)+'%';
+const man=v=>(v<0?'−':v>0?'+':'')+Math.round(Math.abs(v)/1e4).toLocaleString('ko-KR')+'만';
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+const RAR=['🥉 흔함','🥈 레어','🥇 에픽','💎 전설'];
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const L=G.L, B=G.boss, W=G.curW;
+const GOATMINI=root.querySelector('#bossbox .goat').outerHTML.replace('class="goat"','class="goat mini"').replace(/id="gt-/g,'id="gm-').replace(/url\(#gt-/g,'url(#gm-');
+
+
+/* ── 보스 (계단 산) ── */
+const STEP=G.STEP, kpct=k=>(Math.pow(STEP,k)-1)*100;
+const lastHit=B.log.at(-1), todayIsLast=lastHit&&lastHit.d===L.d, dmg=todayIsLast?lastHit.dmg:0;
+const box=$('bossbox');
+box.classList.add(dmg>0.005?'hurt':dmg<-0.005?'healed':'idle', B.mode==='raid'?'is-bear':'is-goat');
+$('dmgpop').textContent=dmg>0.005?'−'+dmg.toFixed(2)+'칸':dmg<-0.005?'+'+(-dmg).toFixed(2)+'칸':'';
+$('boss-name').textContent=B.e+' '+B.n;
+const ixNow=G.IX.at(-1).v, ixPrev=G.IX.at(-2).v;
+if(B.mode==='raid'){
+  const fillAt=(v,c)=>Math.max(0,Math.min(1,(Math.log(v)-Math.log(c.lo))/(Math.log(c.hi)-Math.log(c.lo))));
+  const cells=[...B.cells].reverse();                                   // 👑 → 아래 칸 (HP는 오른쪽부터 깎임)
+  $('hpcells').innerHTML=cells.map(c=>`<div class="hpc ${c.n==='crown'?'crown':''} ${c.fill>=1?'cleared':''}"><i style="width:${((1-fillAt(ixPrev,c))*100).toFixed(1)}%"></i></div>`).join('');
+  $('hpticks').innerHTML=cells.map(c=>`<span class="${c.n==='crown'?'crown':''}">${c.n==='crown'?'고점':sg(c.sret,0)}</span>`).join('');
+  $('hpcells').setAttribute('aria-label',`보스 HP ${B.hpCells.toFixed(1)}칸 / ${B.total}칸`);
+  setTimeout(()=>{ [...$('hpcells').children].forEach((el,i)=>el.firstChild.style.width=((1-cells[i].fill)*100).toFixed(1)+'%'); },900);
+  $('hp-t').textContent=`HP ${B.hpCells.toFixed(1)} / ${B.total}칸`;
+  $('boss-sub').textContent=`${md(B.peakD)} 고점을 빼앗은 보스 · ${md(B.start)} 습격 · 전투 ${B.fights}일째`;
+  $('hp-s').textContent=`계단 ${B.left}칸 + 👑 남음`;
+  $('hp-need').innerHTML=`다음 칸 <b class="num up">${sg(B.next)}</b> · 고점 <b class="num up">${sg(B.need)}</b>`;
+  $('say-boss').textContent= dmg>0 ? `크윽… ${dmg.toFixed(1)}칸쯤이야. 아직 ${B.left}칸 남았다.` : dmg<0 ? `이번엔 내가 되찾았다. 고점까지 ${sg(B.need,0)}, 와 볼 테면 와 봐.` : '오늘은 쉬는 날인가?';
+  $('say-me').textContent= dmg>0 ? `오늘 ${dmg.toFixed(2)}칸 깎았어요. 다음 칸까지 ${sg(B.next)}.` : '오늘은 맞았지만, 내린 날은 씨앗 심는 날.';
+}
+requestAnimationFrame(()=>{ const lg=$('log'); lg.scrollLeft=lg.scrollWidth; });
+$('log').innerHTML=B.log.map(x=>{ const t=x.d===L.d?' today':'', p=kpct(x.dmg); return x.dmg>=0
+  ? `<div class="hit dmg${t}"><small>${md(x.d)}${t?' · 오늘':''}</small><b>⚔️ −${x.dmg.toFixed(2)}칸</b><small>기준가 ${sg(p)}</small></div>`
+  : `<div class="hit heal${t}"><small>${md(x.d)}${t?' · 오늘':''}</small><b>🩹 +${(-x.dmg).toFixed(2)}칸</b><small>기준가 ${sg(p)}</small></div>`; }).join('');
+const wl=W.ret>W.kret;
+$('wk').innerHTML=`이번 주(${md(W.from)}~${md(W.to)}): 보스 <b class="num ${W.bossDmg>=0?'up':'dn'}">${W.bossDmg>=0?W.bossDmg.toFixed(2)+'칸 깎음':(-W.bossDmg).toFixed(2)+'칸 회복'}</b> · 🐯 주간 미니보스 코스피 ${wl?'<b class="up">처치</b>':'<b class="dn">패배</b>'} <span class="num">(나 ${sg(W.ret)} / 코스피 ${sg(W.kret)})</span>`;
+const bestN=G.mtn.filter(m=>m.k==='retake'&&m.d===B.best.d).length;
+const prevBear=G.raids.filter(r=>r.k==='bear').at(-1);
+const months=(a,b)=>(+b.slice(0,4)-+a.slice(0,4))*12+(+b.slice(5,7)-+a.slice(5,7));
+const kinds={}; G.raids.forEach(r=>kinds[r.e]=(kinds[r.e]||0)+1);
+$('facts').innerHTML=[
+  ['보스가 가장 강했던 날',`<b class="num dn">${md(B.lowD)} · ${B.maxLost}칸 잃음</b>`],
+  ['최고의 일격',`<b class="num up">${md(B.best.d)} −${B.best.dmg.toFixed(1)}칸</b>${bestN>1?`<small style="display:block;color:var(--muted);font-size:.75rem">하루에 ${bestN}칸 탈환</small>`:''}`],
+  ['지난 베어킹',prevBear?`<b class="num">${prevBear.peakD.slice(2,7).replace('-','.')}~${prevBear.end.slice(2,7).replace('-','.')}</b><small style="display:block;color:var(--muted);font-size:.75rem">${months(prevBear.start,prevBear.end)}개월 만에 처치</small>`:'<b>없음</b>'],
+  ['처치한 보스 (2024~)',`<b class="num">${G.raids.length}마리</b><div class="slain">${Object.entries(kinds).map(([e,n])=>`<span>${e} ×${n}</span>`).join('')}</div>`],
+].map(([k,v])=>`<div class="fact"><small>${k}</small>${v}</div>`).join('');
+$('qk').src = dmg>0 ? QKIMG.thumbs : QKIMG.shock;
+
+/* ── 계단 산 ── */
+$('tw-sub').textContent=`계단 폭 +${Math.round((STEP-1)*100)}% · 2024년부터 이어 붙인 기준가`;
+if(B.mode==='raid'){
+  const rows=[];
+  rows.push(`<div class="stp new"><span class="ic">${GOATMINI}</span><div><b>${sg(B.nextLine.sret,0)} 새 계단</b><small>고점 위 첫 개척지 · 🐐 산양 수문장</small></div><span class="need">${sg(B.nextLine.need)}</span></div>`);
+  const crown=B.cells.at(-1);
+  rows.push(`<div class="stp peak lost"><span class="ic">👑</span><div><b>고점 ${sg(crown.sret,0)}</b><small>${md(B.peakD)} · ${B.e} ${B.n}이 지키는 곳</small></div><span class="need">${sg(crown.need)}</span></div>`);
+  const steps=B.cells.slice(0,-1).reverse(); let marked=false;
+  steps.forEach((c,i)=>{
+    const below=steps[i+1];
+    if(c.got){ if(!marked){ rows.push(`<div class="here">🐹 지금 ${sg(G.sret(ixNow))}</div>`); marked=true; }
+      rows.push(`<div class="stp got"><span class="ic">✅</span><div><b>${sg(c.sret,0)} 계단</b><small>${md(c.got)} 되찾음</small></div><span class="need">탈환</span></div>`); return; }
+    const isTarget = !c.got && (!below || below.got);
+    rows.push(`<div class="stp lost ${isTarget?'target':''}"><span class="ic">${isTarget?'⚔️':'🔒'}</span><div><b>${sg(c.sret,0)} 계단</b><small>${isTarget?'다음 목표':'빼앗긴 칸'}${c.lostAgain?` · ${md(c.lostAgain)} 되찾았다가 다시 잃음`:''}</small></div><span class="need">${sg(c.need)}</span></div>`);
+  });
+  if(!marked) rows.push(`<div class="here">🐹 지금 ${sg(G.sret(ixNow))}</div>`);
+  rows.push(`<div class="floor">⬇️ 바닥 ${md(B.lowD)} · 2026 수익률 ${sg(G.sret(B.lowV))}</div>`);
+  $('tower').innerHTML=rows.join('');
+}
+$('tw-note').textContent='계단 위치는 고정이라 새 최저점이 나와도 바뀌지 않아요. 탈환은 이번 반등에서 처음 되찾은 칸만 셉니다. 계단 % = 2026 수익률';
+
+/* ── 시즌 일지 ── */
+$('sn-h').textContent=`📓 ${G.season} 시즌 일지`;
+const lineS=n=>G.sret(Math.pow(STEP,n));
+const SE=[]; G.sEvents.forEach(m=>{ const last=SE.at(-1);
+  if(m.k==='retake' && last && last.k==='retake' && last.d===m.d && last.raid===m.raid) last.ns.push(m.n); else SE.push({...m, ns:m.n!=null?[m.n]:[]}); });
+const cnt=k=>G.sEvents.filter(m=>m.k===k).length;
+$('sn-sum').innerHTML=[['⛰️','개척',cnt('new')],['⚠️','습격',cnt('raid')],['🔁','탈환',cnt('retake')],['⚔️','처치',cnt('slay')]].map(([e,n,v])=>`<span class="chip">${e} ${n} <b class="num" style="color:var(--fg)">${v}</b></span>`).join('');
+$('season').innerHTML=SE.slice().reverse().map(m=>{
+  const r=m.raid, days=r&&r.end?G.T.filter(x=>x.d>=r.start&&x.d<=r.end).length:0;
+  const [ic,t,sm] = m.k==='new' ? ['⛰️',`${m.ns.map(n=>sg(lineS(n),0)).join(' · ')} 계단 개척`,'처음 밟은 땅']
+    : m.k==='raid' ? ['⚠️',`${r.e} ${r.n} 습격`,`${md(r.peakD)} 고점 대비 −10% 돌파`]
+    : m.k==='retake' ? ['🔁',`${m.ns.slice().reverse().map(n=>sg(lineS(n),0)).join(' · ')} 계단 탈환`, m.ns.length>1?`하루에 ${m.ns.length}칸`:`${r.e} ${r.n} 상대`]
+    : ['⚔️',`${r.e} ${r.n} 처치`,`고점 탈환 · ${days}거래일 전투`];
+  return `<div class="sev k-${m.k}"><span class="d">${md(m.d)}</span><span class="ic">${ic}</span><div><b>${t}</b><small>${sm}</small></div></div>`;
+}).join('');
+
+/* ── 레벨 · 칭호 ── */
+$('lv-name').textContent=`Lv.${G.lv} ${G.tt[2]} ${G.tt[1]}`;
+const into=(G.xp-G.lo)/(G.hi-G.lo);
+$('xp-t').textContent=`${fmt(G.xp)} / ${fmt(G.hi)} XP`;
+$('xp-n').textContent=`다음 레벨까지 ${fmt(G.hi-G.xp)} XP`;
+setTimeout(()=>{ $('xp-bar').style.width=(into*100).toFixed(1)+'%'; },300);
+$('xp-m').setAttribute('aria-valuenow',Math.round(into*100));
+const earnedLife=G.life.filter(a=>a.ok);
+let eq=store.get('wcg_title'); if(!earnedLife.some(a=>a.n===eq)) eq=(earnedLife.find(a=>a.n==='폭풍 생존')||earnedLife.sort((a,b)=>b.tier-a.tier)[0]||{}).n;
+function paintTitle(){ const a=earnedLife.find(x=>x.n===eq); $('title').textContent=a?`칭호 ${a.ic} ${a.n}`:'칭호 없음'; }
+paintTitle();
+
+/* ── 퀘스트 ── */
+const qrow=(q,next)=>`<div class="q ${q.ok?'ok':''} ${next?'next':''}"><span class="ic">${q.ic}</span><div><b>${q.t}</b><small>${q.sub||''}</small>${next?'':`<div class="mini"><i style="width:${(q.p*100).toFixed(0)}%"></i></div>`}</div><span class="st">${next?'월요일 시작':q.ok?'✓ 클리어':q.v}</span></div>`;
+$('qlist').innerHTML=W.quests.map(q=>qrow(q)).join('');
+$('q-chip').textContent=`${md(W.from)}~${md(W.to)} · ${W.qDone}/3 클리어`;
+$('qnext').innerHTML=[G.nextQ,{ic:'☀️',t:'수익 낸 날 3일',sub:'5거래일 기준'},{...G.nextQ3,sub:''}].map(q=>qrow(q,true)).join('');
+$('stamps').innerHTML=G.weeks.filter(w=>w.quests).map(w=>`<div class="stamp ${w.qDone===3?'full':''}" title="${md(w.from)}~${md(w.to)} ${w.qDone}/3"><i>${'★'.repeat(w.qDone)}${'☆'.repeat(3-w.qDone)}</i>${md(w.from)}</div>`).join('');
+
+/* ── 경험치 ── */
+const XPP=[['harvest','🧺 수확 (실현)','var(--gold)'],['weekly','📆 주간 업적','var(--leaf)'],['monthly','🗓️ 월간 업적','var(--kospi)'],['life','🏆 평생 업적','var(--r3)'],['quest','📜 퀘스트','var(--muted)']];
+$('xp-chip').textContent=fmt(G.xp)+' XP';
+$('xpbar').innerHTML=XPP.map(([k,,c])=>`<i style="flex:${G.xpParts[k]};background:${c}" title="${k}"></i>`).join('');
+$('legend').innerHTML=XPP.map(([k,n,c])=>`<span class="sw" style="background:${c}"></span><span>${n}</span><span class="num">${fmt(G.xpParts[k])}</span>`).join('');
+const TT=[[1,'🌱','새싹'],[5,'🧑‍🌾','견습'],[10,'🚜','숙련'],[15,'🌾','베테랑'],[20,'🏆','명인'],[25,'👑','전설']];
+$('ladder').innerHTML=TT.map(t=>`<span class="rung ${G.tt[0]===t[0]?'on':G.lv>=t[0]?'done':''}">${t[1]} Lv.${t[0]} ${t[2]}</span>`).join('');
+
+/* ── 진열장 ── */
+const curMonthLabel=+G.curM.k.slice(5)+'월';
+function repCard(a,unit){
+  const now=a.now===true, locked=a.cnt===0;
+  return `<div class="ach ${now?'now':''} ${locked?'locked':''}"><span class="ic">${a.ic}</span><b>${a.n}</b><span class="ds">${a.d}</span>
+    <span class="meta"><span class="rar t${a.tier}">${RAR[a.tier]}</span><span class="cnt">×${a.cnt}</span><span class="muted">${a.base?`${a.base}${unit} 중 ${(a.rate*100).toFixed(0)}%`:'첫 도전'}</span></span></div>`;
+}
+function lifeCard(a){
+  if(a.hidden && !a.ok) return `<div class="ach locked secret"><span class="ic">❓</span><b>숨겨진 업적</b><span class="ds">조건은 따면 공개돼요</span><span class="meta"><span class="rar t${a.tier}">${RAR[a.tier]}</span></span></div>`;
+  const pv=Math.max(0,Math.min(1,a.p||0));
+  return `<div class="ach life ${a.ok?'got':'locked'} ${a.ok&&a.n===eq?'equip':''}" ${a.ok?`role="button" tabindex="0" data-n="${a.n}" title="눌러서 칭호로 장착"`:''}><span class="ic">${a.ic}</span><b>${a.n}${a.hidden?' 🔓':''}</b><span class="ds">${a.d}</span>
+    <span class="meta"><span class="rar t${a.tier}">${RAR[a.tier]}</span><span class="cnt">${a.v}</span></span>${a.ok||a.hidden?'':`<div class="pb"><i style="width:${(pv*100).toFixed(0)}%"></i></div>`}</div>`;
+}
+const TABS={
+  w:()=>({html:G.repW.map(a=>repCard(a,'주')).join(''), note:`${md(W.from)}~${md(W.to)} · 이번 주 ${G.repW.filter(a=>a.now).length}개 획득 · 매주 월요일에 다시 도전 · 희귀도 = 지금까지 달성한 주의 비율`}),
+  m:()=>({html:G.repM.map(a=>repCard(a,'달')).join(''), note:`${curMonthLabel} 진행 중 · 지금까지 ${G.repM.filter(a=>a.now).length}개 · 월말에 확정`}),
+  l:()=>({html:G.life.map(lifeCard).join(''), note:`${earnedLife.length}/${G.life.length}개 획득 (숨겨진 업적 ${G.life.filter(a=>a.hidden).length}개 포함) · 딴 업적을 누르면 칭호로 장착돼요`}),
+};
+let tab=store.get('wcg_tab')||'w'; if(!TABS[tab]) tab='w';
+function paint(){
+  root.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===tab));
+  const t=TABS[tab](); $('achs').innerHTML=t.html; $('tabnote').textContent=t.note;
+}
+root.querySelector('.tabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; store.set('wcg_tab',tab); paint(); });
+const equip=e=>{ const c=e.target.closest('.ach.got.life'); if(!c) return; eq=c.dataset.n; store.set('wcg_title',eq); paintTitle(); paint(); };
+$('achs').addEventListener('click',equip);
+$('achs').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); equip(e); } });
+paint();
+const wN=G.repW.reduce((s,a)=>s+a.cnt,0), mN=G.repM.reduce((s,a)=>s+a.cnt,0);
+$('ach-sum').textContent=`주간 ${wN}회 · 월간 ${mN}회 · 평생 ${earnedLife.length}개`;
+
+/* ── 도감 ── */
+const need=c=>c.g==null?null:(1.003/(1+c.g/100)-1)*100;
+$('dex').innerHTML=[['🐂','KODEX 레버리지'],['🐎','KODEX 코스닥150레버리지']].map(([e,nm])=>
+  `<div class="dex-lab">${e} ${nm}</div>`+G.dex.filter(c=>c.e===e).map(c=>{
+    const nd=need(c);
+    return c.n ? `<div class="cardx have t${c.rar}" title="${c.cell} · 첫 수확 ${md(c.first)}"><span class="em">${e}</span><span class="no">${c.no}</span><span class="x">×${c.n}</span><small>첫 수확 ${md(c.first)}</small></div>`
+               : `<div class="cardx lock t${c.rar}" title="${c.cell} · 아직 못 거둔 칸"><span class="em">${e}</span><span class="no">${c.no}</span><span>🔒</span><small>${nd!=null?'수확선 '+sg(nd,0):'빈 칸'}</small></div>`;
+  }).join('')).join('');
+$('dex-chip').textContent=`${G.dexN} / 16장`;
+
+  return G;
+}
+
 /* ════════ main ════════ */
 load().then(raw=>{
   const S = prep(raw);
@@ -1229,15 +2009,28 @@ load().then(raw=>{
   [['t-ret',L.ret],['t-alpha',alpha],['t-all',allNow]].forEach(([id,v])=>$(id).closest('.tile').dataset.tone = v>0?'up':'dn');
   $('t-dd').closest('.tile').dataset.tone = curDD<-0.05?'dn':'gold';
   $('t-dd-s').textContent = curDD<-0.05 ? `고점 ${md(peakRow.d)} · 탈환까지 ${pct((navPeak/L.nav-1)*100)}` : '🏔 지금이 신고점!';
-  // level
-  const STEP = 5000000, lv = Math.floor(real26/STEP)+1, into = real26 - (lv-1)*STEP;
+  // level — 🎮 농장 게임 XP 기준 (실패하면 예전 방식)
+  let FG = null, lv, tt, lvNext;
+  try{ FG = mountFarmGame(raw, S); }catch(e){ console.error('farm game', e); const h=document.getElementById('farmgame'); if(h) h.innerHTML='<p class="muted">농장 게임을 불러오지 못했어요.</p>'; }
+  if(FG){
+    const into = (FG.xp-FG.lo)/(FG.hi-FG.lo);
+    lv = FG.lv; tt = [FG.tt[0], FG.tt[2], FG.tt[1]]; lvNext = `다음 레벨까지 ${(FG.hi-FG.xp).toLocaleString('ko-KR')} XP`;
+    $('lv-ic').textContent = FG.tt[1];
+    $('lv-name').textContent = 'Lv.'+FG.lv+' '+FG.tt[2];
+    $('lv-xp').textContent = FG.xp.toLocaleString('ko-KR')+' XP';
+    setTimeout(()=>{ $('lv-bar').style.width = (into*100).toFixed(1)+'%'; }, 200);
+    $('lv-next').textContent = `${lvNext} · ${FG.boss.e} ${FG.boss.n} HP ${FG.boss.mode==='raid'?FG.boss.hpCells.toFixed(1)+'/'+FG.boss.total+'칸':Math.round(FG.boss.hp*100)+'%'} · 🎮 게임에서 자세히`;
+  } else {
+  const STEP = 5000000, into = real26 - Math.floor(real26/STEP)*STEP; lv = Math.floor(real26/STEP)+1;
   const titles = [[1,'새싹 농부','🌱'],[4,'견습 농부','🧑‍🌾'],[8,'숙련 농부','🚜'],[13,'베테랑 농부','🌾'],[19,'전설의 농부','👑']];
-  const tt = titles.filter(t=>lv>=t[0]).pop();
+  tt = titles.filter(t=>lv>=t[0]).pop(); lvNext = `다음 레벨까지 ${won(STEP-into)}`;
   $('lv-ic').textContent = tt[2];
   $('lv-name').textContent = 'Lv.'+lv+' '+tt[1];
   $('lv-xp').textContent = '2026 실현 '+won(real26);
   setTimeout(()=>{ $('lv-bar').style.width = (into/STEP*100).toFixed(1)+'%'; }, 200);
   $('lv-next').textContent = `다음 레벨까지 ${won(STEP-into)} 더 수확 (500만 = 1레벨)`;
+
+  }
 
   /* replay */
   replay(S);
@@ -1280,31 +2073,6 @@ load().then(raw=>{
   /* harvest */
   harvest(mReal, goal, thisM, S.monthly);
 
-  /* achievements */
-  const maxRet = Math.max(...D.map(r=>r.ret));
-  const mdd26 = Math.min(...drawdowns(S.Y26));
-  const goalMonths = Object.values(mReal).filter(v=>v>=goal).length;
-  const A = [
-    {ic:'🔥',n:'연승 장인',d:'5거래일 연속 수익',ok:longW>=5,v:`최장 ${longW}연승`,p:longW/5},
-    {ic:'🏔',n:'신고가 사냥꾼',d:'2026 신고가 10회 갱신',ok:ath>=10,v:`${ath}회 갱신`,p:ath/10},
-    {ic:'💥',n:'하루 천만',d:'하루에 1,000만 이상 수익',ok:best.pnl>=1e7,v:`최고 ${won(best.pnl,true)}`,p:best.pnl/1e7},
-    {ic:'🚀',n:'더블',d:'2026 수익률 +100% 도달',ok:maxRet>=100,v:`최고 ${pct(maxRet)}`,p:maxRet/100},
-    {ic:'🌋',n:'트리플',d:'2026 수익률 +200% 도달',ok:maxRet>=200,v:`최고 ${pct(maxRet)}`,p:maxRet/200},
-    {ic:'🧺',n:'월 천만 수확',d:'한 달 실현손익 목표 달성',ok:goalMonths>=1,v:`${goalMonths}개월 달성`,p:Math.max(...Object.values(mReal))/goal},
-    {ic:'🐢',n:'코스피 추월',d:'올해 수익률이 코스피보다 높음',ok:alpha>0,v:pp(alpha),p:alpha>0?1:0},
-    {ic:'📅',n:'100일 출석',d:'2026 거래일 100일 기록',ok:D.length>=100,v:`${D.length}거래일`,p:D.length/100},
-    {ic:'⛈',n:'폭풍 생존',d:'-30% 낙폭을 겪고도 올해 플러스',ok:mdd26<=-30&&L.ret>0,v:`올해 최대낙폭 ${pct(mdd26)}`,p:mdd26<=-30?1:mdd26/-30},
-    {ic:'🏔',n:'전고점 탈환',d:'2026 최고 NAV 다시 넘기',ok:curDD>=-0.01,v:`현재 ${pct(curDD)}`,p:L.nav/navPeak},
-    {ic:'🌾',n:'1억 수확',d:'2026 누적 실현 1억',ok:real26>=1e8,v:won(real26),p:real26/1e8},
-    {ic:'👑',n:'+300% 클럽',d:'2026 수익률 +300% 도달',ok:maxRet>=300,v:`최고 ${pct(maxRet)}`,p:(1+maxRet/100)/4},
-  ];
-  const got = A.filter(a=>a.ok).length;
-  $('ach-sub').textContent = `${A.length}개 중 ${got}개 획득 · 데이터에서 자동 계산`;
-  $('ach').innerHTML = A.map(a=>`<div class="panel a lift ${a.ok?'got':'locked'}">
-      <span class="ic">${a.ic}</span><b>${a.n}</b><span class="ds">${a.d}</span><span class="av num">${a.v}</span>
-      ${a.ok?'':`<div class="pb"><div style="width:${Math.max(0,Math.min(100,a.p*100)).toFixed(0)}%"></div></div>`}
-    </div>`).join('');
-
   /* records */
   records(S, D, traded, wins, losses, best, worst, ddFull);
 
@@ -1318,7 +2086,7 @@ load().then(raw=>{
     else if(L.pnl<0 && worstRank<=top){ k='papers'; lines=[`${won(L.pnl,true)}… 오늘은 좀 버거웠어요`, `씨앗은 남아 있어요. 내일 또 심어요`]; }
     else if(L.pnl<0){ k='leak'; lines=[`${won(L.pnl,true)} 새는 중… 그래도 밭은 그대로`]; }
     else { k='clipboard'; lines=['오늘 농사일지 정리 완료!']; }
-    MOOD.extra = [`코스피보다 ${pp(alpha)} ${alpha>0?'앞서는 중':'뒤처진 중'}`, `${cur}일 연속 ${curSign>0?'수익':'손실'}`, `Lv.${lv} ${tt[1]} · 다음 레벨까지 ${won(STEP-into)}`, `2026 누적 수확 ${won(real26)}`];
+    MOOD.extra = [`코스피보다 ${pp(alpha)} ${alpha>0?'앞서는 중':'뒤처진 중'}`, `${cur}일 연속 ${curSign>0?'수익':'손실'}`, `Lv.${lv} ${tt[1]} · ${lvNext}`, `2026 누적 수확 ${won(real26)}`];
     setMood(k, lines);
   }
 });
