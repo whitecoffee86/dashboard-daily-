@@ -653,6 +653,13 @@ h2{display:flex;align-items:center;gap:.5em}
   #pnlrace .pr-k small{font-size:.68rem}
   #pnlrace .pr-months{grid-auto-columns:minmax(124px,1fr)}
 }
+
+/* ── 재생 중 화면 흔들림 방지: 농사일지 칩 한 줄 고정 (2026-10-16) ── */
+#pnlrace .pr-head{flex-wrap:nowrap;min-width:0}
+#pnlrace .pr-date{flex:none}
+#pnlrace .pr-head .diary,#sb-diary{flex-wrap:nowrap;overflow:hidden;white-space:nowrap;height:28px;min-height:28px;min-width:0;
+  -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+#pnlrace .pr-head .diary>*,#sb-diary>*{flex:none}
 </style>
 </head>
 <body>
@@ -734,8 +741,8 @@ h2{display:flex;align-items:center;gap:.5em}
       <div class="stage-ctl">
         <button class="play" id="rp-play" type="button">▶ 처음부터 재생</button>
         <div class="ctl-group" role="group" aria-label="구간">
-          <button class="chip" data-mode="all" aria-pressed="true" type="button">2024~ 전체</button>
-          <button class="chip" data-mode="y26" aria-pressed="false" type="button">2026만</button>
+          <button class="chip" data-mode="y26" aria-pressed="true" type="button">2026</button>
+          <button class="chip" data-mode="all" aria-pressed="false" type="button">2024~ 전체</button>
         </div>
         <div class="ctl-group" role="group" aria-label="속도">
           <button class="chip" data-speed="1" aria-pressed="true" type="button">1x</button>
@@ -1608,7 +1615,7 @@ function pnlRace(S){
 /* ════════ REPLAY ════════ */
 function replay(S){
   const cv = $('rp'), ctx = cv.getContext('2d');
-  const st = {mode:'all', data:S.FULL, i:S.FULL.length-1, playing:false, speed:1, hover:-1, pops:[], acc:0};
+  const st = {mode:'y26', data:S.Y26, i:S.Y26.length-1, playing:false, speed:1, hover:-1, pops:[], acc:0};
   const C = {leaf:css('--leaf'), gold:css('--gold-hi'), kospi:css('--kospi'), muted:css('--muted'), dim:css('--dim'), line:'rgba(150,175,230,.13)', fg:css('--fg'), up:css('--up'), dn:css('--down')};
   let W=0, Hh=0, dpr=1, ev=[], yr={min:0,max:1};
   const pad = {l:8, r:58, t:18, b:24};
