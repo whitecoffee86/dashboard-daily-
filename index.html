@@ -758,7 +758,7 @@ h2{display:flex;align-items:center;gap:.5em}
   <!-- PNL RACE (실현 vs 평가, 2026-10-16) -->
   <section id="pnlrace">
     <div class="sec-head">
-      <div><span class="eyebrow">Realized vs Unrealized</span><h2><span class="hi" aria-hidden="true">💰</span>거둔 돈 vs 밭에 남은 돈</h2><p>2026년 1월부터 누적 실현(거둔 돈)과 평가손익(아직 밭에 있는 작물)이 금액으로 어떻게 움직였는지 재생해요. 금색 선과 흰 선 사이 색칠된 폭이 그날의 평가손익이에요.</p></div>
+      <div><span class="eyebrow">Realized vs Unrealized</span><h2><span class="hi" aria-hidden="true">💰</span>거둔 돈 vs 밭에 남은 돈</h2><p>2026년 1월부터 누적 실현(거둔 돈)과 평가손익(아직 밭에 있는 작물)이 금액으로 어떻게 움직였는지 재생해요. 🧺 금색 = 거둔 돈, 🌱 빨강·파랑 = 밭에 남은 돈(0선 기준), 📊 굵은 선 = 둘을 더한 총 손익.</p></div>
     </div>
     <div class="panel stage">
       <div class="stage-ctl">
@@ -1326,7 +1326,7 @@ function pnlRace(S){
   colors();
   let W=0, Hh=0, dpr=1, ev=[], yr={min:0,max:1}, narrow=false;
   const pad = {l:10, r:120, t:22, b:26};
-  const padFit = ()=>{ const k=RS(); narrow = (cv.getBoundingClientRect().width||innerWidth) < 600; pad.r=Math.round((narrow?76:132)*k); pad.t=Math.round(22*k); pad.b=Math.round(26*k); pad.l=Math.round(10*k); };
+  const padFit = ()=>{ const k=RS(); narrow = (cv.getBoundingClientRect().width||innerWidth) < 600; pad.r=Math.round((narrow?86:160)*k); pad.t=Math.round(22*k); pad.b=Math.round(26*k); pad.l=Math.round(10*k); };
   const ax = v => { const a=Math.abs(v), s=v<0?'−':(v>0?'+':''); if(a===0) return '0'; if(a>=1e8) return s+(+(a/1e8).toFixed(2))+'억'; return s+Math.round(a/1e4).toLocaleString()+'만'; };
   const short = v => { const a=Math.abs(v), s=v<0?'−':(v>0?'+':''); if(a>=1e8) return s+(a/1e8).toFixed(2)+'억'; return s+Math.round(a/1e4).toLocaleString()+'만'; };
   const sgn = v => v>0?'up':(v<0?'dn':'');
@@ -1339,6 +1339,7 @@ function pnlRace(S){
     if(data[ti].tot>0) out.push({i:ti, k:'tot', ic:'🏔', t:'총 손익 최고 '+won(data[ti].tot,true), up:true});
     if(data[bi].day>0) out.push({i:bi, k:'tot', ic:'💥', t:'최고의 날 '+won(data[bi].day,true), up:true});
     if(data[wi].day<0) out.push({i:wi, k:'tot', ic:'🥶', t:'최악의 날 '+won(data[wi].day,true), up:false});
+    let ul=0; data.forEach((p,i)=>{ if(p.un<data[ul].un) ul=i; }); if(data[ul].un<0) out.push({i:ul, k:'un', ic:'🌧', t:'평가 최저 '+won(data[ul].un,true), up:false});
     for(let i=data.length-1;i>0;i--){ if(data[i].tot<0 && data[i-1].tot>=0){ out.push({i, k:'tot', ic:'⚠️', t:'총 손익 마이너스 전환', up:true}); break; } }
     return out.sort((a,b)=>a.i-b.i);
   }
@@ -1347,7 +1348,7 @@ function pnlRace(S){
     st.data = ALL.slice(Math.max(0, n-cut));
     ev = events(st.data);
     let mn = 0, mx = 0;
-    st.data.forEach(p=>{ mn=Math.min(mn,p.tot,p.re); mx=Math.max(mx,p.tot,p.re); });
+    st.data.forEach(p=>{ mn=Math.min(mn,p.tot,p.re,p.un); mx=Math.max(mx,p.tot,p.re,p.un); });
     const span = (mx-mn)||1; yr = {min:mn-span*0.08, max:mx+span*0.12};
     $('pr-scrub').max = st.data.length-1;
   }
@@ -1363,9 +1364,9 @@ function pnlRace(S){
   // 지금까지 그릴 점들 (재생 중이면 끝점 보간)
   function pts(){
     const n = Math.floor(st.i), out = [];
-    for(let i=0;i<=n;i+=stride()) out.push({x:X(i), re:st.data[i].re, tot:st.data[i].tot});
-    if(out[out.length-1].x !== X(n)) out.push({x:X(n), re:st.data[n].re, tot:st.data[n].tot});
-    if(st.i>n && n+1<st.data.length) out.push({x:X(st.i), re:val(st.i,'re'), tot:val(st.i,'tot')});
+    for(let i=0;i<=n;i+=stride()) out.push({x:X(i), re:st.data[i].re, tot:st.data[i].tot, un:st.data[i].un});
+    if(out[out.length-1].x !== X(n)) out.push({x:X(n), re:st.data[n].re, tot:st.data[n].tot, un:st.data[n].un});
+    if(st.i>n && n+1<st.data.length) out.push({x:X(st.i), re:val(st.i,'re'), tot:val(st.i,'tot'), un:val(st.i,'un')});
     return out;
   }
 
@@ -1397,31 +1398,31 @@ function pnlRace(S){
     return {y0:y-h/2, y1:y+h/2};
   }
 
-  function draw(now){
+  function draw(now){ /* pr-v3 */
     ctx.clearRect(0,0,W,Hh);
     if(!W) return;
     const n = Math.floor(st.i), P = pts(), y0 = Y(0), k = RS();
     const xe = P[P.length-1].x, pe = {tot:val(st.i,'tot'), re:val(st.i,'re')}; pe.un = pe.tot-pe.re;
     const unC = pe.un>=0?C.up:C.dn;
-    const gridC = C.light ? 'rgba(20,30,60,.07)' : 'rgba(150,175,230,.09)';
+    const gridC = C.light ? 'rgba(20,30,60,.07)' : 'rgba(150,175,230,.08)';
+    const W_TOT = narrow?1.8:2, W_SUB = narrow?1.4:1.5;
 
-    // 끝값 알약 자리 먼저 계산 (축 라벨이 겹치면 숨김)
-    const tags = [{k:'tot', v:pe.tot, y:Y(pe.tot)}, {k:'re', v:pe.re, y:Y(pe.re)}].sort((a,b)=>a.y-b.y);
-    const gapMin = (narrow?20:24)*k; if(tags[1].y - tags[0].y < gapMin){ const m=(tags[0].y+tags[1].y)/2; tags[0].y=m-gapMin/2; tags[1].y=m+gapMin/2; }
-    tags.forEach(t=>{ t.y = Math.max(pad.t+8, Math.min(Hh-pad.b-8, t.y)); });
-    // 두 알약 사이가 넉넉하면 가운데에 평가 알약
-    if(tags[1].y - tags[0].y > gapMin*2.2) tags.push({k:'un', v:pe.un, y:(Y(pe.tot)+Y(pe.re))/2});
+    // 끝값 알약 위치 (3개, 겹치면 위아래로 벌림)
+    const tags = [{k:'tot', v:pe.tot, y:Y(pe.tot)}, {k:'re', v:pe.re, y:Y(pe.re)}, {k:'un', v:pe.un, y:Y(pe.un)}].sort((a,b)=>a.y-b.y);
+    const gapMin = (narrow?20:25)*k;
+    for(let it=0; it<3; it++){ for(let j=1;j<tags.length;j++){ if(tags[j].y - tags[j-1].y < gapMin){ const m=(tags[j].y+tags[j-1].y)/2; tags[j-1].y=m-gapMin/2; tags[j].y=m+gapMin/2; } } }
+    tags.forEach(t=>{ t.y = Math.max(pad.t+10, Math.min(Hh-pad.b-10, t.y)); });
 
-    // grid + y 라벨
+    // 격자: 실선 헤어라인, 0선만 조금 진하게
     const step = niceStep(yr.max-yr.min, narrow?4:5);
     ctx.font = `500 ${Math.round((narrow?10:11)*k)}px "IBM Plex Mono", monospace`; ctx.textBaseline='middle'; ctx.textAlign='left';
+    const atEnd = xe > W-pad.r-40*k;
     for(let v=Math.ceil(yr.min/step)*step; v<=yr.max; v+=step){
-      const y = Y(v), zero = Math.abs(v)<step*1e-6;
-      ctx.strokeStyle = zero ? (C.light?'rgba(20,30,60,.28)':'rgba(170,190,235,.32)') : gridC; ctx.lineWidth = 1;
-      if(!zero) ctx.setLineDash([2,4]);
-      ctx.beginPath(); ctx.moveTo(pad.l,Math.round(y)+.5); ctx.lineTo(W-pad.r+2,Math.round(y)+.5); ctx.stroke(); ctx.setLineDash([]);
-      if(xe > W-pad.r-40*k && tags.some(t=>Math.abs(t.y-y)<17*k)) continue;
-      ctx.fillStyle = zero ? C.muted : C.dim; ctx.fillText(ax(zero?0:v), W-pad.r+(narrow?13:18)*k, y);
+      const y = Math.round(Y(v))+.5, zero = Math.abs(v)<step*1e-6;
+      ctx.strokeStyle = zero ? (C.light?'rgba(20,30,60,.30)':'rgba(170,190,235,.30)') : gridC; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r+4,y); ctx.stroke();
+      if(atEnd && tags.some(t=>Math.abs(t.y-y)<(narrow?22:18)*k)) continue;
+      ctx.fillStyle = zero ? C.muted : C.dim; ctx.fillText(ax(zero?0:v), W-pad.r+(narrow?12:16)*k, y);
     }
     // 월 라벨
     ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font = `500 ${Math.round((narrow?10:11)*k)}px "IBM Plex Sans KR", sans-serif`;
@@ -1429,101 +1430,86 @@ function pnlRace(S){
     st.data.forEach((p,i)=>{ const m=p.d.slice(5,7); if(m===lastM) return; lastM=m; const x=X(i); if(x-lastX < (narrow?34:40)*k) return; lastX=x;
       ctx.fillStyle=C.dim; ctx.fillText(+m+'월', x+2, Hh-7*k); });
     // 수확한 날 눈금
-    for(let i=0;i<=n;i++){ const p=st.data[i]; if(!(p.dre>0)) continue; ctx.fillStyle=rgba(C.gold,.75); ctx.fillRect(Math.round(X(i))-0.5, Hh-pad.b-5*k, 1.5, 4*k); }
+    for(let i=0;i<=n;i++){ const p=st.data[i]; if(!(p.dre>0)) continue; ctx.fillStyle=rgba(C.gold,.6); ctx.fillRect(Math.round(X(i))-0.5, Hh-pad.b-5*k, 1.5, 4*k); }
 
-    // ① 실현 면적 (0 → 실현선), 금색이 아래로 옅어짐
-    ctx.beginPath(); ctx.moveTo(P[0].x, y0); P.forEach(q=>ctx.lineTo(q.x, Y(q.re))); ctx.lineTo(xe, y0); ctx.closePath();
-    const gg = ctx.createLinearGradient(0, Y(Math.max(...P.map(q=>q.re))), 0, y0);
-    gg.addColorStop(0, rgba(C.gold, C.light?.20:.16)); gg.addColorStop(1, rgba(C.gold, .02));
-    ctx.fillStyle = gg; ctx.fill();
+    const path = key => { ctx.beginPath(); P.forEach((q,j)=> j?ctx.lineTo(q.x,Y(q[key])):ctx.moveTo(q.x,Y(q[key]))); };
+    // ① 평가 아래 옅은 색 (한 겹만)
+    path('un'); ctx.lineTo(xe, y0); ctx.lineTo(P[0].x, y0); ctx.closePath();
+    ctx.save(); ctx.clip();
+    const wa = C.light ? .08 : .10;
+    ctx.fillStyle = rgba(C.up, wa); ctx.fillRect(0, 0, W, y0);
+    ctx.fillStyle = rgba(C.dn, wa); ctx.fillRect(0, y0, W, Hh-y0);
+    ctx.restore();
+    // ② 선: 테두리·빛번짐 없이 얇게
+    ctx.lineJoin='round'; ctx.lineCap='round';
+    ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,y0); ctx.clip(); path('un'); ctx.strokeStyle=C.up; ctx.lineWidth=W_SUB; ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(0,y0,W,Hh-y0); ctx.clip(); path('un'); ctx.strokeStyle=C.dn; ctx.lineWidth=W_SUB; ctx.stroke(); ctx.restore();
+    path('re'); ctx.strokeStyle=C.gold; ctx.lineWidth=W_SUB; ctx.stroke();
+    path('tot'); ctx.strokeStyle=C.fg; ctx.lineWidth=W_TOT; ctx.stroke();
 
-    // ② 평가 밴드 (실현선 ↔ 총 손익선), 부호가 바뀌는 곳에서 잘라 색 나눔
-    const runs = []; let cur = null;
-    for(let j=0;j<P.length;j++){
-      const q = P[j], u = q.tot-q.re, sg = u>=0;
-      if(!cur){ cur = {sg, a:[q]}; continue; }
-      if(sg !== cur.sg){ const pq = P[j-1], pu = pq.tot-pq.re, t = pu/(pu-u);
-        const cx = pq.x+(q.x-pq.x)*t, cre = pq.re+(q.re-pq.re)*t, c = {x:cx, re:cre, tot:cre};
-        cur.a.push(c); runs.push(cur); cur = {sg, a:[c, q]}; }
-      else cur.a.push(q);
-    }
-    if(cur) runs.push(cur);
-    runs.forEach(rn=>{ if(rn.a.length<2) return;
-      ctx.beginPath(); rn.a.forEach((q,j)=> j?ctx.lineTo(q.x,Y(q.tot)):ctx.moveTo(q.x,Y(q.tot)));
-      for(let j=rn.a.length-1;j>=0;j--) ctx.lineTo(rn.a[j].x, Y(rn.a[j].re));
-      ctx.closePath(); ctx.fillStyle = rgba(rn.sg?C.up:C.dn, C.light?.16:.22); ctx.fill(); });
-
-    // ③ 선 (패널색 테두리 + 본선, 빛번짐 없음)
-    const stroke = (key, col, w) => {
-      ctx.beginPath(); P.forEach((q,j)=> j?ctx.lineTo(q.x,Y(q[key])):ctx.moveTo(q.x,Y(q[key])));
-      ctx.lineJoin='round'; ctx.lineCap='round';
-      ctx.save(); ctx.strokeStyle=C.panel; ctx.globalAlpha=.9; ctx.lineWidth=w+3.5; ctx.stroke(); ctx.restore();
-      ctx.strokeStyle=col; ctx.lineWidth=w; ctx.stroke();
-    };
-    stroke('re', C.gold, narrow?2:2.4);
-    stroke('tot', C.fg, narrow?2:2.6);
-
-    // ④ 끝: 평가 브래킷 + 점 + 알약
-    const yRe = Y(pe.re), yTot = Y(pe.tot);
-    if(Math.abs(yRe-yTot) > 14*k){
-      const bx = xe + (narrow?6:8)*k;
-      ctx.strokeStyle = unC; ctx.lineWidth = 1.6; ctx.setLineDash([3,3]);
-      ctx.beginPath(); ctx.moveTo(bx, yRe); ctx.lineTo(bx, yTot); ctx.stroke(); ctx.setLineDash([]);
-      ctx.beginPath(); ctx.moveTo(bx-3,yRe); ctx.lineTo(bx+3,yRe); ctx.moveTo(bx-3,yTot); ctx.lineTo(bx+3,yTot); ctx.stroke();
-    }
-    [[yRe,C.gold],[yTot,C.fg]].forEach(([y,c])=>{ ctx.beginPath(); ctx.arc(xe,y,narrow?3.6:4.6,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2.2; ctx.strokeStyle=C.panel; ctx.stroke(); });
-    if(st.playing){ ctx.font=`${Math.round(16*k)}px serif`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('🧺', xe, yRe-7); }
+    // ③ 끝점 (표면색 링) + 알약
+    const ends = [['un',unC],['re',C.gold],['tot',C.fg]];
+    ends.forEach(([key,c])=>{ ctx.beginPath(); ctx.arc(xe,Y(pe[key]),narrow?3.4:4,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=C.panel; ctx.stroke(); });
+    if(st.playing){ ctx.font=`${Math.round(15*k)}px serif`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('🧺', xe, Y(pe.re)-7); }
     tags.forEach(t=>{
-      const x = xe+(narrow?11:16)*k;
-      if(t.k==='un'){ const txt = (narrow?'':'🌱 ')+(narrow ? short(t.v) : won(t.v,true));
-        ctx.font = `700 ${Math.round((narrow?10.5:12)*k)}px "IBM Plex Mono", monospace`;
-        const tw = ctx.measureText(txt).width, hh = Math.round((narrow?18:22)*k), w = tw + (narrow?10:14);
-        ctx.fillStyle = C.light ? '#fff' : 'rgba(10,16,30,.92)'; ctx.strokeStyle = unC; ctx.lineWidth = 1.4;
-        rr(x, t.y-hh/2, w, hh, hh/2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = unC; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(txt, x+(w-tw)/2, t.y+0.5); return; }
+      const col = t.k==='re' ? C.gold : t.k==='tot' ? C.fg : unC;
+      const ic = t.k==='re' ? '🧺' : t.k==='tot' ? '📊' : '🌱';
       const txt = narrow ? short(t.v) : won(t.v,true);
-      pill(x, t.y, txt, t.k==='re' ? C.gold : C.fg, C.panel, 'left');
+      const x = xe + (narrow?9:12)*k, fs = Math.round((narrow?10.5:12)*k), h = Math.round((narrow?19:23)*k);
+      ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`; const tw = ctx.measureText(txt).width;
+      ctx.font = `${fs}px serif`; const iw = narrow ? 0 : ctx.measureText(ic).width + 4;
+      const w = tw + iw + (narrow?12:16);
+      // 끝점과 알약 사이 짧은 연결선 (벌어졌을 때)
+      const ly = Y(pe[t.k]); if(Math.abs(ly - t.y) > 3){ ctx.strokeStyle = col; ctx.globalAlpha=.5; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(xe+4, ly); ctx.lineTo(x, t.y); ctx.stroke(); ctx.globalAlpha=1; }
+      ctx.fillStyle = C.panel; rr(x, t.y-h/2, w, h, h/2); ctx.fill();
+      ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.stroke();
+      ctx.textBaseline='middle'; ctx.textAlign='left';
+      let tx = x + (narrow?6:8);
+      if(!narrow){ ctx.font = `${fs}px serif`; ctx.fillText(ic, tx, t.y+0.5); tx += iw; }
+      ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`; ctx.fillStyle = C.fg; ctx.fillText(txt, tx, t.y+0.5);
     });
 
-    // ⑤ 이벤트
+    // ④ 이벤트
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    ev.forEach(e=>{ if(e.i>n) return; if(narrow && e.ic==='💥') return;
+    ev.forEach(e=>{ if(e.i>n) return; if(narrow && (e.ic==='💥' || e.ic==='🌧')) return;
       const x=X(e.i), y=Y(st.data[e.i][e.k]); ctx.font=`${Math.round(13*k)}px serif`;
-      ctx.fillText(e.ic, x, e.up ? y-13*k : y+13*k); });
+      ctx.fillText(e.ic, x, e.up ? y-12*k : y+12*k); });
     st.pops = st.pops.filter(q=>now-q.t0<2200);
     st.pops.forEach(q=>{
-      const age=(now-q.t0)/2200, a = age<.15? age/.15 : 1-Math.max(0,(age-.6)/.4);
-      const x = Math.min(W-pad.r-80, Math.max(pad.l+80, X(q.i))), y = Math.max(pad.t+14, Y(st.data[q.i][q.k]) - 34*k - age*14);
-      ctx.globalAlpha = Math.max(0,a);
+      const age=(now-q.t0)/2200, al = age<.15? age/.15 : 1-Math.max(0,(age-.6)/.4);
+      const x = Math.min(W-pad.r-80, Math.max(pad.l+80, X(q.i))), yb = Y(st.data[q.i][q.k]);
+      const y = q.up ? Math.max(pad.t+14, yb - 34*k - age*14) : Math.min(Hh-pad.b-14, yb + 34*k + age*14);
+      ctx.globalAlpha = Math.max(0,al);
       ctx.font = `600 ${Math.round(12.5*k)}px "IBM Plex Sans KR", sans-serif`;
       const txt = q.ic+' '+q.t, tw = ctx.measureText(txt).width+18;
-      ctx.fillStyle = C.light ? 'rgba(255,255,255,.96)' : 'rgba(7,16,34,.92)'; ctx.strokeStyle=rgba(C.gold,.6); ctx.lineWidth=1;
+      ctx.fillStyle = C.light ? 'rgba(255,255,255,.97)' : 'rgba(7,16,34,.93)'; ctx.strokeStyle = C.light?'rgba(20,30,60,.16)':'rgba(150,175,230,.25)'; ctx.lineWidth=1;
       rr(x-tw/2, y-14, tw, 28, 14); ctx.fill(); ctx.stroke();
       ctx.fillStyle = C.fg; ctx.textAlign='center'; ctx.fillText(txt, x, y+0.5); ctx.globalAlpha=1;
     });
 
-    // ⑥ 호버: 세로선 + 점 + 툴팁 카드
+    // ⑤ 호버: 세로선 + 점 3개 + 툴팁 카드
     if(st.hover>=0 && !st.playing){
       const h=st.data[st.hover], x=X(st.hover);
-      ctx.strokeStyle = C.light ? 'rgba(20,30,60,.25)' : 'rgba(234,240,252,.28)'; ctx.lineWidth=1;
+      ctx.strokeStyle = C.light ? 'rgba(20,30,60,.22)' : 'rgba(234,240,252,.25)'; ctx.lineWidth=1;
       ctx.beginPath(); ctx.moveTo(Math.round(x)+.5,pad.t); ctx.lineTo(Math.round(x)+.5,Hh-pad.b); ctx.stroke();
-      [[h.re,C.gold],[h.tot,C.fg]].forEach(([v,c])=>{ ctx.beginPath(); ctx.arc(x,Y(v),4.2,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=C.panel; ctx.stroke(); });
+      [[h.un,h.un>=0?C.up:C.dn],[h.re,C.gold],[h.tot,C.fg]].forEach(([v,c])=>{ ctx.beginPath(); ctx.arc(x,Y(v),4,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=C.panel; ctx.stroke(); });
       const rows = [['📊 총 손익', h.tot, C.fg], ['🧺 실현', h.re, C.gold], ['🌱 평가', h.un, h.un>=0?C.up:C.dn]];
-      const fs = Math.round((narrow?11:12)*k), lh = fs+7;
+      const fs = Math.round((narrow?11:12)*k), lh = fs+8;
       ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`;
       const wl = Math.max(...rows.map(r=>ctx.measureText(r[0]).width));
       ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`;
       const wv = Math.max(...rows.map(r=>ctx.measureText(won(r[1],true)).width));
-      const bw = wl+wv+34, bh = lh*4+10;
+      const bw = wl+wv+44, bh = lh*4+10;
       let bx = x+14; if(bx+bw > W-pad.r) bx = x-14-bw; bx = Math.max(pad.l, bx);
       const by = Math.max(pad.t, Math.min(Hh-pad.b-bh, Y(h.tot)-bh/2));
-      ctx.fillStyle = C.light ? 'rgba(255,255,255,.97)' : 'rgba(12,18,32,.94)'; ctx.strokeStyle = C.light?'rgba(20,30,60,.14)':'rgba(150,175,230,.22)'; ctx.lineWidth=1;
+      ctx.fillStyle = C.light ? 'rgba(255,255,255,.97)' : 'rgba(12,18,32,.95)'; ctx.strokeStyle = C.light?'rgba(20,30,60,.14)':'rgba(150,175,230,.22)'; ctx.lineWidth=1;
       rr(bx,by,bw,bh,10); ctx.fill(); ctx.stroke();
       ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`; ctx.fillStyle = C.muted;
       ctx.fillText(md(h.d), bx+12, by+5+lh/2);
       rows.forEach((r,j)=>{ const yy = by+5+lh*(j+1)+lh/2;
-        ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`; ctx.fillStyle = C.muted; ctx.textAlign='left'; ctx.fillText(r[0], bx+12, yy);
-        ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`; ctx.fillStyle = r[2]; ctx.textAlign='right'; ctx.fillText(won(r[1],true), bx+bw-12, yy); });
+        ctx.fillStyle = r[2]; ctx.beginPath(); ctx.arc(bx+15, yy, 3.5, 0, 7); ctx.fill();
+        ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`; ctx.fillStyle = C.muted; ctx.textAlign='left'; ctx.fillText(r[0], bx+24, yy);
+        ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`; ctx.fillStyle = C.fg; ctx.textAlign='right'; ctx.fillText(won(r[1],true), bx+bw-12, yy); });
     }
   }
   function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
