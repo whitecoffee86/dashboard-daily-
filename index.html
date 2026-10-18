@@ -915,24 +915,73 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--gold-hi);outl
 .season i.now{outline:2px solid var(--gold-hi);outline-offset:1px}
 .season i.w5{background:var(--ok)} .season i.w3{background:color-mix(in srgb,var(--ok) 55%,var(--panel3))} .season i.w1{background:color-mix(in srgb,var(--bad) 55%,var(--panel3))} .season i.dead{background:var(--bad)}
 
-/* 조커 */
-.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.jk{position:relative;display:grid;grid-template-columns:2.6rem minmax(0,1fr);gap:2px 10px;padding:10px 12px;border-radius:14px;background:var(--card);border:2px solid var(--card-edge);min-width:0;transition:transform .18s,box-shadow .18s}
-.jk .e{grid-row:span 3;font-size:2rem;line-height:1;align-self:center;text-align:center}
-.jk b{font-weight:700;font-size:.93rem}
-.jk .d{font-size:.77rem;color:var(--muted);line-height:1.35}
-.jk .ft{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;grid-column:2}
-.jk.r0{border-color:var(--r0)} .jk.r1{border-color:var(--r1)} .jk.r2{border-color:var(--r2)} .jk.r3{border-color:var(--r3)}
-.rar{font-size:.67rem;font-weight:700;padding:1px 6px;border-radius:5px;border:1px solid currentColor}
+/* 조커: 그림 카드 */
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.jk{position:relative;display:flex;flex-direction:column;border-radius:16px;background:var(--card);border:2px solid var(--card-edge);min-width:0;overflow:hidden;transition:transform .18s,box-shadow .18s;box-shadow:var(--shadow)}
+.jk .art{position:relative;height:6.2rem;display:grid;place-items:center;overflow:hidden;background:radial-gradient(120% 100% at 50% 0%,var(--ra,rgba(160,170,185,.35)),transparent 70%),var(--panel2)}
+.jk .art .e{font-size:3.1rem;line-height:1;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transition:transform .2s}
+.jk:hover .art .e{transform:scale(1.08) rotate(-4deg)}
+.jk .art .lv{position:absolute;top:8px;left:8px}
+.jk .art .rar{position:absolute;top:8px;right:8px;background:var(--card)}
+.jk.r1 .art::after,.jk.r2 .art::after,.jk.r3 .art::after{content:"";position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.28) 50%,transparent 60%);animation:shine 3.6s ease-in-out infinite}
+.jk.r3 .art::after{animation-duration:2.4s}
+@keyframes shine{0%{transform:translateX(-60%)}60%,100%{transform:translateX(60%)}}
+.jk .body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
+.jk b{font-weight:700;font-size:.95rem}
+.jk .d{font-size:.78rem;color:var(--muted);line-height:1.35}
+.jk .ft{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.jk.r0{border-color:var(--r0);--ra:rgba(150,160,175,.35)} .jk.r1{border-color:var(--r1);--ra:rgba(90,162,255,.40)} .jk.r2{border-color:var(--r2);--ra:rgba(185,140,255,.45)} .jk.r3{border-color:var(--r3);--ra:rgba(242,199,95,.55)}
+.rar{font-size:.66rem;font-weight:700;padding:1px 6px;border-radius:5px;border:1px solid currentColor}
 .rar.r0{color:var(--r0)} .rar.r1{color:var(--r1)} .rar.r2{color:var(--r2)} .rar.r3{color:var(--r3)}
-.lv{font-family:var(--mono);font-size:.7rem;font-weight:600;padding:1px 6px;border-radius:5px;background:var(--gold-soft);color:var(--gold-hi)}
-.jk.empty{border-style:dashed;background:transparent;display:grid;place-items:center;min-height:5rem;color:var(--dim);font-size:.85rem;grid-template-columns:1fr}
-.jk.fire{transform:translateY(-6px) rotate(-1.5deg);box-shadow:0 10px 26px -10px var(--gold)}
-.jk.sealed{opacity:.45}
-.jk.sealed::after{content:"🔒 봉인";position:absolute;top:6px;right:8px;font-size:.7rem;font-weight:700;color:var(--bad)}
-.pop{position:absolute;top:-12px;right:8px;font-family:var(--mono);font-weight:700;font-size:.92rem;padding:2px 8px;border-radius:8px;color:#fff;animation:pop .9s ease-out both;pointer-events:none}
+.lv{font-family:var(--mono);font-size:.7rem;font-weight:700;padding:1px 7px;border-radius:6px;background:var(--gold);color:#1a1405}
+.jk.empty{border-style:dashed;background:transparent;display:grid;place-items:center;min-height:9rem;color:var(--dim);font-size:.85rem;box-shadow:none}
+.jk.empty span{font-size:1.6rem;opacity:.5}
+.jk.fire{transform:translateY(-8px) rotate(-1.5deg);box-shadow:0 14px 30px -10px var(--gold)}
+.jk.sealed{opacity:.5}
+.jk.sealed::before{content:"🔒 봉인";position:absolute;z-index:2;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-8deg);font-weight:800;font-size:.9rem;color:#fff;background:var(--bad);padding:3px 10px;border-radius:8px}
+.pop{position:absolute;z-index:3;top:8px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-weight:800;font-size:1.05rem;padding:3px 10px;border-radius:9px;color:#fff;animation:pop 1s ease-out both;pointer-events:none;white-space:nowrap}
 .pop.chips{background:var(--chip)} .pop.mult,.pop.x{background:var(--mult)}
-@keyframes pop{0%{opacity:0;transform:translateY(8px) scale(.7)}25%{opacity:1;transform:translateY(-2px) scale(1.1)}100%{opacity:0;transform:translateY(-16px)}}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,10px) scale(.7)}25%{opacity:1;transform:translate(-50%,-2px) scale(1.15)}100%{opacity:0;transform:translate(-50%,-18px)}}
+
+/* 대결 무대 */
+.arena{position:relative;border-radius:18px;overflow:hidden;padding:16px 16px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:8px;
+  background:radial-gradient(90% 120% at 15% 100%,rgba(242,199,95,.18),transparent 60%),radial-gradient(90% 120% at 85% 100%,rgba(255,100,112,.16),transparent 60%),linear-gradient(180deg,var(--panel),var(--felt));border:1px solid var(--line)}
+.arena::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.18));pointer-events:none}
+.fighter{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
+.say{position:relative;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:7px 12px;font-size:.84rem;max-width:28ch;line-height:1.4;box-shadow:var(--shadow)}
+.say::after{content:"";position:absolute;bottom:-7px;left:50%;width:12px;height:12px;background:var(--card);border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);transform:translateX(-50%) rotate(45deg)}
+.qk{width:min(170px,30vw);aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(0,0,0,.35));animation:bob 2.8s ease-in-out infinite}
+.bossbox{width:min(190px,32vw)}
+.boss-svg{width:100%;height:auto;display:block;overflow:visible}
+.bossbox .mood-hurt,.bossbox .mood-smug{display:none}
+.bossbox.m-hurt .mood-angry,.bossbox.m-smug .mood-angry{display:none}
+.bossbox.m-hurt .mood-hurt,.bossbox.m-smug .mood-smug{display:inline}
+.bossbox.m-angry .boss-svg{animation:breathe 3.2s ease-in-out infinite}
+.bossbox.m-hurt .boss-svg{animation:hit .55s ease-out .4s 3}
+.bossbox.m-smug .boss-svg{animation:hop 1.4s ease-in-out infinite}
+.bname{font-family:var(--display);font-size:1.15rem}
+.bname small{display:block;font-family:var(--body);font-size:.74rem;color:var(--muted)}
+.vs{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding-bottom:3.6rem}
+.vs span{font-family:var(--display);font-size:2.2rem;color:var(--gold-hi);text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.vs small{font-size:.74rem;color:var(--muted);white-space:nowrap}
+.vs .res{font-family:var(--display);font-size:1.1rem;padding:2px 10px;border-radius:8px;border:2px solid currentColor;transform:rotate(-6deg)}
+.vs .res.ok{color:var(--ok)} .vs .res.no{color:var(--bad)}
+@keyframes bob{50%{transform:translateY(-6px)}}
+@keyframes breathe{50%{transform:scale(1.025,.985)}}
+@keyframes hit{0%,100%{transform:none}20%{transform:translateX(-8px) rotate(-3deg)}45%{transform:translateX(7px) rotate(2deg)}70%{transform:translateX(-3px)}}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
+
+/* 개막 전 리플레이 */
+.rp-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.rp-grid{display:grid;grid-template-columns:8.5rem minmax(0,1fr);gap:14px;align-items:center}
+.rp-boss{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.rp-boss .bossbox{width:7.5rem}
+.rp-jk{display:flex;gap:6px;flex-wrap:wrap}
+.rp-jk span{font-size:1.4rem;padding:4px 8px;border-radius:10px;background:var(--panel2)}
+.rp-jk span small{font-family:var(--mono);font-size:.62rem;font-weight:700;color:var(--gold-hi);margin-left:2px}
+.rp-bar{height:6px;border-radius:9px;background:var(--panel3);overflow:hidden}
+.rp-bar i{display:block;height:100%;background:var(--gold);transition:width .3s}
+.rp-log{font-size:.8rem;color:var(--muted);min-height:1.2em}
 
 /* 무대 */
 .stage{padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
@@ -1013,6 +1062,10 @@ details summary{cursor:pointer;font-family:var(--display);font-size:1.12rem}
 }
 @media (max-width:620px){
   .slots,.offers{grid-template-columns:minmax(0,1fr)}
+  .jk{flex-direction:row} .jk .art{width:5.2rem;height:auto;min-height:5.6rem;flex:0 0 auto} .jk .art .e{font-size:2.4rem} .jk .art .rar{top:auto;bottom:6px;right:auto;left:50%;transform:translateX(-50%)}
+  .jk.empty{min-height:3.4rem}
+  .arena{padding:12px 10px 10px} .say{font-size:.74rem;padding:5px 8px} .vs span{font-size:1.5rem} .vs{padding-bottom:2.6rem}
+  .rp-grid{grid-template-columns:minmax(0,1fr)} .rp-boss{flex-direction:row;justify-content:center} .rp-boss .bossbox{width:5rem}
   .hud{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hud .stat:last-child{grid-column:1/-1}
   .pc{width:4rem;height:5.5rem}
@@ -1025,6 +1078,11 @@ details summary{cursor:pointer;font-family:var(--display);font-size:1.12rem}
 @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
 </style>
 <div class="stack">
+  <section class="arena" id="arena" aria-label="이번 주 대결">
+    <div class="fighter"><div class="say" id="say-me"></div><img class="qk" id="qk" alt="주식농부 쿼카"></div>
+    <div class="vs" id="vs"><span>VS</span><small id="vs-sub"></small></div>
+    <div class="fighter"><div class="say" id="say-boss"></div><div class="bossbox m-angry" id="bossbox"></div><div class="bname" id="bname"></div></div>
+  </section>
   <section class="hud" aria-label="게임 상태">
     <div class="panel stat"><small>시즌 · 런 · 주차</small><b id="h-run"></b></div>
     <div class="panel stat"><small>하트</small><b id="h-heart"></b></div>
@@ -1037,6 +1095,7 @@ details summary{cursor:pointer;font-family:var(--display);font-size:1.12rem}
     <div class="slots" id="slots"></div>
   </section>
   <section class="panel stage" id="stage" aria-live="polite"></section>
+  <section class="panel stage" id="replay" hidden aria-label="개막 전 리플레이"></section>
   <section class="panel stage" id="hist-sec" hidden>
     <div class="sec-h"><h3>📜 지난 주 기록</h3><span class="note" id="hist-note"></span></div>
     <div class="hist" id="hist"></div>
@@ -1729,7 +1788,176 @@ const API = {SLOTS:3, ALLOW:2, DAYPAY:1, BOSSPAY:4, UPCOST:L=>4*L, isoWeek, next
 if(typeof module!=='undefined') module.exports=API; else root.QDeck=API;
 })(window);
 
-/* deck-game v1 — 🃏 쿼카의 농기구 덱 (2026-10-18). 엔진 QDeck + 장부(farmGame의 계단 산·도감) */
+/* 보스 일러스트 5종 — 모두 viewBox 0 0 220 230, 표정 그룹 .mood-angry / .mood-hurt / .mood-smug */
+const BOSS_ART = {
+bear: `<svg class="boss-svg" viewBox="0 0 260 280" overflow="visible" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="베어킹">
+  <defs>
+    <radialGradient id="bk-fur" cx="45%" cy="35%" r="75%"><stop offset="0" stop-color="#6b4630"/><stop offset=".6" stop-color="#4a2f20"/><stop offset="1" stop-color="#2b1a12"/></radialGradient>
+    <radialGradient id="bk-head" cx="42%" cy="32%" r="70%"><stop offset="0" stop-color="#7a5138"/><stop offset=".65" stop-color="#523424"/><stop offset="1" stop-color="#2f1d14"/></radialGradient>
+    <radialGradient id="bk-belly" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#b98a62"/><stop offset="1" stop-color="#8a6243"/></radialGradient>
+    <linearGradient id="bk-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".55" stop-color="#e2a93a"/><stop offset="1" stop-color="#a8721c"/></linearGradient>
+    <linearGradient id="bk-arrow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cb6ff"/><stop offset="1" stop-color="#2a6fd6"/></linearGradient>
+  </defs>
+  <ellipse cx="130" cy="266" rx="88" ry="10" fill="#000" opacity=".28"/>
+  <!-- 몸 -->
+  <path d="M60 250 C40 214 44 160 78 136 C102 120 158 120 182 136 C216 160 220 214 200 250 Z" fill="url(#bk-fur)"/>
+  <ellipse cx="130" cy="206" rx="46" ry="44" fill="url(#bk-belly)"/>
+  <path d="M112 186 q6 -6 12 0 M136 196 q6 -6 12 0 M118 214 q6 -6 12 0" stroke="#7a553a" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".55"/>
+  <!-- 다리 -->
+  <ellipse cx="88" cy="252" rx="28" ry="15" fill="#3a251a"/><ellipse cx="172" cy="252" rx="28" ry="15" fill="#3a251a"/>
+  <g fill="#c9a07c" opacity=".9"><circle cx="78" cy="252" r="4"/><circle cx="88" cy="248" r="4"/><circle cx="98" cy="252" r="4"/><circle cx="162" cy="252" r="4"/><circle cx="172" cy="248" r="4"/><circle cx="182" cy="252" r="4"/></g>
+  <!-- 팔 -->
+  <path d="M66 156 C40 170 34 200 48 214 C58 222 70 214 72 200 C74 186 80 176 86 168 Z" fill="#45291c"/>
+  <path d="M184 146 C198 140 214 140 220 148 C226 158 218 166 208 162 C200 158 192 160 184 166 Z" fill="#45291c"/>
+  <!-- 🔻 하락 화살표 지팡이 -->
+  <g class="bk-staff">
+    <rect x="211" y="40" width="10" height="170" rx="5" fill="#3b2a1e"/>
+    <path d="M190 200 L216 256 L242 200 L225 200 L225 160 L207 160 L207 200 Z" fill="url(#bk-arrow)" stroke="#173a73" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M212 168 L212 204" stroke="#cfe4ff" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  </g>
+  <circle cx="214" cy="150" r="15" fill="#3d261a"/>
+  <!-- 머리 -->
+  <g class="bk-head">
+    <circle cx="74" cy="64" r="24" fill="#3e271b"/><circle cx="74" cy="64" r="12" fill="#a8705a"/>
+    <circle cx="186" cy="64" r="24" fill="#3e271b"/><circle cx="186" cy="64" r="12" fill="#a8705a"/>
+    <ellipse cx="130" cy="98" rx="66" ry="58" fill="url(#bk-head)"/>
+    <!-- 왕관 -->
+    <g class="bk-crown">
+      <path d="M92 50 L100 18 L116 40 L130 10 L144 40 L160 18 L168 50 Z" fill="url(#bk-gold)" stroke="#8a5a12" stroke-width="2.5" stroke-linejoin="round"/>
+      <rect x="90" y="46" width="80" height="12" rx="4" fill="url(#bk-gold)" stroke="#8a5a12" stroke-width="2.5"/>
+      <circle cx="130" cy="52" r="4.5" fill="#3182f6"/><circle cx="108" cy="52" r="3.5" fill="#ff5f5f"/><circle cx="152" cy="52" r="3.5" fill="#ff5f5f"/>
+      <circle cx="130" cy="12" r="3.5" fill="#fff3c4"/>
+    </g>
+    <!-- 주둥이 -->
+    <ellipse cx="130" cy="120" rx="34" ry="25" fill="#b88760"/>
+    <ellipse cx="130" cy="106" rx="11" ry="8" fill="#1d120c"/>
+    <ellipse cx="127" cy="103" rx="3.5" ry="2" fill="#fff" opacity=".5"/>
+    <!-- 화난 표정 -->
+    <g class="mood-angry">
+      <path d="M92 72 L120 84" stroke="#1d120c" stroke-width="7" stroke-linecap="round"/>
+      <path d="M168 72 L140 84" stroke="#1d120c" stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="108" cy="92" rx="8" ry="7" fill="#fff4e6"/><circle cx="110" cy="93" r="4.5" fill="#d93636"/><circle cx="111" cy="92" r="1.5" fill="#fff"/>
+      <ellipse cx="152" cy="92" rx="8" ry="7" fill="#fff4e6"/><circle cx="150" cy="93" r="4.5" fill="#d93636"/><circle cx="151" cy="92" r="1.5" fill="#fff"/>
+      <path d="M114 128 Q130 120 146 128" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M118 126 l3 8 l3 -9 Z M136 125 l3 9 l3 -8 Z" fill="#fff"/>
+    </g>
+    <!-- 맞았을 때 표정 -->
+    <g class="mood-hurt">
+      <path d="M99 86 L115 93 L99 100" stroke="#1d120c" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M161 86 L145 93 L161 100" stroke="#1d120c" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M116 134 Q123 124 130 134 Q137 124 144 134" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M176 70 q6 10 0 14 q-6 -4 0 -14 Z" fill="#8fd0ff"/>
+    </g>
+    <!-- 회복했을 때 표정 -->
+    <g class="mood-smug">
+      <path d="M96 80 L120 84" stroke="#1d120c" stroke-width="6" stroke-linecap="round"/>
+      <path d="M164 80 L140 84" stroke="#1d120c" stroke-width="6" stroke-linecap="round"/>
+      <path d="M100 94 q8 -6 16 0" stroke="#1d120c" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M144 94 q8 -6 16 0" stroke="#1d120c" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M112 126 Q130 142 148 124" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M120 130 l3 7 l3 -6 Z M134 131 l3 6 l3 -7 Z" fill="#fff"/>
+    </g>
+  </g>
+</svg>`,
+wolf: `<svg viewBox="0 0 220 230" class="boss-svg" role="img" aria-label="하락 늑대">
+ <defs><linearGradient id="wf-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9aa3b3"/><stop offset="1" stop-color="#5c6474"/></linearGradient>
+ <linearGradient id="wf-h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9b1bf"/><stop offset="1" stop-color="#6b7383"/></linearGradient></defs>
+ <ellipse cx="110" cy="218" rx="72" ry="9" fill="#000" opacity=".25"/>
+ <path d="M168 196 C206 186 214 150 196 132 C190 158 176 170 156 176 Z" fill="#6b7383"/>
+ <path d="M56 214 C46 176 58 140 84 128 L136 128 C162 140 174 176 164 214 Z" fill="url(#wf-f)"/>
+ <path d="M88 214 C84 186 94 160 110 152 C126 160 136 186 132 214 Z" fill="#dfe3e9"/>
+ <ellipse cx="80" cy="214" rx="20" ry="9" fill="#4d5462"/><ellipse cx="140" cy="214" rx="20" ry="9" fill="#4d5462"/>
+ <path d="M96 140 L110 166 L124 140" fill="none" stroke="#2f6fd6" stroke-width="5" stroke-linejoin="round"/>
+ <path d="M101 160 L110 178 L119 160 Z" fill="#3b82f6" stroke="#173a73" stroke-width="2"/>
+ <g class="hd">
+  <path d="M58 70 L64 14 L98 52 Z" fill="#6b7383"/><path d="M66 56 L69 28 L88 50 Z" fill="#e7b3b3"/>
+  <path d="M162 70 L156 14 L122 52 Z" fill="#6b7383"/><path d="M154 56 L151 28 L132 50 Z" fill="#e7b3b3"/>
+  <path d="M50 92 C50 54 80 40 110 40 C140 40 170 54 170 92 C170 120 146 138 110 138 C74 138 50 120 50 92 Z" fill="url(#wf-h)"/>
+  <path d="M54 104 L40 116 L62 114 Z M166 104 L180 116 L158 114 Z" fill="#8a92a1"/>
+  <path d="M80 98 C84 88 136 88 140 98 L132 128 C124 138 96 138 88 128 Z" fill="#e6e9ee"/>
+  <ellipse cx="110" cy="104" rx="11" ry="8" fill="#1d1f25"/><ellipse cx="107" cy="101" rx="3.5" ry="2" fill="#fff" opacity=".5"/>
+  <g class="mood-angry"><path d="M70 72 L98 84" stroke="#1d1f25" stroke-width="6" stroke-linecap="round"/><path d="M150 72 L122 84" stroke="#1d1f25" stroke-width="6" stroke-linecap="round"/>
+   <ellipse cx="86" cy="88" rx="8" ry="6" fill="#fff6d6"/><circle cx="88" cy="89" r="4" fill="#d93636"/><ellipse cx="134" cy="88" rx="8" ry="6" fill="#fff6d6"/><circle cx="132" cy="89" r="4" fill="#d93636"/>
+   <path d="M96 122 Q110 116 124 122" stroke="#1d1f25" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M99 120 l3 8 l3 -9 Z M115 119 l3 9 l3 -8 Z" fill="#fff"/></g>
+  <g class="mood-hurt"><path d="M78 82 L94 89 L78 96" stroke="#1d1f25" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M142 82 L126 89 L142 96" stroke="#1d1f25" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+   <path d="M98 128 Q104 120 110 128 Q116 120 122 128" stroke="#1d1f25" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M156 66 q6 10 0 14 q-6 -4 0 -14 Z" fill="#8fd0ff"/></g>
+  <g class="mood-smug"><path d="M72 80 L98 84" stroke="#1d1f25" stroke-width="5" stroke-linecap="round"/><path d="M148 80 L122 84" stroke="#1d1f25" stroke-width="5" stroke-linecap="round"/>
+   <path d="M78 92 q8 -6 16 0 M126 92 q8 -6 16 0" stroke="#1d1f25" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M94 120 Q110 134 126 118" stroke="#1d1f25" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+ </g></svg>`,
+
+boar: `<svg viewBox="0 0 220 230" class="boss-svg" role="img" aria-label="멧돼지 장군">
+ <defs><radialGradient id="br-f" cx="45%" cy="35%" r="75%"><stop offset="0" stop-color="#a46a4a"/><stop offset="1" stop-color="#5e3826"/></radialGradient>
+ <linearGradient id="br-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#b47b1e"/></linearGradient></defs>
+ <ellipse cx="110" cy="218" rx="78" ry="9" fill="#000" opacity=".25"/>
+ <path d="M48 214 C38 172 54 136 86 126 L134 126 C166 136 182 172 172 214 Z" fill="url(#br-f)"/>
+ <path d="M70 140 L150 196" stroke="#c0392b" stroke-width="14" stroke-linecap="round"/>
+ <circle cx="112" cy="168" r="9" fill="url(#br-g)" stroke="#8a5a12" stroke-width="2"/>
+ <path d="M50 142 q10 -16 30 -14 l-4 14 Z M170 142 q-10 -16 -30 -14 l4 14 Z" fill="url(#br-g)" stroke="#8a5a12" stroke-width="2"/>
+ <ellipse cx="78" cy="214" rx="22" ry="9" fill="#3b2418"/><ellipse cx="142" cy="214" rx="22" ry="9" fill="#3b2418"/>
+ <g class="hd">
+  <path d="M70 46 L80 18 L92 44 L104 14 L114 42 L126 14 L136 44 L148 20 L152 48 Z" fill="#3b2418"/>
+  <path d="M52 66 L44 34 L76 50 Z M168 66 L176 34 L144 50 Z" fill="#7a4a32"/>
+  <ellipse cx="110" cy="88" rx="64" ry="52" fill="url(#br-f)"/>
+  <ellipse cx="110" cy="112" rx="30" ry="20" fill="#e8a39a" stroke="#a5594f" stroke-width="3"/>
+  <ellipse cx="100" cy="112" rx="5" ry="7" fill="#7a2f29"/><ellipse cx="120" cy="112" rx="5" ry="7" fill="#7a2f29"/>
+  <path d="M78 116 C64 112 60 96 66 86 C70 100 76 104 84 106 Z M142 116 C156 112 160 96 154 86 C150 100 144 104 136 106 Z" fill="#fffbe9" stroke="#c9bfa0" stroke-width="2"/>
+  <g class="mood-angry"><path d="M70 66 L98 78" stroke="#1d120c" stroke-width="7" stroke-linecap="round"/><path d="M150 66 L122 78" stroke="#1d120c" stroke-width="7" stroke-linecap="round"/>
+   <ellipse cx="86" cy="84" rx="7" ry="6" fill="#fff4e6"/><circle cx="88" cy="85" r="4" fill="#d93636"/><ellipse cx="134" cy="84" rx="7" ry="6" fill="#fff4e6"/><circle cx="132" cy="85" r="4" fill="#d93636"/>
+   <path d="M98 134 Q110 128 122 134" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+  <g class="mood-hurt"><path d="M78 78 L94 85 L78 92" stroke="#1d120c" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M142 78 L126 85 L142 92" stroke="#1d120c" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+   <path d="M98 136 Q104 128 110 136 Q116 128 122 136" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M160 60 q6 10 0 14 q-6 -4 0 -14 Z" fill="#8fd0ff"/></g>
+  <g class="mood-smug"><path d="M72 76 L98 80" stroke="#1d120c" stroke-width="6" stroke-linecap="round"/><path d="M148 76 L122 80" stroke="#1d120c" stroke-width="6" stroke-linecap="round"/>
+   <path d="M78 88 q8 -6 16 0 M126 88 q8 -6 16 0" stroke="#1d120c" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M96 132 Q110 142 124 130" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+ </g></svg>`,
+
+crow: `<svg viewBox="0 0 220 230" class="boss-svg" role="img" aria-label="까마귀">
+ <defs><radialGradient id="cw-f" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#4a5266"/><stop offset=".6" stop-color="#1f2330"/><stop offset="1" stop-color="#0e1016"/></radialGradient></defs>
+ <ellipse cx="110" cy="218" rx="64" ry="9" fill="#000" opacity=".25"/>
+ <path d="M84 208 l-6 12 M92 208 l0 13 M100 208 l6 12 M122 208 l-6 12 M130 208 l0 13 M138 208 l6 12" stroke="#d9a33a" stroke-width="5" stroke-linecap="round"/>
+ <path d="M64 120 C60 170 80 210 110 210 C140 210 160 170 156 120 C150 86 70 86 64 120 Z" fill="url(#cw-f)"/>
+ <path d="M66 126 C40 140 34 176 46 196 C60 180 70 160 76 140 Z M154 126 C180 140 186 176 174 196 C160 180 150 160 144 140 Z" fill="#161922"/>
+ <path d="M80 150 q30 -14 60 0" stroke="#6b7690" stroke-width="3" fill="none" opacity=".5"/>
+ <g transform="translate(150 150) rotate(12)"><rect x="-16" y="0" width="32" height="26" rx="5" fill="#f2c75f" stroke="#8a5a12" stroke-width="2.5"/>
+  <path d="M-9 0 v-9 a9 9 0 0 1 18 0 v9" fill="none" stroke="#8a8f99" stroke-width="5"/><circle cx="0" cy="12" r="3.5" fill="#5a3a0e"/></g>
+ <g class="hd">
+  <path d="M86 40 L94 20 L100 38 L108 16 L114 36" fill="#161922"/>
+  <circle cx="110" cy="82" r="48" fill="url(#cw-f)"/>
+  <path d="M96 94 L110 128 L124 94 Z" fill="#e0a93a" stroke="#8a5a12" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M100 104 L120 104" stroke="#8a5a12" stroke-width="2"/>
+  <g class="mood-angry"><path d="M74 64 L100 76" stroke="#0a0b10" stroke-width="7" stroke-linecap="round"/><path d="M146 64 L120 76" stroke="#0a0b10" stroke-width="7" stroke-linecap="round"/>
+   <circle cx="88" cy="82" r="8" fill="#ffd84d"/><circle cx="89" cy="83" r="3.5" fill="#111"/><circle cx="132" cy="82" r="8" fill="#ffd84d"/><circle cx="131" cy="83" r="3.5" fill="#111"/></g>
+  <g class="mood-hurt"><path d="M80 76 L96 83 L80 90" stroke="#ffd84d" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M140 76 L124 83 L140 90" stroke="#ffd84d" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+   <path d="M150 54 q6 10 0 14 q-6 -4 0 -14 Z" fill="#8fd0ff"/></g>
+  <g class="mood-smug"><path d="M78 74 L100 78" stroke="#0a0b10" stroke-width="6" stroke-linecap="round"/><path d="M142 74 L120 78" stroke="#0a0b10" stroke-width="6" stroke-linecap="round"/>
+   <path d="M80 86 q8 -6 16 0 M124 86 q8 -6 16 0" stroke="#ffd84d" stroke-width="4.5" fill="none" stroke-linecap="round"/></g>
+ </g></svg>`,
+
+mole: `<svg viewBox="0 0 220 230" class="boss-svg" role="img" aria-label="두더지">
+ <defs><radialGradient id="ml-f" cx="45%" cy="30%" r="75%"><stop offset="0" stop-color="#8d7c74"/><stop offset="1" stop-color="#4a3d38"/></radialGradient>
+ <linearGradient id="ml-d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a5a34"/><stop offset="1" stop-color="#4f311c"/></linearGradient></defs>
+ <g transform="translate(150 26)"><path d="M0 22 a14 14 0 0 1 10 -24 a18 18 0 0 1 32 4 a12 12 0 0 1 4 24 Z" fill="#b9c3d1"/>
+  <path d="M10 6 L34 26 M34 6 L10 26" stroke="#e0484f" stroke-width="5" stroke-linecap="round"/></g>
+ <path d="M60 116 C58 70 80 44 110 44 C140 44 162 70 160 116 L160 170 L60 170 Z" fill="url(#ml-f)"/>
+ <ellipse cx="110" cy="128" rx="34" ry="30" fill="#b9a69c"/>
+ <path d="M58 150 C40 146 34 162 44 170 C52 176 64 168 70 160 Z M162 150 C180 146 186 162 176 170 C168 176 156 168 150 160 Z" fill="#f0b9b0"/>
+ <path d="M40 164 l-6 8 M46 168 l-4 10 M54 170 l0 10 M180 164 l6 8 M174 168 l4 10 M166 170 l0 10" stroke="#fff4ea" stroke-width="3" stroke-linecap="round"/>
+ <path d="M18 216 C30 170 70 156 110 156 C150 156 190 170 202 216 Z" fill="url(#ml-d)"/>
+ <circle cx="70" cy="196" r="5" fill="#3a2414"/><circle cx="150" cy="200" r="6" fill="#3a2414"/><circle cx="112" cy="186" r="4" fill="#3a2414"/>
+ <g class="hd">
+  <path d="M110 112 l6 -10 l6 10 l10 -2 l-6 9 l8 7 l-11 1 l-3 11 l-6 -9 l-6 9 l-3 -11 l-11 -1 l8 -7 l-6 -9 Z" fill="#f08a96" stroke="#b44e5a" stroke-width="2" stroke-linejoin="round"/>
+  <g class="mood-angry"><path d="M78 76 L100 86" stroke="#1d1410" stroke-width="6" stroke-linecap="round"/><path d="M142 76 L120 86" stroke="#1d1410" stroke-width="6" stroke-linecap="round"/>
+   <rect x="74" y="84" width="30" height="12" rx="6" fill="#111"/><rect x="116" y="84" width="30" height="12" rx="6" fill="#111"/><path d="M104 90 h12" stroke="#111" stroke-width="3"/>
+   <path d="M100 146 Q110 140 120 146" stroke="#1d1410" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+  <g class="mood-hurt"><path d="M80 84 L96 90 L80 96" stroke="#1d1410" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M140 84 L124 90 L140 96" stroke="#1d1410" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+   <path d="M100 148 Q105 140 110 148 Q115 140 120 148" stroke="#1d1410" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M152 70 q6 10 0 14 q-6 -4 0 -14 Z" fill="#8fd0ff"/></g>
+  <g class="mood-smug"><rect x="74" y="80" width="30" height="12" rx="6" fill="#111"/><rect x="116" y="80" width="30" height="12" rx="6" fill="#111"/><path d="M104 86 h12" stroke="#111" stroke-width="3"/>
+   <path d="M96 144 Q110 156 124 142" stroke="#1d1410" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+ </g></svg>`,
+};
+
+/* AI 농부: 7/27~10/16 지난 10거래일만 보고 고른 상점 선택(개막 전 리플레이용) */
+const AI_PICKS={"2026-W31":[{"buy":"seed"}],"2026-W32":[{"buy":"sun"}],"2026-W33":[{"sell":"seed"},{"buy":"tiger"},{"up":"tiger"}],"2026-W34":[{"sell":"sun"},{"buy":"calm"},{"up":"calm"}],"2026-W35":[{"up":"hoe"}],"2026-W36":[{"buy":"turtle"},{"up":"turtle"}],"2026-W37":[{"buy":"umb"},{"up":"umb"}],"2026-W38":[{"up":"hoe"}],"2026-W39":[{"sell":"umb"},{"buy":"tiger"},{"up":"tiger"},{"up":"tiger"}],"2026-W40":[{"up":"turtle"}],"2026-W41":[],"2026-W42":[]};
+/* deck-game v2 — 🃏 쿼카의 농기구 덱 (2026-10-18). 엔진 QDeck + 장부(farmGame의 계단 산·도감) */
 function mountDeck(raw, S, opt){
   opt = opt||{};
   const host=document.getElementById('farmgame'); if(!host) return null;
@@ -1745,16 +1973,18 @@ function mountDeck(raw, S, opt){
   const wdOf=s=>(new Date(s+'T00:00:00Z').getUTCDay()+6)%7;
 
   /* 1) 마감 기록 → 카드 재료 */
-  const D=S.D, CL=S.CL, days=[];
-  for(let i=1;i<D.length;i++){
-    const a=D[i-1], b=D[i]; if(b.d<SEASON.start) continue;
-    const ca=CL[a.d], cb=CL[b.d]; if(!ca||!cb||!ca[0]||!cb[0]||!ca[1]||!cb[1]) continue;
-    const sow=[], harv=[];
-    [['lever_avg','🐂'],['kosdaq_avg','🐎']].forEach(([k,e])=>(b[k]||[]).forEach((y,j)=>{ const x=(a[k]||[])[j]||0;
-      if(x>0&&!y) harv.push(e+(j+1)); else if(y>0&&(!x||Math.abs(y-x)>0.5)) sow.push(e+(j+1)); }));
-    days.push({d:b.d, wd:wdOf(b.d), wk:Q.isoWeek(b.d), lr:+((cb[0]/ca[0]-1)*100).toFixed(2), qr:+((cb[1]/ca[1]-1)*100).toFixed(2), sow, harv,
-      navr:+((b.nav/a.nav-1)*100).toFixed(2), kr:+(((1+b.kospi/100)/(1+a.kospi/100)-1)*100).toFixed(2)});
-  }
+  const D=S.D, CL=S.CL;
+  const build=(from,to)=>{ const out=[];
+    for(let i=1;i<D.length;i++){
+      const a=D[i-1], b=D[i]; if(b.d<from || (to && b.d>=to)) continue;
+      const ca=CL[a.d], cb=CL[b.d]; if(!ca||!cb||!ca[0]||!cb[0]||!ca[1]||!cb[1]) continue;
+      const sow=[], harv=[];
+      [['lever_avg','🐂'],['kosdaq_avg','🐎']].forEach(([k,e])=>(b[k]||[]).forEach((y,j)=>{ const x=(a[k]||[])[j]||0;
+        if(x>0&&!y) harv.push(e+(j+1)); else if(y>0&&(!x||Math.abs(y-x)>0.5)) sow.push(e+(j+1)); }));
+      out.push({d:b.d, wd:wdOf(b.d), wk:Q.isoWeek(b.d), lr:+((cb[0]/ca[0]-1)*100).toFixed(2), qr:+((cb[1]/ca[1]-1)*100).toFixed(2), sow, harv,
+        navr:+((b.nav/a.nav-1)*100).toFixed(2), kr:+(((1+b.kospi/100)/(1+a.kospi/100)-1)*100).toFixed(2)}); }
+    return out; };
+  const days=build(SEASON.start);
 
   /* 2) 선택: 시트 GAME 탭(game.json)이 우선, 없는 주는 이 기기 임시 기록 */
   const LKEY='wcg_deck_rows';
@@ -1774,15 +2004,27 @@ function mountDeck(raw, S, opt){
   else if(twd>=5 || fridayDone){ mode='shop'; wk=Q.isoWeek(Q.nextMonday(today)); }
   else { mode='week'; wk=todayWk; }
   if(wk>SW.at(-1)) mode='end';
-  const monday = mode==='week' ? addDays(today,-twd) : (wk===SW[0]?SEASON.start:Q.nextMonday(today));
+  let monday = mode==='week' ? addDays(today,-twd) : (wk===SW[0]?SEASON.start:Q.nextMonday(today));
+  const shopWk=wk, shopMonday=monday; let viewingPast=false;
+  const dayDiff=(a,b)=>Math.round((new Date(a+'T00:00:00Z')-new Date(b+'T00:00:00Z'))/864e5);
 
   const RES=()=>Q.play(days, picks(), OPT);
   const SHOP=w=>Q.play(days, picks(), {...OPT, shopOnly:w, nextWeek:w}).shop;
 
   /* ── 공통 그리기 ── */
   const jkCard=(id,o)=>{ o=o||{}; const j=Q.JK[id], lv=o.lv||1;
-    return `<div class="jk r${j.r} ${o.cls||''}" data-j="${id}"><span class="e">${j.e}</span><b>${j.n}</b><span class="d">${j.d}</span>
-      <div class="ft"><span class="rar r${j.r}">${RAR[j.r]}</span>${lv>1?`<span class="lv">Lv.${lv}</span>`:''}${o.extra||''}</div></div>`; };
+    return `<div class="jk r${j.r} ${o.cls||''}" data-j="${id}"><div class="art"><span class="e">${j.e}</span>${lv>1?`<span class="lv">Lv.${lv}</span>`:''}<span class="rar r${j.r}">${RAR[j.r]}</span></div>
+      <div class="body"><b>${j.n}</b><span class="d">${j.d}</span>${o.extra?`<div class="ft">${o.extra}</div>`:''}</div></div>`; };
+  /* 🎭 대결 무대 */
+  const TAUNT={wolf:'금요일엔 수확 카드를 전부 물어뜯어 주지! 🧺 칩 0', boar:'금요일엔 씨앗 한 톨도 못 심게 하겠다! 🌱 칩 0', bear:'금요일엔 네 배수를 반토막 내주마.',
+    crow:'금요일엔 맨 왼쪽 농기구를 잠가버리겠다, 까악!', mole:'금요일엔 날씨 카드를 땅속에 묻어버릴 테다.'};
+  function arena(o){
+    const bb=$('bossbox'); bb.innerHTML=(typeof BOSS_ART!=='undefined'&&BOSS_ART[o.boss.id])||`<span style="font-size:5rem">${o.boss.e}</span>`; bb.className='bossbox m-'+(o.mood||'angry');
+    $('bname').innerHTML=`${o.boss.e} ${o.boss.n}<small>${o.boss.d}</small>`;
+    $('say-boss').textContent=o.bossSay||TAUNT[o.boss.id]||''; $('say-me').textContent=o.meSay||'';
+    const img=(typeof QK!=='undefined'&&QK[o.qk])||(typeof QK!=='undefined'&&QK.thinking)||''; const q=$('qk'); if(img){ q.src=img; q.hidden=false; } else q.hidden=true;
+    $('vs').innerHTML=`<span>VS</span>${o.res?`<span class="res ${o.res}">${o.res==='ok'?'처치!':'패배'}</span>`:''}<small>${o.sub||''}</small>`;
+  }
   function hud(st, F){
     $('h-run').textContent=`S${SEASON.n} · 런 ${st.run} · ${st.ante}주차`;
     $('h-heart').textContent='❤️'.repeat(Math.max(0,st.hearts))+'🤍'.repeat(Math.max(0,3-st.hearts));
@@ -1796,7 +2038,7 @@ function mountDeck(raw, S, opt){
   function slots(st, o){
     o=o||{}; const out=[];
     for(let i=0;i<Q.SLOTS;i++){ const id=st.jokers[i];
-      if(!id){ out.push('<div class="jk empty">빈 칸</div>'); continue; }
+      if(!id){ out.push('<div class="jk empty"><span>＋</span>빈 칸</div>'); continue; }
       const lv=(st.lv||{})[id]||1, j=Q.JK[id]; let extra='';
       if(o.shop){ const up=Q.UPCOST(lv), val=Math.floor(Q.PRICE[j.r]/2)+((st.sellBonus||{})[id]||0);
         extra=`${lv<3?`<button class="btn sm" data-up="${id}" ${st.acorn<up||o.locked?'disabled':''}>⬆️ 강화 ${up}🌰</button>`:'<span class="note">최대 강화</span>'}<button class="btn sm" data-sell="${id}" ${o.locked?'disabled':''}>판매 +${val}🌰</button>`; }
@@ -1821,8 +2063,8 @@ function mountDeck(raw, S, opt){
       <div class="sec-h"><h2>🛒 상점 · ${md(monday)}~${md(addDays(monday,4))} 주</h2>
         <span class="note">${st.shopLog&&st.ante>1?`이자 +${st.shopLog.interest} · 배급 +${st.shopLog.allowance} · `:''}지금 🌰 ${st.acorn}</span></div>
       <div class="shop">
-        <div class="boss"><span class="eyebrow">이번 주 보스 예고</span><span class="be">${st.boss.e}</span><h3>${st.boss.n}</h3>
-          <small>금요일 보스 판에서: <b>${st.boss.d}</b></small><small>🎃 허수아비가 있으면 막을 수 있어요.</small>
+        <div class="boss"><span class="eyebrow">👹 금요일 보스 · ${st.boss.e} ${st.boss.n}</span>
+          <small>보스 판 효과: <b>${st.boss.d}</b> · 목표 ×1.35</small><small>🎃 허수아비가 있으면 막을 수 있어요.</small>
           <span class="eyebrow" style="margin-top:6px">이번 주 목표 점수</span><div class="tgts">${tg}</div></div>
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           ${locked?`<div class="banner ok">✅ 시트 GAME 탭에 이번 주 선택이 기록돼 있어요. 바꾸려면 시트에서 고쳐 주세요.</div>`:''}
@@ -1835,6 +2077,13 @@ function mountDeck(raw, S, opt){
             : `<p class="note">고른 내용은 아래에 줄로 쌓여요. 복사해서 시트 GAME 탭에 붙여넣으면(A 날짜 · B 행동 · C 조커) 다음 업데이트 때 확정돼요. 아무것도 안 사도 괜찮아요.</p>`}
         </div>
       </div>`;
+    const lastW=F.log.at(-1), fresh=lastW && dayDiff(today,lastW.days.at(-1).day.d)<=1;
+    const fri=fresh && lastW.days.find(x=>x.boss);
+    if(fri) arena({boss:lastW.boss, mood:fri.pass?'hurt':'smug', qk:fri.pass?'thumbs':'shock', res:fri.pass?'ok':'no',
+        bossSay:fri.pass?'크윽… 다음 주엔 안 봐준다!':'흐흐, 이번 주는 내가 이겼다.', meSay:fri.pass?`보스 처치! ${fri.score}점 · 🌰+${Q.BOSSPAY} · 씨앗 은행 +1`:`보스에게 졌어요… ${fri.target-fri.score}점 모자랐어요 ❤️−1`, sub:`${md(fri.day.d)} 보스 판`});
+    else arena({boss:st.boss, mood:'angry', qk:'thinking', meSay: locked?'이번 주 농기구는 챙겼어요. 월요일부터 시작!':'이번 주엔 어떤 농기구를 챙길까…', sub:'금요일 보스 판'});
+    if(fresh) $('stage').insertAdjacentHTML('afterbegin',`<div class="banner ${lastW.bossPass?'ok':'info'}"><div class="sec-h"><span>📋 <b>지난주 결과</b> ${lastW.cleared}/${lastW.days.length} 통과 · ${lastW.bossPass===true?`${lastW.boss.e} 보스 처치!`:lastW.bossPass===false?`${lastW.boss.e} 보스 실패 ❤️−1`:'보스 휴무'}</span><button class="btn sm" id="b-past">📅 지난주 판 다시 보기</button></div></div>`);
+    if($('b-past')) $('b-past').onclick=()=>{ viewingPast=true; wk=lastW.wk; const f0=lastW.days[0].day; monday=addDays(f0.d,-f0.wd); renderWeek(); };
     const act=(a,arg)=>{ localRows.push([today,a,arg||'']); saveLocal(); renderShop(); };
     root.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>act('BUY',b.dataset.buy));
     root.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>act('UP',b.dataset.up));
@@ -1874,8 +2123,14 @@ function mountDeck(raw, S, opt){
       if(x) return `<button class="blind ${boss?'boss':''} ${x.pass?'pass':'fail'} ${r&&r.day.d===d?'cur':''}" data-i="${played.indexOf(x)}">${DOW[i]} ${md(d)}${boss?' '+pre.boss.e:''}<b>${x.pass?'✅':'❌'} ${x.score}</b></button>`;
       const gone=d<today || (d===today && false);
       return `<div class="blind ${boss?'boss':''} wait">${DOW[i]} ${md(d)}${boss?' '+pre.boss.e:''}<b>${gone?'휴장':'목표 '+Q.TARGET(pre.ante,boss)}</b></div>`; }).join('');
-    const head=`<div class="sec-h"><h2>📅 ${md(monday)}~${md(addDays(monday,4))} 주 · 런 ${st.run} ${st.ante}주차</h2><span class="badge">📊 점수 ≠ 수익률</span></div>
+    const head=`<div class="sec-h"><h2>📅 ${md(monday)}~${md(addDays(monday,4))} 주 · 런 ${st.run} ${st.ante}주차</h2><div class="row">${viewingPast?'<button class="btn sm" id="b-back">🛒 상점으로</button>':''}<span class="badge">📊 점수 ≠ 수익률</span></div></div>
       <div class="track" id="track">${track}</div>`;
+    const fri=played.find(x=>x.boss), lastP=played.at(-1);
+    if(fri) arena({boss:pre.boss, mood:fri.pass?'hurt':'smug', qk:fri.pass?'thumbs':'shock', res:fri.pass?'ok':'no',
+        bossSay:fri.pass?'크윽… 다음 주엔 안 봐준다!':'흐흐, 이번 주는 내가 이겼다.', meSay:fri.pass?`보스 처치! ${fri.score}점 · 🌰+${Q.BOSSPAY} · 씨앗 은행 +1`:`보스에게 졌어요… ${fri.target-fri.score}점 모자랐어요 ❤️−1`, sub:`${md(fri.day.d)} 보스 판`});
+    else arena({boss:pre.boss, mood:'angry', qk:!lastP?'waiting':lastP.pass?'thumbs':'shock',
+        meSay:!lastP?'오늘 장 마감 후 첫 판이 열려요.':lastP.pass?`${md(lastP.day.d)} 판 통과! ${lastP.score}점`:`${md(lastP.day.d)} 판은 ${lastP.target-lastP.score}점 모자랐어요…`,
+        sub:lastP?`금요일까지 D-${Math.max(0,4-lastP.day.wd)}`:'이번 주 시작'});
     if(!r){
       $('stage').innerHTML=`${head}<div class="banner info">🌙 오늘(${md(today)}) 장 마감 데이터가 올라오면 첫 판이 열려요. 금요일 보스는 ${pre.boss.e} <b>${pre.boss.n}</b> — ${pre.boss.d}.</div>`;
       summary={mode:'week', run:st.run, ante:st.ante, hearts:st.hearts, acorn:st.acorn, bank:st.bank, boss:pre.boss, progress:0, line:`이번 주 첫 판 대기 · 금요일 ${pre.boss.e} ${pre.boss.n}`};
@@ -1894,6 +2149,7 @@ function mountDeck(raw, S, opt){
       </div>
       <div class="row"><button class="btn" id="b-again">🔁 다시 보기</button><span class="note">지난 날은 위 칸을 눌러서 볼 수 있어요.</span></div>`;
     root.querySelectorAll('button.blind').forEach(b=>b.onclick=()=>renderWeek(+b.dataset.i));
+    if($('b-back')) $('b-back').onclick=()=>{ viewingPast=false; wk=shopWk; monday=shopMonday; clearT(); renderShop(); };
     $('b-again').onclick=()=>renderWeek(sel);
     let t=120, c=0, m=1; const hand=$('hand'), vc=$('v-c'), vm=$('v-m'), whys=[];
     r.cards.forEach(card=>{ later(()=>{ hand.insertAdjacentHTML('beforeend',cardHTML(card)); c+=card.v; vc.textContent=c; },t); t+=160; });
@@ -1916,6 +2172,7 @@ function mountDeck(raw, S, opt){
     const F=RES(), L=F.log.at(-1);
     if(L) hud({run:L.run, ante:L.ante, hearts:L.hearts, acorn:L.acorn, bank:L.bank},F);
     const boss=F.runs.reduce((s,r)=>s+r.bosses,0), best=Math.max(0,...F.runs.map(r=>r.weeks)), pass=F.log.reduce((s,w)=>s+w.cleared,0);
+    if(L) arena({boss:L.boss, mood:'hurt', qk:'thumbs', bossSay:'다음 시즌에 보자…', meSay:`시즌 ${SEASON.n} 완주!`, sub:'시즌 끝'});
     $('stage').innerHTML=`<div class="sec-h"><h2>🏁 시즌 ${SEASON.n} 끝</h2></div>
       <div class="banner info">통과 ${pass}판 · 보스 ${boss}마리 · 최장 런 ${best}주 · 씨앗 은행 ${L?L.bank:0}칸. 다음 시즌 규칙은 따로 정해요.</div>`;
     summary={mode:'end', run:L?L.run:1, ante:L?L.ante:1, hearts:L?L.hearts:3, acorn:L?L.acorn:0, bank:L?L.bank:0, progress:1, line:`시즌 ${SEASON.n} 끝 · 보스 ${boss}마리`};
@@ -1959,9 +2216,60 @@ function mountDeck(raw, S, opt){
   }
 
   $('jdex').innerHTML=Q.JOKERS.map(j=>jkCard(j.id,{extra:`<span class="note num">${Q.PRICE[j.r]}🌰</span>`})).join('')
-    +Q.BOSSES.map(b=>`<div class="jk r3"><span class="e">${b.e}</span><b>보스 · ${b.n}</b><span class="d">${b.d}</span><div class="ft"><span class="rar r3">보스</span></div></div>`).join('');
+    +Q.BOSSES.map(b=>`<div class="jk r3"><div class="art">${(typeof BOSS_ART!=='undefined'&&BOSS_ART[b.id])?`<div class="bossbox m-angry" style="width:5.4rem">${BOSS_ART[b.id]}</div>`:`<span class="e">${b.e}</span>`}<span class="rar r3">보스</span></div><div class="body"><b>${b.e} ${b.n}</b><span class="d">금요일: ${b.d}</span></div></div>`).join('');
+
+  /* ── 📼 개막 전 리플레이: 시즌 첫 판 전까지 지난 12주를 AI 농부가 실전 규칙으로 ── */
+  function renderReplay(){
+    const pre=build('2026-07-27', SEASON.start); if(!pre.length || typeof AI_PICKS==='undefined'){ $('replay').hidden=true; return; }
+    const R=Q.play(pre, AI_PICKS, OPT), flat=[];
+    R.log.forEach((w,wi)=>w.days.forEach((r,di)=>flat.push({w,wi,r,first:di===0})));
+    const boss=R.runs.reduce((a,x)=>a+x.bosses,0), pass=R.log.reduce((a,w)=>a+w.cleared,0), best=Math.max(...R.runs.map(x=>x.weeks));
+    const el=$('replay'); el.hidden=false;
+    el.innerHTML=`<div class="rp-top"><h3>📼 개막 전 하이라이트 · AI 농부의 지난 12주</h3>
+        <div class="row"><button class="btn sm" id="rp-play">⏸ 멈춤</button><button class="btn sm" id="rp-fast">⏩ 3배속</button><button class="btn sm" id="rp-next">⏭ 다음 주</button></div></div>
+      <div class="rp-bar"><i id="rp-prog" style="width:0"></i></div>
+      <div class="rp-grid">
+        <div class="rp-boss"><div class="bossbox m-angry" id="rp-bb"></div><div><b id="rp-bn"></b><div class="note" id="rp-wk"></div></div></div>
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <div class="rp-jk" id="rp-jk"></div>
+          <div class="table" style="min-height:0">
+            <div class="day-h"><h3 id="rp-dh"></h3><span class="real" id="rp-real"></span></div>
+            <div class="hand" id="rp-hand" style="min-height:5.8rem"></div>
+            <div class="calc"><div class="box c"><small>칩</small><span id="rp-c">0</span></div><span class="op">×</span><div class="box m"><small>배수</small><span id="rp-m">1</span></div><span class="op">=</span>
+              <span class="score" id="rp-s">0</span><span class="tgt">/ 목표 <b class="num" id="rp-t"></b></span><span id="rp-st"></span></div>
+          </div>
+          <div class="rp-log" id="rp-log"></div>
+        </div>
+      </div>
+      <p class="note">7/27~10/16 실제 마감 기록을 실전 규칙(금요일 보스)으로 돌린 결과예요. AI 농부는 지난 10거래일 기록만 보고 조커를 골랐어요(미래 정보 없음). 최종: 통과 ${pass}/${flat.length}판 · 보스 ${boss}마리 · 최장 런 ${best}주. 시즌 1 첫 판이 열리면 이 칸은 사라져요.</p>`;
+    let i=0, speed=1, playing=true, tm=null;
+    const actTxt=w=>{ const a=w.shop.acts; if(!a.length) return '🛒 이번 주는 아무것도 안 샀어요(도토리 저축)';
+      return '🛒 '+a.map(x=>x.buy?`${Q.JK[x.buy].e} ${Q.JK[x.buy].n} 구매`:x.up?`${Q.JK[x.up].e} 강화 Lv.${x.lv}`:x.sell?`${Q.JK[x.sell].e} 판매`:'🔄 새로고침').join(' · '); };
+    const show=()=>{
+      const f=flat[i]; if(!f) return; const {w,r}=f;
+      const bb=$('rp-bb'); if(f.first||bb.dataset.b!==w.boss.id){ bb.innerHTML=(typeof BOSS_ART!=='undefined'&&BOSS_ART[w.boss.id])||w.boss.e; bb.dataset.b=w.boss.id; }
+      bb.className='bossbox '+(r.boss?(r.pass?'m-hurt':'m-smug'):'m-angry');
+      $('rp-bn').textContent=`${w.boss.e} ${w.boss.n}`; $('rp-wk').textContent=`런 ${w.run} · ${w.ante}주차 · ${'❤️'.repeat(Math.max(0,r.boss&&!r.pass?w.hearts:w.hearts+(w.bossPass===false?1:0)))}`;
+      $('rp-jk').innerHTML=w.jokers.map(j=>`<span title="${Q.JK[j].n}">${Q.JK[j].e}${(w.lv[j]||1)>1?`<small>${w.lv[j]}</small>`:''}</span>`).join('');
+      $('rp-dh').textContent=`${md(r.day.d)} (${DOW[r.day.wd]})${r.boss?' · 보스 판':''}`; $('rp-real').textContent=`🐂 ${sg(r.day.lr)} · 🐎 ${sg(r.day.qr)}`;
+      $('rp-hand').innerHTML=r.cards.map(cardHTML).join(''); $('rp-c').textContent=r.chips; $('rp-m').textContent=fmtM(+r.mult.toFixed(2)); $('rp-t').textContent=r.target;
+      countUp($('rp-s'), r.score, RM?0:Math.min(450,700/speed));
+      $('rp-st').innerHTML=r.pass?'<span class="stamp ok">통과</span>':`<span class="stamp no">${r.boss?'보스 실패':'실패'}</span>`;
+      $('rp-log').textContent=(f.first?actTxt(w)+' · ':'')+(r.lines.length?r.lines.map(L=>L.id==='bank'?`🌱+${L.v}`:L.id==='bear'?'🐻×½':`${Q.JK[L.id].e}${L.t==='chips'?'+'+L.v+'칩':L.t==='mult'?'+'+L.v+'배수':'×'+L.v}`).join(' '):'발동한 조커 없음');
+      $('rp-prog').style.width=((i+1)/flat.length*100).toFixed(1)+'%';
+    };
+    const tick=()=>{ clearTimeout(tm); if(!playing) return; tm=setTimeout(()=>{ if(i<flat.length-1){ i++; show(); tick(); } else { playing=false; $('rp-play').textContent='🔁 처음부터'; } }, 1500/speed); };
+    $('rp-play').onclick=()=>{ if(i>=flat.length-1 && !playing){ i=0; playing=true; show(); tick(); $('rp-play').textContent='⏸ 멈춤'; return; }
+      playing=!playing; $('rp-play').textContent=playing?'⏸ 멈춤':'▶ 재생'; tick(); };
+    $('rp-fast').onclick=()=>{ speed=speed===1?3:1; $('rp-fast').textContent=speed===1?'⏩ 3배속':'▶ 1배속'; tick(); };
+    $('rp-next').onclick=()=>{ const wi=flat[i].wi; let j=flat.findIndex((x,k)=>k>i&&x.wi>wi); if(j<0) j=flat.length-1; i=j; show(); tick(); };
+    show();
+    const go=()=>tick();
+    if('IntersectionObserver' in window){ let started=false; const io=new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting&&!started){ started=true; go(); } else if(!e.isIntersecting && started){ /* 화면 밖에선 쉬기 */ } }); },{threshold:.2}); io.observe(el); } else go();
+  }
 
   if(mode==='shop') renderShop(); else if(mode==='week') renderWeek(); else renderEnd();
+  if(!days.length) renderReplay();
   renderHist(); renderLedger();
   return Object.assign({}, summary, {season:SEASON.n, wk, days:days.length, get live(){ return summary; }});
 }
