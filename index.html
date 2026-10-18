@@ -673,6 +673,12 @@ h2{display:flex;align-items:center;gap:.5em}
   --arena:radial-gradient(120% 90% at 85% 0%,rgba(79,157,255,.10),transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(212,162,60,.10),transparent 60%),var(--panel)}
 :root[data-theme="light"]{--leaf-soft:rgba(32,169,91,.12);--r0:#a86b3c;--r1:#7d8796;--r2:#c98f22;--r3:#0aa4c9;--hp:#f04452;--hp2:#ff8a3d;--track:#eef0f3;
   --arena:radial-gradient(120% 90% at 85% 0%,rgba(49,130,246,.08),transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(210,154,46,.10),transparent 60%),#fff}
+
+/* 🃏 농기구 덱 토큰 */
+:root{--chip:#5aa2ff;--chip-soft:rgba(90,162,255,.15);--mult:#ff6470;--mult-soft:rgba(255,100,112,.14);--ok:#5fd08a;--ok-soft:rgba(95,208,138,.14);--bad:#ff6b70;
+  --card:#1e232c;--card-edge:rgba(255,255,255,.12);--felt:#13241c}
+:root[data-theme="light"]{--chip:#2f7cf0;--chip-soft:rgba(47,124,240,.12);--mult:#ec3f4c;--mult-soft:rgba(236,63,76,.11);--ok:#1f9d57;--ok-soft:rgba(31,157,87,.12);--bad:#e0484f;
+  --card:#ffffff;--card-edge:rgba(25,31,40,.14);--felt:#f4faf6}
 </style>
 </head>
 <body>
@@ -691,7 +697,7 @@ h2{display:flex;align-items:center;gap:.5em}
 <div class="top">
   <div class="top-row">
     <div class="brand"><div class="mono">WC</div><b>주식농사 라이브</b></div>
-    <nav class="topnav" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#harvest" data-sec="harvest"><span>🧺</span><b>수확</b></a><a href="#badges" data-sec="badges"><span>🎮</span><b>게임</b></a></nav>
+    <nav class="topnav" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#harvest" data-sec="harvest"><span>🧺</span><b>수확</b></a><a href="#badges" data-sec="badges"><span>🃏</span><b>게임</b></a></nav>
     <div class="top-right"><span class="live"><i></i><span id="asof">불러오는 중</span></span><button class="theme-btn" id="theme-btn" type="button" aria-label="화면 테마 바꾸기"></button></div>
   </div>
   <div class="ticker" aria-label="오늘의 요약 전광판"><div class="ticker-track" id="ticker"></div></div>
@@ -870,395 +876,196 @@ h2{display:flex;align-items:center;gap:.5em}
     </div>
   </section>
 
-  <!-- FARM GAME (업적 진열장 자리) -->
+  <!-- DECK GAME (업적 진열장 자리) -->
   <section id="badges">
     <div class="sec-head">
-      <div><span class="eyebrow">Farm Game</span><h2><span class="hi" aria-hidden="true">🎮</span>농장 게임</h2><p id="game-sub">계단 산 보스전 · 주간 퀘스트 · 업적 · 수확 도감 — 마감 기록으로 자동 계산</p></div>
+      <div><span class="eyebrow">Farm Game · Season 1</span><h2><span class="hi" aria-hidden="true">🃏</span>쿼카의 농기구 덱</h2><p id="game-sub">매일 마감 기록이 카드로 깔리고, 내가 고른 농기구(조커)가 점수를 키워요. 금요일엔 보스, 주말엔 상점.</p></div>
       <img class="sec-q" data-q="piggy" alt="" aria-hidden="true">
     </div>
     <div id="farmgame"><p class="muted">불러오는 중…</p></div>
-    <template id="farmgame-tpl"><style>:host{display:block;color:var(--fg);font-family:var(--body);line-height:1.5}
-.stack{display:flex;flex-direction:column;gap:18px}
-h2{font-size:1.45rem}
+    <template id="farmgame-tpl"><style>
+:host{display:block;color:var(--fg);font-family:var(--body);line-height:1.5}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.up{color:var(--up)} .dn{color:var(--down)} .muted{color:var(--muted)}
-h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.2px}
-h1{font-size:2.3rem;line-height:1.15} h2{font-size:1.55rem} h3{font-size:1.15rem}
-.eyebrow{font-size:.78rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);font-size:.82rem;color:var(--muted);white-space:nowrap}
-.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
-.head p{margin:4px 0 0;color:var(--muted);max-width:60ch}
-.sec-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.sec-h small{color:var(--muted)}
+h2,h3{font-family:var(--display);font-weight:400;margin:0;letter-spacing:.2px;text-wrap:balance}
+h2{font-size:1.4rem} h3{font-size:1.1rem}
+.eyebrow{font-size:.74rem;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)} .note{font-size:.8rem;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+button{font-family:var(--body);cursor:pointer}
+button:focus-visible,summary:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+.btn{border:1px solid var(--line2);background:var(--panel2);color:var(--fg);border-radius:10px;padding:8px 14px;font-size:.9rem;font-weight:600;white-space:nowrap}
+.btn:hover:not(:disabled){background:var(--panel3)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.go{background:var(--fg);color:var(--bg);border-color:transparent}
+.btn.sm{padding:4px 9px;font-size:.76rem;border-radius:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sec-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{font-size:.76rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
 
-/* ── 아레나 ── */
-.arena{background:var(--arena);padding:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;overflow:hidden;position:relative}
-.stage{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1.15fr);align-items:end;gap:10px}
-.fighter{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;text-align:center}
-.say{position:relative;background:var(--panel2);border:1px solid var(--line2);border-radius:14px;padding:8px 12px;font-size:.88rem;max-width:26ch;line-height:1.4}
-.say::after{content:"";position:absolute;bottom:-7px;left:50%;width:12px;height:12px;background:var(--panel2);border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);transform:translateX(-50%) rotate(45deg)}
-.qk{width:min(200px,34vw);aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(0,0,0,.35));animation:bob 2.8s ease-in-out infinite}
-.bossbox{position:relative;width:min(230px,40vw)}
-.bear{width:100%;height:auto;display:block;overflow:visible}
-.bear .bk-hurt,.bear .bk-smug{display:none}
-.bossbox .goat{width:100%;height:auto;display:none}
-.bossbox.is-goat .bear{display:none} .bossbox.is-goat .goat{display:block}
-.stp .goat.mini{display:block;width:1.9rem;height:auto}
-.bossbox.hurt .bk-angry,.bossbox.healed .bk-angry{display:none}
-.bossbox.hurt .bk-hurt{display:inline} .bossbox.healed .bk-smug{display:inline}
-.bossbox.hurt .bear{animation:hit .55s ease-out .5s 2}
-.bossbox:not(.hurt) .bear{animation:breathe 3.4s ease-in-out infinite}
-.dmgpop{position:absolute;top:2%;left:-4%;font-family:var(--display);font-size:1.7rem;color:var(--up);text-shadow:0 2px 0 var(--bg);animation:pop 2.4s ease-out .5s both}
-.bossbox.healed .dmgpop{color:var(--down)}
-@keyframes bob{50%{transform:translateY(-6px)}}
-@keyframes breathe{50%{transform:scale(1.02,.985)}}
-@keyframes hit{0%,100%{transform:none}20%{transform:translateX(-7px) rotate(-2deg)}45%{transform:translateX(6px) rotate(1.5deg)}70%{transform:translateX(-3px)}}
-@keyframes pop{0%{opacity:0;transform:translateY(10px) scale(.7)}18%{opacity:1;transform:translateY(-4px) scale(1.1)}70%{opacity:1;transform:translateY(-14px)}100%{opacity:.85;transform:translateY(-16px)}}
-.vs{font-family:var(--display);font-size:2rem;color:var(--gold-hi);padding-bottom:70px;opacity:.9}
+/* 상태줄 */
+.hud{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.stat{padding:10px 12px;min-width:0}
+.stat small{display:block;color:var(--muted);font-size:.72rem}
+.stat b{font-family:var(--mono);font-weight:600;font-size:1.1rem;white-space:nowrap}
+.season{display:flex;gap:4px;margin-top:6px}
+.season i{flex:1;height:8px;border-radius:4px;background:var(--panel3)}
+.season i.now{outline:2px solid var(--gold-hi);outline-offset:1px}
+.season i.w5{background:var(--ok)} .season i.w3{background:color-mix(in srgb,var(--ok) 55%,var(--panel3))} .season i.w1{background:color-mix(in srgb,var(--bad) 55%,var(--panel3))} .season i.dead{background:var(--bad)}
 
-.bars{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px}
-.bar-l{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:6px;flex-wrap:wrap}
-.bar-l b{font-family:var(--display);font-weight:400;font-size:1.25rem}
-.meter{height:16px;border-radius:999px;background:var(--track);border:1px solid var(--line2);overflow:hidden;position:relative}
-.meter i{position:absolute;inset:0 auto 0 0;border-radius:999px;transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
-.meter .xp{background:linear-gradient(90deg,var(--gold),var(--gold-hi))}
-.meter .hp{background:linear-gradient(90deg,var(--hp),var(--hp2))}
-.meter .ghost{background:var(--fg);opacity:.35}
-.bar-s{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:.82rem;color:var(--muted);flex-wrap:wrap}
-.title-chip{border-color:var(--gold);color:var(--gold-hi);background:var(--gold-soft)}
+/* 조커 */
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.jk{position:relative;display:grid;grid-template-columns:2.6rem minmax(0,1fr);gap:2px 10px;padding:10px 12px;border-radius:14px;background:var(--card);border:2px solid var(--card-edge);min-width:0;transition:transform .18s,box-shadow .18s}
+.jk .e{grid-row:span 3;font-size:2rem;line-height:1;align-self:center;text-align:center}
+.jk b{font-weight:700;font-size:.93rem}
+.jk .d{font-size:.77rem;color:var(--muted);line-height:1.35}
+.jk .ft{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;grid-column:2}
+.jk.r0{border-color:var(--r0)} .jk.r1{border-color:var(--r1)} .jk.r2{border-color:var(--r2)} .jk.r3{border-color:var(--r3)}
+.rar{font-size:.67rem;font-weight:700;padding:1px 6px;border-radius:5px;border:1px solid currentColor}
+.rar.r0{color:var(--r0)} .rar.r1{color:var(--r1)} .rar.r2{color:var(--r2)} .rar.r3{color:var(--r3)}
+.lv{font-family:var(--mono);font-size:.7rem;font-weight:600;padding:1px 6px;border-radius:5px;background:var(--gold-soft);color:var(--gold-hi)}
+.jk.empty{border-style:dashed;background:transparent;display:grid;place-items:center;min-height:5rem;color:var(--dim);font-size:.85rem;grid-template-columns:1fr}
+.jk.fire{transform:translateY(-6px) rotate(-1.5deg);box-shadow:0 10px 26px -10px var(--gold)}
+.jk.sealed{opacity:.45}
+.jk.sealed::after{content:"🔒 봉인";position:absolute;top:6px;right:8px;font-size:.7rem;font-weight:700;color:var(--bad)}
+.pop{position:absolute;top:-12px;right:8px;font-family:var(--mono);font-weight:700;font-size:.92rem;padding:2px 8px;border-radius:8px;color:#fff;animation:pop .9s ease-out both;pointer-events:none}
+.pop.chips{background:var(--chip)} .pop.mult,.pop.x{background:var(--mult)}
+@keyframes pop{0%{opacity:0;transform:translateY(8px) scale(.7)}25%{opacity:1;transform:translateY(-2px) scale(1.1)}100%{opacity:0;transform:translateY(-16px)}}
 
-.log{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
-.hit{flex:0 0 auto;display:flex;flex-direction:column;gap:2px;padding:8px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);min-width:6.4rem}
-.hit small{color:var(--muted);font-size:.75rem}
-.hit b{font-family:var(--mono);font-weight:600;font-size:.95rem}
-.hit.dmg{background:var(--up-soft);border-color:transparent} .hit.dmg b{color:var(--up)}
-.hit.heal{background:var(--down-soft);border-color:transparent} .hit.heal b{color:var(--down)}
-.hit.today{outline:2px solid var(--gold);outline-offset:-2px}
-.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.fact{padding:10px 12px;border-radius:12px;background:var(--panel2);min-width:0}
-.fact small{display:block;color:var(--muted);font-size:.75rem}
-.fact b{font-family:var(--mono);font-weight:600}
-.slain{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
-.slain span{font-size:.75rem;padding:1px 6px;border-radius:6px;background:var(--panel3);color:var(--muted)}
-.wk{font-size:.9rem;color:var(--muted)} .wk b{color:var(--fg)} .wk b.up{color:var(--up)} .wk b.dn{color:var(--down)}
+/* 무대 */
+.stage{padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.banner{padding:10px 14px;border-radius:12px;font-size:.88rem}
+.banner.dead{background:var(--mult-soft)} .banner.info{background:var(--gold-soft)} .banner.ok{background:var(--ok-soft)}
+.shop{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,2fr);gap:14px}
+.boss{padding:14px;border-radius:14px;background:var(--panel2);display:flex;flex-direction:column;gap:6px;min-width:0}
+.boss .be{font-size:2.8rem;line-height:1}
+.boss small{color:var(--muted)}
+.tgts{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.tgts span{font-family:var(--mono);font-size:.76rem;padding:2px 8px;border-radius:6px;background:var(--panel3)}
+.tgts span.b{background:var(--mult-soft);color:var(--mult)}
+.offers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.offer{display:flex;flex-direction:column;gap:8px}
+.offer .jk{flex:1}
+.lines{background:var(--panel2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.lines pre{margin:0;font-family:var(--mono);font-size:.8rem;white-space:pre-wrap;word-break:break-all;color:var(--fg)}
 
-/* 칸으로 나뉜 HP */
-.hpcells{display:flex;gap:3px;height:18px}
-.hpc{flex:1;position:relative;border-radius:5px;background:var(--track);border:1px solid var(--line2);overflow:hidden}
-.hpc i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--hp),var(--hp2));transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
-.hpc.crown{flex:.8}
-.hpc.crown::after{content:"👑";position:absolute;inset:0;display:grid;place-items:center;font-size:.7rem}
-.hpc.cleared{background:transparent;border-style:dashed}
-.hp-ticks{display:flex;gap:3px;margin-top:3px}
-.hp-ticks span{flex:1;text-align:center;font-family:var(--mono);font-size:.62rem;color:var(--dim);white-space:nowrap;overflow:hidden}
-.hp-ticks span.crown{flex:.8}
+.track{display:flex;gap:6px;flex-wrap:wrap}
+.blind{flex:1;min-width:4.3rem;padding:6px 8px;border-radius:10px;background:var(--panel2);font-size:.74rem;text-align:center;border:2px solid transparent;color:var(--fg)}
+.blind b{display:block;font-family:var(--mono);font-size:.8rem}
+.blind.boss{background:var(--mult-soft)}
+.blind.cur{border-color:var(--gold-hi)}
+.blind.pass{background:var(--ok-soft)} .blind.fail{background:var(--panel3);color:var(--muted)}
+.blind.wait{opacity:.7}
+button.blind{font:inherit}
+.day-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.real{font-size:.78rem;color:var(--muted)}
+.table{background:var(--felt);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;min-height:11rem}
+.hand{display:flex;gap:8px;flex-wrap:wrap;min-height:6.4rem}
+.pc{position:relative;width:4.5rem;height:6.1rem;border-radius:10px;background:var(--card);border:1px solid var(--card-edge);box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;animation:deal .28s ease-out both}
+.pc .ic{font-size:1.45rem;line-height:1}
+.pc .t{font-size:.7rem;font-weight:700}
+.pc .s{font-family:var(--mono);font-size:.65rem;color:var(--muted)}
+.pc .cv{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:.66rem;font-weight:700;padding:0 6px;border-radius:6px;background:var(--chip);color:#fff}
+.pc.zero .cv{background:var(--dim);text-decoration:line-through}
+.pc.k-sow{border-top:4px solid var(--ok)} .pc.k-harv{border-top:4px solid var(--gold)} .pc.k-vs{border-top:4px solid var(--r2)} .pc.k-rest{border-top:4px solid var(--dim)}
+@keyframes deal{from{opacity:0;transform:translateY(-14px) rotate(-6deg)}to{opacity:1;transform:none}}
+.calc{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.box{min-width:5rem;padding:8px 12px;border-radius:12px;text-align:center;font-family:var(--mono);font-weight:700;font-size:1.5rem;line-height:1.1}
+.box small{display:block;font-family:var(--body);font-size:.66rem;font-weight:600;opacity:.85}
+.box.c{background:var(--chip);color:#fff} .box.m{background:var(--mult);color:#fff}
+.op{font-family:var(--display);font-size:1.5rem;color:var(--muted)}
+.score{font-family:var(--mono);font-weight:700;font-size:1.9rem}
+.tgt{font-size:.88rem;color:var(--muted)}
+.stamp{font-family:var(--display);font-size:1.4rem;padding:2px 14px;border-radius:10px;border:3px solid currentColor;transform:rotate(-4deg);display:inline-block;animation:stamp .35s ease-out both}
+.stamp.ok{color:var(--ok)} .stamp.no{color:var(--bad)}
+@keyframes stamp{from{opacity:0;transform:scale(1.6) rotate(-10deg)}to{opacity:1;transform:scale(1) rotate(-4deg)}}
+.why{font-size:.8rem;color:var(--muted);min-height:1.2em}
 
-/* ── 계단 산 ── */
+.hist{display:flex;flex-direction:column;gap:6px}
+.hrow{display:grid;grid-template-columns:7.5rem minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;background:var(--panel2);font-size:.85rem}
+.hrow .j{letter-spacing:2px}
+
+/* 장부 */
+details.ledger{padding:14px 16px}
+details summary{cursor:pointer;font-family:var(--display);font-size:1.12rem}
+.ledger-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px;margin-top:12px}
 .tower{display:flex;flex-direction:column;gap:4px}
-.stp{display:grid;grid-template-columns:2rem minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 12px;border-radius:10px;background:var(--panel2);font-size:.9rem}
-.stp .lv{font-family:var(--mono);font-weight:600;font-size:.82rem;color:var(--muted)}
-.stp .ic{font-size:1.2rem;text-align:center}
-.stp small{display:block;color:var(--muted);font-size:.75rem}
-.stp .need{font-family:var(--mono);font-size:.85rem;text-align:right;white-space:nowrap}
-.stp.lost{background:var(--down-soft)}
-.stp.got{background:var(--leaf-soft)} .stp.got .need{color:var(--leaf)}
-.stp.target{outline:2px solid var(--gold);outline-offset:-2px;background:var(--gold-soft)}
-.stp.peak{background:linear-gradient(90deg,var(--gold-soft),transparent),var(--panel2)}
-.stp.new{border:1px dashed var(--line2);background:transparent}
-.stp .goat{width:2rem;height:auto;display:block}
-.here{display:flex;align-items:center;gap:8px;padding:2px 12px;font-size:.82rem;color:var(--gold-hi);font-weight:700}
+.stp{display:grid;grid-template-columns:1.8rem minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 10px;border-radius:10px;background:var(--panel2);font-size:.85rem}
+.stp small{display:block;color:var(--muted);font-size:.72rem}
+.stp .need{font-family:var(--mono);font-size:.8rem;white-space:nowrap}
+.stp.lost{background:var(--down-soft)} .stp.got{background:var(--ok-soft)} .stp.target{outline:2px solid var(--gold);outline-offset:-2px;background:var(--gold-soft)} .stp.peak{background:var(--gold-soft)}
+.here{display:flex;align-items:center;gap:8px;padding:2px 10px;font-size:.78rem;color:var(--gold-hi);font-weight:700}
 .here::before,.here::after{content:"";flex:1;height:2px;background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 10px)}
-.floor{font-size:.78rem;color:var(--muted);text-align:center;padding-top:4px}
-
-/* ── 시즌 일지 ── */
-.season{display:flex;flex-direction:column;max-height:30rem;overflow-y:auto;padding-right:4px;scrollbar-width:thin}
-.sev{display:grid;grid-template-columns:3.4rem 1.8rem minmax(0,1fr);gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line)}
-.sev:last-child{border-bottom:0}
-.sev .d{font-family:var(--mono);font-size:.8rem;color:var(--muted);padding-top:2px}
-.sev .ic{font-size:1.15rem;text-align:center}
-.sev b{font-weight:600}
-.sev small{display:block;color:var(--muted);font-size:.76rem}
-.sev.k-raid b{color:var(--down)} .sev.k-slay b,.sev.k-new b{color:var(--up)}
-.sev-sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-
-/* ── 퀘스트 · 경험치 ── */
-.duo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px}
-.card{padding:18px;min-width:0}
-.qlist{display:flex;flex-direction:column;gap:10px}
-.q{display:grid;grid-template-columns:2.2rem minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--panel2)}
-.q .ic{font-size:1.4rem;text-align:center}
-.q b{font-weight:600;display:block}
-.q small{color:var(--muted);font-size:.78rem}
-.q .st{font-size:.82rem;text-align:right;white-space:nowrap}
-.q.ok{background:var(--leaf-soft)} .q.ok .st{color:var(--leaf);font-weight:700}
-.mini{height:5px;border-radius:9px;background:var(--track);margin-top:6px;overflow:hidden}
-.mini i{display:block;height:100%;background:var(--gold)}
-.q.ok .mini i{background:var(--leaf)}
-.q.next{background:transparent;border:1px dashed var(--line2)}
-.stamps{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.stamp{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.7rem;color:var(--muted);min-width:2.6rem}
-.stamp i{font-style:normal;font-size:.72rem;letter-spacing:-1px;color:var(--gold-hi)}
-.stamp.full{color:var(--leaf)}
-.sub-h{font-size:.82rem;color:var(--muted);margin:16px 0 8px;letter-spacing:.4px}
-
-.xpbar{display:flex;height:22px;border-radius:8px;overflow:hidden;gap:2px;margin:6px 0 12px}
-.xpbar i{display:block;min-width:4px}
-.legend{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 10px;font-size:.88rem;align-items:center}
-.legend .sw{width:10px;height:10px;border-radius:3px}
-.ladder{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.rung{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:10px;background:var(--panel2);font-size:.8rem;color:var(--muted)}
-.rung.on{background:var(--gold-soft);color:var(--gold-hi);font-weight:700}
-.rung.done{color:var(--fg)}
-
-/* ── 진열장 ── */
-.tabs{display:flex;gap:6px;background:var(--panel2);padding:4px;border-radius:12px;width:max-content;max-width:100%;overflow-x:auto}
-.tabs button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:.9rem;padding:7px 14px;border-radius:9px;cursor:pointer;white-space:nowrap}
-.tabs button[aria-selected="true"]{background:var(--panel);color:var(--fg);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18)}
-.tabs button:focus-visible,.ach:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
-.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,13.5rem),1fr));gap:10px;margin-top:12px}
-.ach{position:relative;display:grid;grid-template-columns:2.6rem minmax(0,1fr);gap:4px 10px;padding:12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);text-align:left;color:inherit;font:inherit}
-.ach .ic{grid-row:span 3;font-size:1.9rem;line-height:1;align-self:center;text-align:center}
-.ach b{font-weight:700}
-.ach .ds{font-size:.8rem;color:var(--muted)}
-.ach .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.76rem}
-.rar{padding:1px 7px;border-radius:6px;font-weight:700;border:1px solid currentColor}
-.rar.t0{color:var(--r0)} .rar.t1{color:var(--r1)} .rar.t2{color:var(--r2)} .rar.t3{color:var(--r3)}
-.cnt{font-family:var(--mono);font-weight:600;color:var(--fg)}
-.ach.now{border-color:var(--leaf);background:linear-gradient(180deg,var(--leaf-soft),transparent 70%),var(--panel2)}
-.ach.now::after{content:"이번에 획득";position:absolute;top:8px;right:10px;font-size:.68rem;font-weight:700;color:var(--leaf)}
-.ach.locked .ic{filter:grayscale(1);opacity:.45}
-.ach.locked b{color:var(--muted)}
-.ach.secret .ic{filter:none;opacity:.6}
-.ach.equip{border-color:var(--gold)}
-.ach.equip::after{content:"칭호 장착";position:absolute;top:8px;right:10px;font-size:.68rem;font-weight:700;color:var(--gold-hi)}
-.ach.got.life{cursor:pointer}
-.ach .pb{grid-column:2;height:4px;border-radius:9px;background:var(--track);overflow:hidden}
-.ach .pb i{display:block;height:100%;background:var(--muted)}
-.tabnote{margin-top:10px;font-size:.82rem;color:var(--muted)}
-
-/* ── 도감 ── */
-.dex{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
-.dex-row{display:contents}
-.dex-lab{grid-column:1/-1;font-size:.85rem;color:var(--muted);margin-top:4px}
-.cardx{position:relative;aspect-ratio:4/5;border-radius:12px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;background:var(--panel2);border:2px solid var(--line2);min-width:0;max-width:100%}
-.cardx .no{font-family:var(--display);font-size:1.5rem;line-height:1}
-.cardx .em{font-size:1.5rem;line-height:1}
-.cardx small{font-size:.68rem;color:var(--muted);line-height:1.25}
+.dex{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.dex-lab{grid-column:1/-1;font-size:.8rem;color:var(--muted);margin-top:2px}
+.cardx{aspect-ratio:4/5;border-radius:10px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;background:var(--panel2);border:2px solid var(--line2);min-width:0;max-width:100%}
+.cardx .no{font-family:var(--display);font-size:1.2rem;line-height:1}
+.cardx small{font-size:.6rem;color:var(--muted);line-height:1.2}
 .cardx.t0{border-color:var(--r0)} .cardx.t1{border-color:var(--r1)} .cardx.t2{border-color:var(--r2)} .cardx.t3{border-color:var(--r3)}
 .cardx.have{background:linear-gradient(160deg,var(--gold-soft),transparent 60%),var(--panel2)}
-.cardx.have .x{font-family:var(--mono);font-weight:600;font-size:.85rem}
-.cardx.lock{border-style:dashed;opacity:.8}
-.cardx.lock .em,.cardx.lock .no{filter:grayscale(1);opacity:.4}
-.dex-foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:.8rem;color:var(--muted)}
+.cardx.lock{border-style:dashed} .cardx.lock .no{opacity:.4}
 
-.note{font-size:.8rem;color:var(--dim)}
-
-@media (max-width:820px){
-  .duo,.bars{grid-template-columns:minmax(0,1fr)}
-  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .dex{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:900px){
+  .hud{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .shop,.ledger-grid{grid-template-columns:minmax(0,1fr)}
 }
-@media (max-width:520px){
-  h1{font-size:1.9rem}
-  .arena{padding:14px}
-  .vs{font-size:1.4rem;padding-bottom:50px}
-  .say{font-size:.8rem;padding:6px 9px}
-  .cardx .no{font-size:1.2rem} .cardx .em{font-size:1.15rem}
+@media (max-width:620px){
+  .slots,.offers{grid-template-columns:minmax(0,1fr)}
+  .hud{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hud .stat:last-child{grid-column:1/-1}
+  .pc{width:4rem;height:5.5rem}
+  .box{min-width:4.1rem;font-size:1.25rem}
+  .score{font-size:1.5rem}
+  .dex{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .hrow{grid-template-columns:minmax(0,1fr) auto}
+  .hrow .j{grid-column:1/-1}
 }
 @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
-</style><div class="stack">
-
-  <!-- 보스 아레나 -->
-  <section class="panel arena" aria-label="보스전">
-    <div class="sec-h"><h2>🐉 보스전</h2><small id="boss-sub"></small></div>
-    <div class="stage">
-      <div class="fighter">
-        <div class="say" id="say-me"></div>
-        <img class="qk" id="qk" alt="주식농부 쿼카">
-      </div>
-      <div class="vs" aria-hidden="true">VS</div>
-      <div class="fighter">
-        <div class="say" id="say-boss"></div>
-        <div class="bossbox" id="bossbox"><svg class="bear" viewBox="0 0 260 280" overflow="visible" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="보스 베어킹">
-  <defs>
-    <radialGradient id="bk-fur" cx="45%" cy="35%" r="75%"><stop offset="0" stop-color="#6b4630"/><stop offset=".6" stop-color="#4a2f20"/><stop offset="1" stop-color="#2b1a12"/></radialGradient>
-    <radialGradient id="bk-head" cx="42%" cy="32%" r="70%"><stop offset="0" stop-color="#7a5138"/><stop offset=".65" stop-color="#523424"/><stop offset="1" stop-color="#2f1d14"/></radialGradient>
-    <radialGradient id="bk-belly" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#b98a62"/><stop offset="1" stop-color="#8a6243"/></radialGradient>
-    <linearGradient id="bk-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".55" stop-color="#e2a93a"/><stop offset="1" stop-color="#a8721c"/></linearGradient>
-    <linearGradient id="bk-arrow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cb6ff"/><stop offset="1" stop-color="#2a6fd6"/></linearGradient>
-  </defs>
-  <ellipse cx="130" cy="266" rx="88" ry="10" fill="#000" opacity=".28"/>
-  <!-- 몸 -->
-  <path d="M60 250 C40 214 44 160 78 136 C102 120 158 120 182 136 C216 160 220 214 200 250 Z" fill="url(#bk-fur)"/>
-  <ellipse cx="130" cy="206" rx="46" ry="44" fill="url(#bk-belly)"/>
-  <path d="M112 186 q6 -6 12 0 M136 196 q6 -6 12 0 M118 214 q6 -6 12 0" stroke="#7a553a" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".55"/>
-  <!-- 다리 -->
-  <ellipse cx="88" cy="252" rx="28" ry="15" fill="#3a251a"/><ellipse cx="172" cy="252" rx="28" ry="15" fill="#3a251a"/>
-  <g fill="#c9a07c" opacity=".9"><circle cx="78" cy="252" r="4"/><circle cx="88" cy="248" r="4"/><circle cx="98" cy="252" r="4"/><circle cx="162" cy="252" r="4"/><circle cx="172" cy="248" r="4"/><circle cx="182" cy="252" r="4"/></g>
-  <!-- 팔 -->
-  <path d="M66 156 C40 170 34 200 48 214 C58 222 70 214 72 200 C74 186 80 176 86 168 Z" fill="#45291c"/>
-  <path d="M184 146 C198 140 214 140 220 148 C226 158 218 166 208 162 C200 158 192 160 184 166 Z" fill="#45291c"/>
-  <!-- 🔻 하락 화살표 지팡이 -->
-  <g class="bk-staff">
-    <rect x="211" y="40" width="10" height="170" rx="5" fill="#3b2a1e"/>
-    <path d="M190 200 L216 256 L242 200 L225 200 L225 160 L207 160 L207 200 Z" fill="url(#bk-arrow)" stroke="#173a73" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M212 168 L212 204" stroke="#cfe4ff" stroke-width="3" stroke-linecap="round" opacity=".7"/>
-  </g>
-  <circle cx="214" cy="150" r="15" fill="#3d261a"/>
-  <!-- 머리 -->
-  <g class="bk-head">
-    <circle cx="74" cy="64" r="24" fill="#3e271b"/><circle cx="74" cy="64" r="12" fill="#a8705a"/>
-    <circle cx="186" cy="64" r="24" fill="#3e271b"/><circle cx="186" cy="64" r="12" fill="#a8705a"/>
-    <ellipse cx="130" cy="98" rx="66" ry="58" fill="url(#bk-head)"/>
-    <!-- 왕관 -->
-    <g class="bk-crown">
-      <path d="M92 50 L100 18 L116 40 L130 10 L144 40 L160 18 L168 50 Z" fill="url(#bk-gold)" stroke="#8a5a12" stroke-width="2.5" stroke-linejoin="round"/>
-      <rect x="90" y="46" width="80" height="12" rx="4" fill="url(#bk-gold)" stroke="#8a5a12" stroke-width="2.5"/>
-      <circle cx="130" cy="52" r="4.5" fill="#3182f6"/><circle cx="108" cy="52" r="3.5" fill="#ff5f5f"/><circle cx="152" cy="52" r="3.5" fill="#ff5f5f"/>
-      <circle cx="130" cy="12" r="3.5" fill="#fff3c4"/>
-    </g>
-    <!-- 주둥이 -->
-    <ellipse cx="130" cy="120" rx="34" ry="25" fill="#b88760"/>
-    <ellipse cx="130" cy="106" rx="11" ry="8" fill="#1d120c"/>
-    <ellipse cx="127" cy="103" rx="3.5" ry="2" fill="#fff" opacity=".5"/>
-    <!-- 화난 표정 -->
-    <g class="bk-angry">
-      <path d="M92 72 L120 84" stroke="#1d120c" stroke-width="7" stroke-linecap="round"/>
-      <path d="M168 72 L140 84" stroke="#1d120c" stroke-width="7" stroke-linecap="round"/>
-      <ellipse cx="108" cy="92" rx="8" ry="7" fill="#fff4e6"/><circle cx="110" cy="93" r="4.5" fill="#d93636"/><circle cx="111" cy="92" r="1.5" fill="#fff"/>
-      <ellipse cx="152" cy="92" rx="8" ry="7" fill="#fff4e6"/><circle cx="150" cy="93" r="4.5" fill="#d93636"/><circle cx="151" cy="92" r="1.5" fill="#fff"/>
-      <path d="M114 128 Q130 120 146 128" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-      <path d="M118 126 l3 8 l3 -9 Z M136 125 l3 9 l3 -8 Z" fill="#fff"/>
-    </g>
-    <!-- 맞았을 때 표정 -->
-    <g class="bk-hurt">
-      <path d="M99 86 L115 93 L99 100" stroke="#1d120c" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M161 86 L145 93 L161 100" stroke="#1d120c" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M116 134 Q123 124 130 134 Q137 124 144 134" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M176 70 q6 10 0 14 q-6 -4 0 -14 Z" fill="#8fd0ff"/>
-    </g>
-    <!-- 회복했을 때 표정 -->
-    <g class="bk-smug">
-      <path d="M96 80 L120 84" stroke="#1d120c" stroke-width="6" stroke-linecap="round"/>
-      <path d="M164 80 L140 84" stroke="#1d120c" stroke-width="6" stroke-linecap="round"/>
-      <path d="M100 94 q8 -6 16 0" stroke="#1d120c" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-      <path d="M144 94 q8 -6 16 0" stroke="#1d120c" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-      <path d="M112 126 Q130 142 148 124" stroke="#1d120c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-      <path d="M120 130 l3 7 l3 -6 Z M134 131 l3 6 l3 -7 Z" fill="#fff"/>
-    </g>
-  </g>
-</svg><svg class="goat" viewBox="0 0 220 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="개척 보스 산양 수문장" overflow="visible">
-  <defs>
-    <linearGradient id="gt-rock" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d96a6"/><stop offset="1" stop-color="#4e5563"/></linearGradient>
-    <radialGradient id="gt-fur" cx="45%" cy="35%" r="75%"><stop offset="0" stop-color="#fbf6ec"/><stop offset=".7" stop-color="#e3d6bf"/><stop offset="1" stop-color="#bfae90"/></radialGradient>
-    <linearGradient id="gt-horn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9c98a"/><stop offset="1" stop-color="#9c7a3c"/></linearGradient>
-  </defs>
-  <!-- 바위 + 깃발 -->
-  <path d="M18 222 L42 176 L84 166 L120 172 L170 162 L204 188 L212 222 Z" fill="url(#gt-rock)"/>
-  <path d="M60 188 l14 -6 M140 186 l18 -4" stroke="#3a404b" stroke-width="3" stroke-linecap="round" opacity=".6"/>
-  <rect x="176" y="70" width="5" height="100" rx="2.5" fill="#6b5a3c"/>
-  <path d="M181 72 L214 82 L181 94 Z" fill="#ff5f5f"/>
-  <!-- 몸 -->
-  <ellipse cx="104" cy="140" rx="54" ry="34" fill="url(#gt-fur)"/>
-  <rect x="66" y="150" width="11" height="26" rx="5" fill="#d8c8aa"/><rect x="86" y="154" width="11" height="24" rx="5" fill="#cdbb9b"/>
-  <rect x="116" y="154" width="11" height="24" rx="5" fill="#cdbb9b"/><rect x="134" y="150" width="11" height="26" rx="5" fill="#d8c8aa"/>
-  <g fill="#3a3027"><rect x="66" y="172" width="11" height="6" rx="2"/><rect x="86" y="174" width="11" height="6" rx="2"/><rect x="116" y="174" width="11" height="6" rx="2"/><rect x="134" y="172" width="11" height="6" rx="2"/></g>
-  <path d="M154 128 q14 -6 12 -20" stroke="#e3d6bf" stroke-width="8" fill="none" stroke-linecap="round"/>
-  <!-- 머리 -->
-  <g class="gt-head">
-    <path d="M54 60 C46 34 18 26 12 46 C8 62 26 68 30 56" stroke="url(#gt-horn)" stroke-width="11" fill="none" stroke-linecap="round"/>
-    <path d="M86 60 C94 34 122 26 128 46 C132 62 114 68 110 56" stroke="url(#gt-horn)" stroke-width="11" fill="none" stroke-linecap="round"/>
-    <ellipse cx="38" cy="82" rx="16" ry="8" fill="#e3d6bf" transform="rotate(-20 38 82)"/>
-    <ellipse cx="102" cy="82" rx="16" ry="8" fill="#e3d6bf" transform="rotate(20 102 82)"/>
-    <path d="M44 70 C44 52 96 52 96 70 L92 112 C88 128 52 128 48 112 Z" fill="url(#gt-fur)"/>
-    <path d="M60 120 L70 150 L80 120 Z" fill="#efe5d2"/>
-    <path d="M50 78 L64 84" stroke="#3a3027" stroke-width="4" stroke-linecap="round"/>
-    <path d="M90 78 L76 84" stroke="#3a3027" stroke-width="4" stroke-linecap="round"/>
-    <rect x="54" y="86" width="12" height="7" rx="3.5" fill="#3a3027"/><rect x="74" y="86" width="12" height="7" rx="3.5" fill="#3a3027"/>
-    <circle cx="58" cy="88" r="1.6" fill="#fff"/><circle cx="78" cy="88" r="1.6" fill="#fff"/>
-    <ellipse cx="70" cy="110" rx="14" ry="9" fill="#d7c2a2"/>
-    <circle cx="65" cy="108" r="2.2" fill="#3a3027"/><circle cx="75" cy="108" r="2.2" fill="#3a3027"/>
-    <path d="M62 116 q8 5 16 0" stroke="#3a3027" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-  </g>
-</svg><span class="dmgpop" id="dmgpop"></span></div>
-      </div>
-    </div>
-    <div class="bars">
-      <div>
-        <div class="bar-l"><b id="lv-name"></b><span class="chip title-chip" id="title"></span></div>
-        <div class="meter" role="progressbar" aria-label="경험치" id="xp-m"><i class="xp" id="xp-bar" style="width:0"></i></div>
-        <div class="bar-s"><span class="num" id="xp-t"></span><span id="xp-n"></span></div>
-      </div>
-      <div>
-        <div class="bar-l"><b id="boss-name"></b><span class="num" id="hp-t"></span></div>
-        <div class="hpcells" role="img" id="hpcells"></div>
-        <div class="hp-ticks" id="hpticks" aria-hidden="true"></div>
-        <div class="bar-s"><span id="hp-s"></span><span id="hp-need"></span></div>
-      </div>
-    </div>
-    <div>
-      <div class="sub-h">⚔️ 최근 전투 기록</div>
-      <div class="log" id="log"></div>
-    </div>
-    <div class="wk" id="wk"></div>
-    <div class="facts" id="facts"></div>
+</style>
+<div class="stack">
+  <section class="hud" aria-label="게임 상태">
+    <div class="panel stat"><small>시즌 · 런 · 주차</small><b id="h-run"></b></div>
+    <div class="panel stat"><small>하트</small><b id="h-heart"></b></div>
+    <div class="panel stat"><small>🌰 도토리</small><b id="h-acorn"></b></div>
+    <div class="panel stat"><small>🌱 씨앗 은행</small><b id="h-bank"></b></div>
+    <div class="panel stat"><small id="h-season-l">시즌 12주</small><div class="season" id="h-season"></div></div>
   </section>
-
-  <!-- 계단 산 · 퀘스트 -->
-  <div class="duo">
-    <section class="panel card" aria-label="계단 산">
-      <div class="sec-h"><h2>🏔️ 계단 산</h2><small id="tw-sub"></small></div>
-      <div class="tower" id="tower"></div>
-      <p class="note" id="tw-note"></p>
-    </section>
-    <section class="panel card" aria-label="주간 퀘스트">
-      <div class="sec-h"><h2>📜 주간 퀘스트</h2><span class="chip num" id="q-chip"></span></div>
-      <div class="qlist" id="qlist"></div>
-      <div class="sub-h">🔮 다음 주 퀘스트 예고</div>
-      <div class="qlist" id="qnext"></div>
-      <div class="sub-h">🗓️ 지난 퀘스트 도장 (7/27부터)</div>
-      <div class="stamps" id="stamps"></div>
-    </section>
-  </div>
-
-  <!-- 시즌 일지 · 경험치 -->
-  <div class="duo">
-    <section class="panel card" aria-label="시즌 일지">
-      <div class="sec-h"><h2 id="sn-h">📓 시즌 일지</h2><small>새 계단 · 습격 · 탈환 · 처치</small></div>
-      <div class="sev-sum" id="sn-sum"></div>
-      <div class="season" id="season"></div>
-    </section>
-    <section class="panel card" aria-label="경험치">
-      <div class="sec-h"><h2>⭐ 경험치</h2><span class="chip num" id="xp-chip"></span></div>
-      <div class="xpbar" id="xpbar"></div>
-      <div class="legend" id="legend"></div>
-      <div class="sub-h">🧑‍🌾 농부 등급</div>
-      <div class="ladder" id="ladder"></div>
-      <p class="note">실현 1만원 = 1 XP · 업적은 희귀할수록 XP가 커요 (🥉30 · 🥈80 · 🥇200 · 💎500, 평생 업적은 따로) · 퀘스트 1개 50 XP, 올클리어 +100</p>
-    </section>
-  </div>
-
-  <!-- 진열장 -->
-  <section class="panel card" aria-label="업적 진열장">
-    <div class="sec-h"><h2>🏆 업적 진열장</h2><small id="ach-sum"></small></div>
-    <div class="tabs" role="tablist" aria-label="업적 기간">
-      <button role="tab" id="tab-w" aria-selected="true" data-t="w">📆 이번 주</button>
-      <button role="tab" id="tab-m" aria-selected="false" data-t="m">🗓️ 이번 달</button>
-      <button role="tab" id="tab-l" aria-selected="false" data-t="l">🏆 올해·평생</button>
+  <section aria-label="내 농기구">
+    <div class="sec-h" style="margin-bottom:8px"><h3>🧰 내 농기구 (최대 3개)</h3><span class="note" id="slot-note"></span></div>
+    <div class="slots" id="slots"></div>
+  </section>
+  <section class="panel stage" id="stage" aria-live="polite"></section>
+  <section class="panel stage" id="hist-sec" hidden>
+    <div class="sec-h"><h3>📜 지난 주 기록</h3><span class="note" id="hist-note"></span></div>
+    <div class="hist" id="hist"></div>
+  </section>
+  <details class="panel ledger" id="ledger">
+    <summary>📒 실제 성적 장부 · 계단 산 지도 · 수확 도감</summary>
+    <p class="note">게임 점수와 별개로, 실제 기준가와 수확 기록을 그대로 보여주는 곳이에요.</p>
+    <div class="ledger-grid">
+      <div><h3 style="margin-bottom:6px">🏔️ 계단 산 <span class="note" id="tw-sub"></span></h3><div class="tower" id="tower"></div></div>
+      <div><h3 style="margin-bottom:6px">📖 수확 도감 <span class="note" id="dex-sub"></span></h3><div class="dex" id="dex"></div>
+        <p class="note">칸이 완전히 비워진 날 = 수확 1회 · 7/23부터 · 테두리: 7·8번 흔함 · 5·6 레어 · 3·4 에픽 · 1·2 전설</p></div>
     </div>
-    <div class="achs" id="achs" role="tabpanel"></div>
-    <div class="tabnote" id="tabnote"></div>
-  </section>
-
-  <!-- 도감 -->
-  <section class="panel card" aria-label="수확 도감">
-    <div class="sec-h"><h2>📖 수확 도감</h2><span class="chip num" id="dex-chip"></span></div>
-    <div class="dex" id="dex"></div>
-    <div class="dex-foot"><span><b style="color:var(--r0)">■</b> 7·8번 흔함</span><span><b style="color:var(--r1)">■</b> 5·6번 레어</span><span><b style="color:var(--r2)">■</b> 3·4번 에픽</span><span><b style="color:var(--r3)">■</b> 1·2번 전설</span><span>칸이 완전히 비워진 날 = 수확 1회 · 7/23부터 집계</span></div>
-  </section>
-</div></template>
+  </details>
+  <details class="panel ledger">
+    <summary>📖 규칙 · 조커 도감 · 확률</summary>
+    <ul class="note" style="margin:10px 0 0;padding-left:1.2rem;display:flex;flex-direction:column;gap:4px">
+      <li>하루 = 한 판. 그날 마감 데이터가 카드로 깔려요: 🐂·🐎 날씨(±2% 맑음/비, −5% 폭풍, 각 5칩) · 🐯 코스피 비교 5칩 · 🌱 파종/🧺 수확 칸당 10칩 · 아무것도 안 한 날은 🌾 쉬는 날 10칩.</li>
+      <li>칩 × 배수 ≥ 목표면 통과(+1🌰). 목표는 런 1주차 45점에서 주마다 16%씩 커져요.</li>
+      <li>금요일 = 보스 판(목표 ×1.35, 월요일에 예고). 통과하면 +4🌰·씨앗 은행 +1칸(+5칩 영구), 실패하면 ❤️ −1. 금요일이 휴장이면 보스도 쉬어요.</li>
+      <li>❤️ 0 → 흉년. 다음 주부터 새 런(조커·도토리 초기화, 목표 1주차로). 씨앗 은행은 남아요.</li>
+      <li>토요일·일요일(또는 금요일 마감 후)에 상점이 열려요. 매주 배급 +2🌰, 이자 5개당 +1(최대 5).</li>
+      <li>선택은 스프레드시트 GAME 탭에 한 줄씩: <span class="num">날짜 | BUY/UP/SELL/REROLL | 조커</span>. 줄 날짜 다음 월요일 주에 적용돼요(결과 보고 고르기 방지).</li>
+      <li>상점 카드는 주차 이름으로 정해지는 고정 시드예요. 등장 확률 흔함 55% · 레어 30% · 에픽 12% · 전설 3%. 가격 4·6·8·10🌰, 강화 Lv2 4🌰·Lv3 8🌰(효과 +50%씩).</li>
+      <li>📊 게임 점수는 수익률이 아니에요. 실제 성적은 위 장부와 대시보드 숫자를 보세요.</li>
+    </ul>
+    <div class="slots" id="jdex" style="margin-top:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))"></div>
+  </details>
+</div>
+</template>
   </section>
 
   <!-- RECORDS -->
@@ -1274,7 +1081,7 @@ h1{font-size:2.3rem;line-height:1.15} h2{font-size:1.55rem} h3{font-size:1.15rem
     </div>
   </section>
 
-  <nav class="tabbar" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#badges" data-sec="badges"><span>🎮</span><b>게임</b></a></nav>
+  <nav class="tabbar" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#badges" data-sec="badges"><span>🃏</span><b>게임</b></a></nav>
   <footer><span id="src"></span><span>수익률은 좌수법(NAV) 기준 · 상승 빨강 / 하락 파랑</span></footer>
 </div>
 
@@ -1415,7 +1222,8 @@ async function load(){
     const [daily,hist,accounts,monthly] = await Promise.all(['daily','hist','accounts','monthly'].map(get));
     if(!Array.isArray(daily)||!daily.length) throw new Error('empty');
     const closes = await get('closes').catch(()=>snap.closes||{closes:{}});
-    return {daily,hist,accounts,monthly,closes,src:'live'};
+    const game = await get('game').catch(()=>null);   // 🃏 시트 GAME 탭 → data/game.json
+    return {daily,hist,accounts,monthly,closes,game,src:'live'};
   }catch(e){ return Object.assign({}, snap, {src:'snap'}); }
 }
 
@@ -1524,7 +1332,7 @@ function drawdowns(series){
 }
 
 
-/* farm-game v1 — 🎮 농장 게임: 계단 산 보스전 · 주간 퀘스트 · 경험치 · 업적 · 수확 도감 (2026-10-16) */
+/* farm-game v1 (장부용 계단 산·도감 엔진 유지) — 🎮 농장 게임: 계단 산 보스전 · 주간 퀘스트 · 경험치 · 업적 · 수확 도감 (2026-10-16) */
 /* 🎮 농장 게임 엔진 — daily.json(+closes)만으로 보스·퀘스트·도감·업적·XP 계산.
    대시보드 index.html에 그대로 옮길 수 있게 DOM과 분리. */
 function farmGame(D, CL, opt){
@@ -1750,169 +1558,412 @@ function farmGame(D, CL, opt){
 }
 
 
-function mountFarmGame(raw, S){
+/* 🃏 쿼카의 농기구 덱 — 엔진 (대시보드·시안·시뮬레이션 공용, DOM 없음)
+   하루 = 블라인드 1판. 그날 마감 데이터가 카드로 깔리고, 조커가 칩·배수를 더해 목표 점수를 넘기면 통과.
+   주의 마지막 거래일 = 보스 블라인드(월요일에 예고). 토요일 상점에서 조커 구매. */
+(function(root){
+const W = {U:'☀️', C:'⛅', R:'🌧️', S:'⛈️'};
+const WN = {U:'맑음', C:'흐림', R:'비', S:'폭풍'};
+const T1 = 2, T2 = 5;                                   // 레버리지 기준: ±2% 맑음/비, −5% 폭풍
+const wx = p => p <= -T2 ? 'S' : p <= -T1 ? 'R' : p >= T1 ? 'U' : 'C';
+const DOWN = w => w==='R' || w==='S';
+
+/* 하루 카드 */
+function cardsOf(day){
+  const c = [];
+  c.push({k:'wx', s:'🐂', w:wx(day.lr), p:day.lr, chips:5});
+  c.push({k:'wx', s:'🐎', w:wx(day.qr), p:day.qr, chips:5});
+  c.push({k:'vs', win: day.navr > day.kr, chips:5});
+  day.sow.forEach(x => c.push({k:'sow', cell:x, chips:10}));
+  day.harv.forEach(x => c.push({k:'harv', cell:x, chips:10}));
+  if(!day.sow.length && !day.harv.length) c.push({k:'rest', chips:10});
+  return c;
+}
+
+/* 조커: t = 'chips' | 'mult' | 'x' (적용 순서: 칩 → +배수 → ×배수), r = 희귀도 0~3 */
+const JOKERS = [
+  {id:'sun',    e:'🌻', n:'해바라기',     r:0, t:'mult',  d:'☀️ 날씨 카드마다 배수 +2',              f:(c,x)=>2*x.n(c=>c.k==='wx'&&c.w==='U')},
+  {id:'umb',    e:'☂️', n:'우산 쿼카',     r:0, t:'mult',  d:'🌧️·⛈️ 날씨 카드마다 배수 +2',           f:(c,x)=>2*x.n(c=>c.k==='wx'&&DOWN(c.w))},
+  {id:'turtle', e:'🐢', n:'거북이',       r:0, t:'mult',  d:'⛅ 날씨 카드마다 배수 +2',              f:(c,x)=>2*x.n(c=>c.k==='wx'&&c.w==='C')},
+  {id:'seed',   e:'🌱', n:'씨앗 주머니',   r:0, t:'chips', d:'파종 카드마다 칩 +15',                 f:(c,x)=>15*x.n(c=>c.k==='sow')},
+  {id:'basket', e:'🧺', n:'바구니',       r:0, t:'chips', d:'수확 카드마다 칩 +15',                 f:(c,x)=>15*x.n(c=>c.k==='harv')},
+  {id:'hoe',    e:'⛏️', n:'튼튼한 호미',   r:0, t:'chips', d:'매일 칩 +20',                         f:()=>20},
+  {id:'tiger',  e:'🐯', n:'호랑이 사냥꾼', r:0, t:'mult',  d:'코스피를 이긴 날 배수 +4',            f:(c,x)=>x.n(c=>c.k==='vs'&&c.win)?4:0},
+  {id:'fert',   e:'🧪', n:'비료 포대',     r:1, t:'x',     d:'파종·수확 없는 쉬는 날 ×2.5',          f:(c,x)=>x.n(c=>c.k==='rest')?2.5:1},
+  {id:'scythe', e:'🌾', n:'연쇄 낫',       r:1, t:'x',     d:'하루 2칸 이상 수확하면 ×2',            f:(c,x)=>x.n(c=>c.k==='harv')>=2?2:1},
+  {id:'planter',e:'🚜', n:'쌍둥이 파종기', r:1, t:'x',     d:'하루 2칸 이상 파종하면 ×2',            f:(c,x)=>x.n(c=>c.k==='sow')>=2?2:1},
+  {id:'twin',   e:'🐂', n:'쌍두마차',     r:1, t:'x',     d:'🐂·🐎 날씨가 같으면 ×2',               f:(c,x)=>{const w=c.filter(c=>c.k==='wx');return w[0].w===w[1].w?2:1}},
+  {id:'split',  e:'⚖️', n:'엇갈린 운명',   r:2, t:'x',     d:'한쪽은 ☀️, 다른 쪽은 🌧️·⛈️면 ×3',       f:(c,x)=>{const w=c.filter(c=>c.k==='wx').map(c=>c.w);return (w.includes('U')&&(w.includes('R')||w.includes('S')))?3:1}},
+  {id:'tail',   e:'🎯', n:'끝번호 수집가', r:1, t:'chips', d:'7·8번 칸 카드(파종·수확)마다 칩 +25',   f:(c,x)=>25*x.n(c=>(c.k==='sow'||c.k==='harv')&&/[78]$/.test(c.cell))},
+  {id:'deep',   e:'🌳', n:'깊은 뿌리',     r:3, t:'x',     d:'1~6번 칸을 수확한 날 ×4',              f:(c,x)=>x.n(c=>c.k==='harv'&&/[1-6]$/.test(c.cell))?4:1},
+  {id:'worm',   e:'🪱', n:'지렁이',       r:1, t:'chips', d:'파종한 날마다 이 조커 칩 +6 (계속 쌓임)', grow:(c,x,s)=>{ if(x.n(c=>c.k==='sow')) s.v=(s.v||0)+6; }, f:(c,x,s)=>s.v||0},
+  {id:'streak', e:'🔥', n:'꾸준이',       r:1, t:'mult',  d:'연속 통과한 날 수만큼 배수 +1',         f:(c,x)=>x.streak},
+  {id:'rainbow',e:'🌈', n:'무지개',       r:2, t:'x',     d:'이번 주에 날씨 4종이 다 나온 뒤부터 ×3', f:(c,x)=>x.weekWx.size>=4?3:1},
+  {id:'calm',   e:'🏞️', n:'잔잔한 호수',   r:2, t:'x',     d:'🐂·🐎 둘 다 ⛅면 ×3',                   f:(c,x)=>c.filter(c=>c.k==='wx'&&c.w==='C').length===2?3:1},
+  {id:'scare',  e:'🎃', n:'허수아비',     r:1, t:'none',  d:'보스 디버프를 막아줌',                 f:()=>0},
+  {id:'squirrel',e:'🐿️',n:'다람쥐',       r:1, t:'none',  d:'이자 상한 +3 · 보스 통과 도토리 +2',     f:()=>0},
+  {id:'snail',  e:'🐌', n:'달팽이 저금통', r:0, t:'none',  d:'거래일마다 판매가 +1',                 f:()=>0},
+];
+const JK = Object.fromEntries(JOKERS.map(j=>[j.id,j]));
+const PRICE = [4,6,8,10];
+
+const BOSSES = [
+  {id:'wolf',  e:'🐺', n:'하락 늑대',   d:'수확 카드 칩 0'},
+  {id:'boar',  e:'🐗', n:'멧돼지 장군', d:'파종 카드 칩 0'},
+  {id:'bear',  e:'🐻', n:'베어킹',      d:'최종 배수 절반'},
+  {id:'crow',  e:'🐦‍⬛', n:'까마귀',     d:'맨 왼쪽 조커 봉인'},
+  {id:'mole',  e:'🦔', n:'두더지',      d:'날씨 카드 칩 0'},
+];
+
+/* 결정론적 난수: 주차 문자열 → 시드 */
+function hash(s){ let h=2166136261>>>0; for(const ch of s){ h^=ch.codePointAt(0); h=Math.imul(h,16777619)>>>0; } return h; }
+function rng(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; }
+const RW = [0.55,0.3,0.12,0.03];                         // 희귀도 등장 확률(공개)
+function shopOffer(wk, reroll, owned){
+  const R = rng(hash(wk+'#'+(reroll||0))), out=[];
+  for(let tries=0; out.length<3 && tries<200; tries++){
+    let u=R(), r=0; while(r<3 && u>RW[r]){ u-=RW[r]; r++; }
+    const pool = JOKERS.filter(j=>j.r===r && !out.includes(j.id) && !(owned||[]).includes(j.id));
+    if(pool.length) out.push(pool[Math.floor(R()*pool.length)].id);
+  }
+  return out;
+}
+function bossOf(wk){ return BOSSES[hash('boss'+wk)%BOSSES.length]; }
+
+/* 점수 계산: 하루 한 판 */
+function scoreDay(day, st, opts){
+  const cards = cardsOf(day), boss = opts.boss, isBoss = !!boss;
+  const x = { n:f=>cards.filter(f).length, streak:st.streak, weekWx:st.weekWx };
+  cards.filter(c=>c.k==='wx').forEach(c=>st.weekWx.add(c.w));
+  let jok = st.jokers.slice();
+  if(isBoss && boss.id==='crow' && !jok.includes('scare') && jok.length) jok = jok.slice(1);
+  const defend = isBoss && jok.includes('scare');
+  // 카드 칩
+  const lines=[];
+  let chips = 0;
+  cards.forEach(c=>{ let v=c.chips;
+    if(isBoss && !defend && ((boss.id==='wolf'&&c.k==='harv')||(boss.id==='boar'&&c.k==='sow')||(boss.id==='mole'&&c.k==='wx'))) v=0;
+    c.v=v; chips+=v; });
+  if(st.bank){ chips += 5*st.bank; lines.push({id:'bank',t:'chips',v:5*st.bank}); }
+  let mult = 1;
+  // 성장형 먼저 갱신
+  jok.forEach(id=>{ const j=JK[id]; if(j.grow) j.grow(cards,x,st.mem[id]||(st.mem[id]={})); });
+  ['chips','mult','x'].forEach(t=>jok.forEach(id=>{ const j=JK[id]; if(j.t!==t) return;
+    const v=j.f(cards,x,st.mem[id]||(st.mem[id]={}));
+    const L=(st.lv&&st.lv[id])||1, k=1+0.5*(L-1);          // 강화 1레벨마다 효과 +50%
+    if(t==='chips' && v){ const w=Math.round(v*k); chips+=w; lines.push({id,t,v:w}); }
+    if(t==='mult' && v){ const w=+(v*k).toFixed(1); mult+=w; lines.push({id,t,v:w}); }
+    if(t==='x' && v!==1){ const w=+(1+(v-1)*k).toFixed(2); mult*=w; lines.push({id,t,v:w}); } }));
+  if(isBoss && !defend && boss.id==='bear'){ mult/=2; lines.push({id:'bear',t:'x',v:0.5}); }
+  return {cards, chips, mult, score:Math.round(chips*mult), lines};
+}
+
+/* 목표 점수: 주차(ante)마다 커짐 */
+const TARGET = (ante, boss) => Math.round(45*Math.pow(1.16, ante-1) * (boss?1.35:1) / 5) * 5;
+
+/* 시즌 진행. picks: {wk: [{buy:id}|{sell:id}|{reroll:1}] } — 토요일 상점 행동 기록 */
+function play(days, picks, opt){
+  opt = opt||{};
+  const weeks=[]; const byWk={};
+  days.forEach(d=>{ if(!byWk[d.wk]){ byWk[d.wk]=[]; weeks.push(d.wk); } byWk[d.wk].push(d); });
+  if(opt.nextWeek && !byWk[opt.nextWeek]){ byWk[opt.nextWeek]=[]; weeks.push(opt.nextWeek); }   // 아직 장이 안 열린 다음 주 상점
+  const st = {lv:{}, jokers:(opt.starter??['hoe']).slice(), acorn:opt.startAcorn??4, streak:0, mem:{}, weekWx:new Set(), hearts:opt.hearts??3, sellBonus:{}};
+  const log=[]; let stopped=null;
+  st.run=1; st.runStart=0; st.bank=0; const runs=[{n:1, from:weeks[0], bosses:0, weeks:0}];
+  weeks.forEach((wk,wi)=>{
+    if(stopped) return;
+    // 💀 하트 0 → 흉년: 새 런(1주차 난이도로), 조커·도토리 초기화, 씨앗 은행은 유지
+    if(st.hearts<=0){ st.run++; st.runStart=wi; st.hearts=opt.hearts??3; st.jokers=(opt.starter??['hoe']).slice(); st.lv={}; st.mem={}; st.sellBonus={}; st.acorn=opt.startAcorn??4; st.streak=0; runs.push({n:st.run, from:wk, bosses:0, weeks:0}); }
+    const ante = wi-st.runStart+1, boss = bossOf(wk), run=runs.at(-1); run.weeks++;
+    // 🛒 상점 (그 주 시작 전)
+    const interestCap = 5 + (st.jokers.includes('squirrel')?3:0);
+    const interest = ante>1 ? Math.min(interestCap, Math.floor(st.acorn/5)) : 0;
+    const allowance = ante>1 ? API.ALLOW : 0;                      // 매주 배급(죽음의 나선 방지)
+    st.acorn += interest + allowance;
+    let reroll=0, offer=shopOffer(wk,0,st.jokers); const shopLog={wk, offer0:offer.slice(), interest, allowance, acornIn:st.acorn, acts:[]};
+    (picks[wk]||[]).forEach(a=>{
+      if(a.reroll && st.acorn>=2){ st.acorn-=2; reroll++; offer=shopOffer(wk,reroll,st.jokers); shopLog.acts.push({reroll:reroll, offer:offer.slice()}); }
+      if(a.sell && st.jokers.includes(a.sell)){ const j=JK[a.sell]; const val=Math.floor(PRICE[j.r]/2)+(st.sellBonus[a.sell]||0); st.acorn+=val; st.jokers=st.jokers.filter(x=>x!==a.sell); delete st.mem[a.sell]; delete st.sellBonus[a.sell]; delete st.lv[a.sell]; shopLog.acts.push({sell:a.sell,val}); }
+      if(a.up && st.jokers.includes(a.up)){ const L=st.lv[a.up]||1, c=API.UPCOST(L); if(L<3 && st.acorn>=c){ st.acorn-=c; st.lv[a.up]=L+1; shopLog.acts.push({up:a.up,lv:L+1,p:c}); } }
+      if(a.buy && offer.includes(a.buy) && st.jokers.length<API.SLOTS){ const p=PRICE[JK[a.buy].r]; if(st.acorn>=p){ st.acorn-=p; st.jokers.push(a.buy); offer=offer.filter(x=>x!==a.buy); shopLog.acts.push({buy:a.buy,p}); } }
+    });
+    shopLog.offer=offer; shopLog.jokers=st.jokers.slice(); shopLog.acornOut=st.acorn; shopLog.reroll=reroll;
+    if(opt.shopOnly===wk){ stopped={wk, ante, boss, run:st.run, hearts:st.hearts, bank:st.bank, acorn:st.acorn, jokers:st.jokers.slice(), lv:{...st.lv}, sellBonus:{...st.sellBonus}, offer, reroll, shopLog, runInfo:{...run}}; }
+    if(stopped) return;
+    // 📅 한 주 진행
+    st.weekWx=new Set();
+    const res=[]; const dd=byWk[wk]||[];
+    dd.forEach((day,di)=>{
+      const isBoss = opt.fridayBoss ? day.wd===4 : di===dd.length-1, tgt=API.TARGET(ante,isBoss);   // 실전: 금요일만 보스(금요일 휴장이면 보스도 쉼)
+      const r = scoreDay(day, st, {boss: isBoss?boss:null});
+      r.target=tgt; r.pass=r.score>=tgt; r.boss=isBoss; r.day=day;
+      if(r.pass){ st.streak++; st.acorn += isBoss ? API.BOSSPAY+(st.jokers.includes('squirrel')?2:0) : API.DAYPAY; }
+      else { st.streak=0; if(isBoss) st.hearts--; }
+      if(r.pass && isBoss){ st.bank++; run.bosses++; }
+      if(st.jokers.includes('snail')) st.sellBonus.snail=(st.sellBonus.snail||0)+1;
+      res.push(r);
+    });
+    log.push({wk, ante, run:st.run, bank:st.bank, boss, shop:shopLog, days:res, acorn:st.acorn, hearts:st.hearts, jokers:st.jokers.slice(), lv:{...st.lv},
+      cleared:res.filter(r=>r.pass).length, bossPass:(res.find(r=>r.boss)||{}).pass ?? null});
+  });
+  return {log, st, runs, shop:stopped};
+}
+
+/* 날짜 도우미 (KST 날짜 문자열 'YYYY-MM-DD') */
+const D0 = s => new Date(s+'T00:00:00Z');
+const ymd = d => d.toISOString().slice(0,10);
+function isoWeek(s){ const d=D0(s), t=new Date(d); t.setUTCDate(d.getUTCDate()+3-((d.getUTCDay()+6)%7)); const y=t.getUTCFullYear(), w1=new Date(Date.UTC(y,0,4));
+  return y+'-W'+String(1+Math.round(((t-w1)/864e5-3+((w1.getUTCDay()+6)%7))/7)).padStart(2,'0'); }
+function nextMonday(s){ const d=D0(s); const k=(8-d.getUTCDay())%7||7; d.setUTCDate(d.getUTCDate()+k); return ymd(d); }   // 월요일이면 그다음 주 월요일
+/* GAME 탭 줄 → 주차별 상점 행동. 줄 날짜 다음 월요일에 시작하는 주에 적용(결과 보고 고르기 방지) */
+function parseRows(rows){
+  const picks={}, byName={}; JOKERS.forEach(j=>{ byName[j.id]=j.id; byName[j.n.replace(/\s/g,'')]=j.id; });
+  (rows||[]).forEach(r=>{ if(!r||!r[0]) return; const d=String(r[0]).slice(0,10); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+    const act=String(r[1]||'').trim().toUpperCase(), arg=byName[String(r[2]||'').replace(/\s/g,'')], wk=isoWeek(nextMonday(d));
+    const a = act==='BUY'&&arg?{buy:arg} : act==='UP'&&arg?{up:arg} : act==='SELL'&&arg?{sell:arg} : act==='REROLL'?{reroll:1} : null;
+    if(a) (picks[wk]=picks[wk]||[]).push(a); });
+  return picks;
+}
+
+const API = {SLOTS:3, ALLOW:2, DAYPAY:1, BOSSPAY:4, UPCOST:L=>4*L, isoWeek, nextMonday, parseRows, W, WN, wx, cardsOf, JOKERS, JK, PRICE, BOSSES, bossOf, shopOffer, scoreDay, TARGET, play, hash, rng, RW};
+if(typeof module!=='undefined') module.exports=API; else root.QDeck=API;
+})(window);
+
+/* deck-game v1 — 🃏 쿼카의 농기구 덱 (2026-10-18). 엔진 QDeck + 장부(farmGame의 계단 산·도감) */
+function mountDeck(raw, S, opt){
+  opt = opt||{};
   const host=document.getElementById('farmgame'); if(!host) return null;
   const root=host.shadowRoot||host.attachShadow({mode:'open'});
   root.innerHTML=document.getElementById('farmgame-tpl').innerHTML;
-  const $=id=>root.getElementById(id);
-  const QKIMG={thumbs:QK.thumbs||'', shock:QK.shock||''};
-  const G=farmGame(raw.daily, S.CL, {goal:(S.monthly&&S.monthly.goal)||1e7, hist:raw.hist});
+  const $=id=>root.getElementById(id), Q=window.QDeck;
+  const SEASON={n:1, start:'2026-10-19', weeks:12};
+  const RAR=['흔함','레어','에픽','전설'], DOW=['월','화','수','목','금','토','일'];
   const md=d=>+d.slice(5,7)+'/'+ +d.slice(8);
-const sg=(v,k=1)=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(k)+'%';
-const man=v=>(v<0?'−':v>0?'+':'')+Math.round(Math.abs(v)/1e4).toLocaleString('ko-KR')+'만';
-const fmt=n=>Math.round(n).toLocaleString('ko-KR');
-const RAR=['🥉 흔함','🥈 레어','🥇 에픽','💎 전설'];
-const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-const L=G.L, B=G.boss, W=G.curW;
-const GOATMINI=root.querySelector('#bossbox .goat').outerHTML.replace('class="goat"','class="goat mini"').replace(/id="gt-/g,'id="gm-').replace(/url\(#gt-/g,'url(#gm-');
+  const sg=(v,k=1)=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(k)+'%';
+  const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const addDays=(s,n)=>{ const t=new Date(s+'T00:00:00Z'); t.setUTCDate(t.getUTCDate()+n); return t.toISOString().slice(0,10); };
+  const wdOf=s=>(new Date(s+'T00:00:00Z').getUTCDay()+6)%7;
 
+  /* 1) 마감 기록 → 카드 재료 */
+  const D=S.D, CL=S.CL, days=[];
+  for(let i=1;i<D.length;i++){
+    const a=D[i-1], b=D[i]; if(b.d<SEASON.start) continue;
+    const ca=CL[a.d], cb=CL[b.d]; if(!ca||!cb||!ca[0]||!cb[0]||!ca[1]||!cb[1]) continue;
+    const sow=[], harv=[];
+    [['lever_avg','🐂'],['kosdaq_avg','🐎']].forEach(([k,e])=>(b[k]||[]).forEach((y,j)=>{ const x=(a[k]||[])[j]||0;
+      if(x>0&&!y) harv.push(e+(j+1)); else if(y>0&&(!x||Math.abs(y-x)>0.5)) sow.push(e+(j+1)); }));
+    days.push({d:b.d, wd:wdOf(b.d), wk:Q.isoWeek(b.d), lr:+((cb[0]/ca[0]-1)*100).toFixed(2), qr:+((cb[1]/ca[1]-1)*100).toFixed(2), sow, harv,
+      navr:+((b.nav/a.nav-1)*100).toFixed(2), kr:+(((1+b.kospi/100)/(1+a.kospi/100)-1)*100).toFixed(2)});
+  }
 
-/* ── 보스 (계단 산) ── */
-const STEP=G.STEP, kpct=k=>(Math.pow(STEP,k)-1)*100;
-const lastHit=B.log.at(-1), todayIsLast=lastHit&&lastHit.d===L.d, dmg=todayIsLast?lastHit.dmg:0;
-const box=$('bossbox');
-box.classList.add(dmg>0.005?'hurt':dmg<-0.005?'healed':'idle', B.mode==='raid'?'is-bear':'is-goat');
-$('dmgpop').textContent=dmg>0.005?'−'+dmg.toFixed(2)+'칸':dmg<-0.005?'+'+(-dmg).toFixed(2)+'칸':'';
-$('boss-name').textContent=B.e+' '+B.n;
-const ixNow=G.IX.at(-1).v, ixPrev=G.IX.at(-2).v;
-if(B.mode==='raid'){
-  const fillAt=(v,c)=>Math.max(0,Math.min(1,(Math.log(v)-Math.log(c.lo))/(Math.log(c.hi)-Math.log(c.lo))));
-  const cells=[...B.cells].reverse();                                   // 👑 → 아래 칸 (HP는 오른쪽부터 깎임)
-  $('hpcells').innerHTML=cells.map(c=>`<div class="hpc ${c.n==='crown'?'crown':''} ${c.fill>=1?'cleared':''}"><i style="width:${((1-fillAt(ixPrev,c))*100).toFixed(1)}%"></i></div>`).join('');
-  $('hpticks').innerHTML=cells.map(c=>`<span class="${c.n==='crown'?'crown':''}">${c.n==='crown'?'고점':sg(c.sret,0)}</span>`).join('');
-  $('hpcells').setAttribute('aria-label',`보스 HP ${B.hpCells.toFixed(1)}칸 / ${B.total}칸`);
-  setTimeout(()=>{ [...$('hpcells').children].forEach((el,i)=>el.firstChild.style.width=((1-cells[i].fill)*100).toFixed(1)+'%'); },900);
-  $('hp-t').textContent=`HP ${B.hpCells.toFixed(1)} / ${B.total}칸`;
-  $('boss-sub').textContent=`${md(B.peakD)} 고점을 빼앗은 보스 · ${md(B.start)} 습격 · 전투 ${B.fights}일째`;
-  $('hp-s').textContent=`계단 ${B.left}칸 + 👑 남음`;
-  $('hp-need').innerHTML=`다음 칸 <b class="num up">${sg(B.next)}</b> · 고점 <b class="num up">${sg(B.need)}</b>`;
-  $('say-boss').textContent= dmg>0 ? `크윽… ${dmg.toFixed(1)}칸쯤이야. 아직 ${B.left}칸 남았다.` : dmg<0 ? `이번엔 내가 되찾았다. 고점까지 ${sg(B.need,0)}, 와 볼 테면 와 봐.` : '오늘은 쉬는 날인가?';
-  $('say-me').textContent= dmg>0 ? `오늘 ${dmg.toFixed(2)}칸 깎았어요. 다음 칸까지 ${sg(B.next)}.` : '오늘은 맞았지만, 내린 날은 씨앗 심는 날.';
-}
-requestAnimationFrame(()=>{ const lg=$('log'); lg.scrollLeft=lg.scrollWidth; });
-$('log').innerHTML=B.log.map(x=>{ const t=x.d===L.d?' today':'', p=kpct(x.dmg); return x.dmg>=0
-  ? `<div class="hit dmg${t}"><small>${md(x.d)}${t?' · 오늘':''}</small><b>⚔️ −${x.dmg.toFixed(2)}칸</b><small>기준가 ${sg(p)}</small></div>`
-  : `<div class="hit heal${t}"><small>${md(x.d)}${t?' · 오늘':''}</small><b>🩹 +${(-x.dmg).toFixed(2)}칸</b><small>기준가 ${sg(p)}</small></div>`; }).join('');
-const wl=W.ret>W.kret;
-$('wk').innerHTML=`이번 주(${md(W.from)}~${md(W.to)}): 보스 <b class="num ${W.bossDmg>=0?'up':'dn'}">${W.bossDmg>=0?W.bossDmg.toFixed(2)+'칸 깎음':(-W.bossDmg).toFixed(2)+'칸 회복'}</b> · 🐯 주간 미니보스 코스피 ${wl?'<b class="up">처치</b>':'<b class="dn">패배</b>'} <span class="num">(나 ${sg(W.ret)} / 코스피 ${sg(W.kret)})</span>`;
-const bestN=G.mtn.filter(m=>m.k==='retake'&&m.d===B.best.d).length;
-const prevBear=G.raids.filter(r=>r.k==='bear').at(-1);
-const months=(a,b)=>(+b.slice(0,4)-+a.slice(0,4))*12+(+b.slice(5,7)-+a.slice(5,7));
-const kinds={}; G.raids.forEach(r=>kinds[r.e]=(kinds[r.e]||0)+1);
-$('facts').innerHTML=[
-  ['보스가 가장 강했던 날',`<b class="num dn">${md(B.lowD)} · ${B.maxLost}칸 잃음</b>`],
-  ['최고의 일격',`<b class="num up">${md(B.best.d)} −${B.best.dmg.toFixed(1)}칸</b>${bestN>1?`<small style="display:block;color:var(--muted);font-size:.75rem">하루에 ${bestN}칸 탈환</small>`:''}`],
-  ['지난 베어킹',prevBear?`<b class="num">${prevBear.peakD.slice(2,7).replace('-','.')}~${prevBear.end.slice(2,7).replace('-','.')}</b><small style="display:block;color:var(--muted);font-size:.75rem">${months(prevBear.start,prevBear.end)}개월 만에 처치</small>`:'<b>없음</b>'],
-  ['처치한 보스 (2024~)',`<b class="num">${G.raids.length}마리</b><div class="slain">${Object.entries(kinds).map(([e,n])=>`<span>${e} ×${n}</span>`).join('')}</div>`],
-].map(([k,v])=>`<div class="fact"><small>${k}</small>${v}</div>`).join('');
-$('qk').src = dmg>0 ? QKIMG.thumbs : QKIMG.shock;
+  /* 2) 선택: 시트 GAME 탭(game.json)이 우선, 없는 주는 이 기기 임시 기록 */
+  const LKEY='wcg_deck_rows';
+  let localRows=[]; try{ localRows=JSON.parse(localStorage.getItem(LKEY)||'[]')||[]; }catch(e){}
+  const saveLocal=()=>{ try{ localStorage.setItem(LKEY, JSON.stringify(localRows)); }catch(e){} };
+  const official=Q.parseRows((raw.game&&raw.game.rows)||[]);
+  const picks=()=>{ const p=Q.parseRows(localRows); Object.keys(official).forEach(k=>p[k]=official[k]); return p; };
+  const rowWk=r=>Q.isoWeek(Q.nextMonday(String(r[0]).slice(0,10)));
+  const OPT={fridayBoss:true};
 
-/* ── 계단 산 ── */
-$('tw-sub').textContent=`계단 폭 +${Math.round((STEP-1)*100)}% · 2024년부터 이어 붙인 기준가`;
-if(B.mode==='raid'){
-  const rows=[];
-  rows.push(`<div class="stp new"><span class="ic">${GOATMINI}</span><div><b>${sg(B.nextLine.sret,0)} 새 계단</b><small>고점 위 첫 개척지 · 🐐 산양 수문장</small></div><span class="need">${sg(B.nextLine.need)}</span></div>`);
-  const crown=B.cells.at(-1);
-  rows.push(`<div class="stp peak lost"><span class="ic">👑</span><div><b>고점 ${sg(crown.sret,0)}</b><small>${md(B.peakD)} · ${B.e} ${B.n}이 지키는 곳</small></div><span class="need">${sg(crown.need)}</span></div>`);
-  const steps=B.cells.slice(0,-1).reverse(); let marked=false;
-  steps.forEach((c,i)=>{
-    const below=steps[i+1];
-    if(c.got){ if(!marked){ rows.push(`<div class="here">🐹 지금 ${sg(G.sret(ixNow))}</div>`); marked=true; }
-      rows.push(`<div class="stp got"><span class="ic">✅</span><div><b>${sg(c.sret,0)} 계단</b><small>${md(c.got)} 되찾음</small></div><span class="need">탈환</span></div>`); return; }
-    const isTarget = !c.got && (!below || below.got);
-    rows.push(`<div class="stp lost ${isTarget?'target':''}"><span class="ic">${isTarget?'⚔️':'🔒'}</span><div><b>${sg(c.sret,0)} 계단</b><small>${isTarget?'다음 목표':'빼앗긴 칸'}${c.lostAgain?` · ${md(c.lostAgain)} 되찾았다가 다시 잃음`:''}</small></div><span class="need">${sg(c.need)}</span></div>`);
-  });
-  if(!marked) rows.push(`<div class="here">🐹 지금 ${sg(G.sret(ixNow))}</div>`);
-  rows.push(`<div class="floor">⬇️ 바닥 ${md(B.lowD)} · 2026 수익률 ${sg(G.sret(B.lowV))}</div>`);
-  $('tower').innerHTML=rows.join('');
-}
-$('tw-note').textContent='계단 위치는 고정이라 새 최저점이 나와도 바뀌지 않아요. 탈환은 이번 반등에서 처음 되찾은 칸만 셉니다. 계단 % = 2026 수익률';
+  /* 3) 지금이 상점인지, 한 주 진행 중인지 */
+  const kst=new Date(Date.now()+9*36e5), today=opt.today||kst.toISOString().slice(0,10), twd=wdOf(today), todayWk=Q.isoWeek(today);
+  const last=days.at(-1), fridayDone=!!(last && last.wk===todayWk && last.wd===4);
+  const SW=[]; for(let i=0;i<SEASON.weeks;i++) SW.push(Q.isoWeek(addDays(SEASON.start,7*i)));
+  let mode, wk;
+  if(today<SEASON.start){ mode='shop'; wk=SW[0]; }
+  else if(twd>=5 || fridayDone){ mode='shop'; wk=Q.isoWeek(Q.nextMonday(today)); }
+  else { mode='week'; wk=todayWk; }
+  if(wk>SW.at(-1)) mode='end';
+  const monday = mode==='week' ? addDays(today,-twd) : (wk===SW[0]?SEASON.start:Q.nextMonday(today));
 
-/* ── 시즌 일지 ── */
-$('sn-h').textContent=`📓 ${G.season} 시즌 일지`;
-const lineS=n=>G.sret(Math.pow(STEP,n));
-const SE=[]; G.sEvents.forEach(m=>{ const last=SE.at(-1);
-  if(m.k==='retake' && last && last.k==='retake' && last.d===m.d && last.raid===m.raid) last.ns.push(m.n); else SE.push({...m, ns:m.n!=null?[m.n]:[]}); });
-const cnt=k=>G.sEvents.filter(m=>m.k===k).length;
-$('sn-sum').innerHTML=[['⛰️','개척',cnt('new')],['⚠️','습격',cnt('raid')],['🔁','탈환',cnt('retake')],['⚔️','처치',cnt('slay')]].map(([e,n,v])=>`<span class="chip">${e} ${n} <b class="num" style="color:var(--fg)">${v}</b></span>`).join('');
-$('season').innerHTML=SE.slice().reverse().map(m=>{
-  const r=m.raid, days=r&&r.end?G.T.filter(x=>x.d>=r.start&&x.d<=r.end).length:0;
-  const [ic,t,sm] = m.k==='new' ? ['⛰️',`${m.ns.map(n=>sg(lineS(n),0)).join(' · ')} 계단 개척`,'처음 밟은 땅']
-    : m.k==='raid' ? ['⚠️',`${r.e} ${r.n} 습격`,`${md(r.peakD)} 고점 대비 −10% 돌파`]
-    : m.k==='retake' ? ['🔁',`${m.ns.slice().reverse().map(n=>sg(lineS(n),0)).join(' · ')} 계단 탈환`, m.ns.length>1?`하루에 ${m.ns.length}칸`:`${r.e} ${r.n} 상대`]
-    : ['⚔️',`${r.e} ${r.n} 처치`,`고점 탈환 · ${days}거래일 전투`];
-  return `<div class="sev k-${m.k}"><span class="d">${md(m.d)}</span><span class="ic">${ic}</span><div><b>${t}</b><small>${sm}</small></div></div>`;
-}).join('');
+  const RES=()=>Q.play(days, picks(), OPT);
+  const SHOP=w=>Q.play(days, picks(), {...OPT, shopOnly:w, nextWeek:w}).shop;
 
-/* ── 레벨 · 칭호 ── */
-$('lv-name').textContent=`Lv.${G.lv} ${G.tt[2]} ${G.tt[1]}`;
-const into=(G.xp-G.lo)/(G.hi-G.lo);
-$('xp-t').textContent=`${fmt(G.xp)} / ${fmt(G.hi)} XP`;
-$('xp-n').textContent=`다음 레벨까지 ${fmt(G.hi-G.xp)} XP`;
-setTimeout(()=>{ $('xp-bar').style.width=(into*100).toFixed(1)+'%'; },300);
-$('xp-m').setAttribute('aria-valuenow',Math.round(into*100));
-const earnedLife=G.life.filter(a=>a.ok);
-let eq=store.get('wcg_title'); if(!earnedLife.some(a=>a.n===eq)) eq=(earnedLife.find(a=>a.n==='폭풍 생존')||earnedLife.sort((a,b)=>b.tier-a.tier)[0]||{}).n;
-function paintTitle(){ const a=earnedLife.find(x=>x.n===eq); $('title').textContent=a?`칭호 ${a.ic} ${a.n}`:'칭호 없음'; }
-paintTitle();
+  /* ── 공통 그리기 ── */
+  const jkCard=(id,o)=>{ o=o||{}; const j=Q.JK[id], lv=o.lv||1;
+    return `<div class="jk r${j.r} ${o.cls||''}" data-j="${id}"><span class="e">${j.e}</span><b>${j.n}</b><span class="d">${j.d}</span>
+      <div class="ft"><span class="rar r${j.r}">${RAR[j.r]}</span>${lv>1?`<span class="lv">Lv.${lv}</span>`:''}${o.extra||''}</div></div>`; };
+  function hud(st, F){
+    $('h-run').textContent=`S${SEASON.n} · 런 ${st.run} · ${st.ante}주차`;
+    $('h-heart').textContent='❤️'.repeat(Math.max(0,st.hearts))+'🤍'.repeat(Math.max(0,3-st.hearts));
+    $('h-acorn').textContent=st.acorn+'개';
+    $('h-bank').textContent=st.bank?`${st.bank}칸 (+${5*st.bank}칩)`:'0칸';
+    const L=Object.fromEntries((F||RES()).log.map(x=>[x.wk,x]));
+    $('h-season-l').textContent=`시즌 ${SEASON.n} · ${md(SEASON.start)}부터 12주`;
+    $('h-season').innerHTML=SW.map(w=>{ const x=L[w]; let c=''; if(x && x.wk!==wk){ c=x.hearts<=0?'dead':x.bossPass?'w5':x.cleared>=3?'w3':'w1'; }
+      return `<i class="${c} ${w===wk?'now':''}" title="${w}${x?` · ${x.cleared}/${x.days.length} 통과`:''}"></i>`; }).join('');
+  }
+  function slots(st, o){
+    o=o||{}; const out=[];
+    for(let i=0;i<Q.SLOTS;i++){ const id=st.jokers[i];
+      if(!id){ out.push('<div class="jk empty">빈 칸</div>'); continue; }
+      const lv=(st.lv||{})[id]||1, j=Q.JK[id]; let extra='';
+      if(o.shop){ const up=Q.UPCOST(lv), val=Math.floor(Q.PRICE[j.r]/2)+((st.sellBonus||{})[id]||0);
+        extra=`${lv<3?`<button class="btn sm" data-up="${id}" ${st.acorn<up||o.locked?'disabled':''}>⬆️ 강화 ${up}🌰</button>`:'<span class="note">최대 강화</span>'}<button class="btn sm" data-sell="${id}" ${o.locked?'disabled':''}>판매 +${val}🌰</button>`; }
+      out.push(jkCard(id,{lv, extra, cls:o.seal&&i===0?'sealed':''})); }
+    $('slots').innerHTML=out.join('');
+    $('slot-note').textContent=o.shop?'강화하면 효과 +50% · 칸이 꽉 차면 팔고 사세요':'';
+  }
 
-/* ── 퀘스트 ── */
-const qrow=(q,next)=>`<div class="q ${q.ok?'ok':''} ${next?'next':''}"><span class="ic">${q.ic}</span><div><b>${q.t}</b><small>${q.sub||''}</small>${next?'':`<div class="mini"><i style="width:${(q.p*100).toFixed(0)}%"></i></div>`}</div><span class="st">${next?'월요일 시작':q.ok?'✓ 클리어':q.v}</span></div>`;
-$('qlist').innerHTML=W.quests.map(q=>qrow(q)).join('');
-$('q-chip').textContent=`${md(W.from)}~${md(W.to)} · ${W.qDone}/3 클리어`;
-$('qnext').innerHTML=[G.nextQ,{ic:'☀️',t:'수익 낸 날 3일',sub:'5거래일 기준'},{...G.nextQ3,sub:''}].map(q=>qrow(q,true)).join('');
-$('stamps').innerHTML=G.weeks.filter(w=>w.quests).map(w=>`<div class="stamp ${w.qDone===3?'full':''}" title="${md(w.from)}~${md(w.to)} ${w.qDone}/3"><i>${'★'.repeat(w.qDone)}${'☆'.repeat(3-w.qDone)}</i>${md(w.from)}</div>`).join('');
+  /* ── 🛒 상점 ── */
+  let summary={};
+  function renderShop(){
+    const st=SHOP(wk), F=RES(); hud(st,F);
+    const locked=!!official[wk];
+    slots(st,{shop:true, locked});
+    const prev=F.log.at(-1), newRun=prev && prev.hearts<=0 && prev.wk<wk;
+    const mine=localRows.filter(r=>rowWk(r)===wk);
+    const tg=[0,1,2,3,4].map(i=>`<span class="${i===4?'b':''}">${DOW[i]} ${Q.TARGET(st.ante,i===4)}</span>`).join('');
+    const sheetLines=(raw.game&&raw.game.rows||[]).filter(r=>rowWk(r)===wk);
+    $('stage').innerHTML=`
+      ${newRun?`<div class="banner dead">💀 <b>흉년!</b> 지난주에 하트를 다 잃어 런 ${st.run}이 시작돼요. 조커·도토리는 처음으로, 목표는 1주차로. 씨앗 은행 ${st.bank}칸(+${5*st.bank}칩)은 남아요.</div>`:''}
+      ${wk===SW[0]&&!F.log.length?`<div class="banner info">🎉 <b>시즌 ${SEASON.n} 개막!</b> ${md(SEASON.start)} 월요일 마감부터 하루 한 판씩 진행돼요. ⛏️ 튼튼한 호미 하나와 도토리 4개로 시작해요.</div>`:''}
+      <div class="sec-h"><h2>🛒 상점 · ${md(monday)}~${md(addDays(monday,4))} 주</h2>
+        <span class="note">${st.shopLog&&st.ante>1?`이자 +${st.shopLog.interest} · 배급 +${st.shopLog.allowance} · `:''}지금 🌰 ${st.acorn}</span></div>
+      <div class="shop">
+        <div class="boss"><span class="eyebrow">이번 주 보스 예고</span><span class="be">${st.boss.e}</span><h3>${st.boss.n}</h3>
+          <small>금요일 보스 판에서: <b>${st.boss.d}</b></small><small>🎃 허수아비가 있으면 막을 수 있어요.</small>
+          <span class="eyebrow" style="margin-top:6px">이번 주 목표 점수</span><div class="tgts">${tg}</div></div>
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          ${locked?`<div class="banner ok">✅ 시트 GAME 탭에 이번 주 선택이 기록돼 있어요. 바꾸려면 시트에서 고쳐 주세요.</div>`:''}
+          <div class="offers">${st.offer.length?st.offer.map(id=>{ const p=Q.PRICE[Q.JK[id].r], full=st.jokers.length>=Q.SLOTS;
+            return `<div class="offer">${jkCard(id)}<button class="btn" data-buy="${id}" ${st.acorn<p||full||locked?'disabled':''}>${full?'칸이 꽉 찼어요':`구매 <span class="num">${p}🌰</span>`}</button></div>`; }).join(''):'<p class="muted">상점이 비었어요. 새로고침해 보세요.</p>'}</div>
+          <div class="row"><button class="btn" id="b-reroll" ${st.acorn<2||locked?'disabled':''}>🔄 새로고침 2🌰</button>
+            <button class="btn" id="b-undo" ${mine.length&&!locked?'':'disabled'}>↩️ 되돌리기</button></div>
+          ${locked ? `<div class="lines"><span class="note">시트에 기록된 줄</span><pre>${sheetLines.map(r=>r.slice(0,3).join(' | ')).join('\n')}</pre></div>`
+            : mine.length ? `<div class="lines"><div class="sec-h"><span class="note">📝 이 기기에만 저장됐어요. 시트 GAME 탭에 붙여넣어야 확정돼요.</span><button class="btn sm" id="b-copy">📋 복사</button></div><pre id="lines">${mine.map(r=>r.join(' | ')).join('\n')}</pre></div>`
+            : `<p class="note">고른 내용은 아래에 줄로 쌓여요. 복사해서 시트 GAME 탭에 붙여넣으면(A 날짜 · B 행동 · C 조커) 다음 업데이트 때 확정돼요. 아무것도 안 사도 괜찮아요.</p>`}
+        </div>
+      </div>`;
+    const act=(a,arg)=>{ localRows.push([today,a,arg||'']); saveLocal(); renderShop(); };
+    root.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>act('BUY',b.dataset.buy));
+    root.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>act('UP',b.dataset.up));
+    root.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>act('SELL',b.dataset.sell));
+    $('b-reroll').onclick=()=>act('REROLL');
+    $('b-undo').onclick=()=>{ for(let i=localRows.length-1;i>=0;i--){ if(rowWk(localRows[i])===wk){ localRows.splice(i,1); break; } } saveLocal(); renderShop(); };
+    if($('b-copy')) $('b-copy').onclick=()=>{ const tsv=mine.map(r=>r.join('\t')).join('\n'), b=$('b-copy');
+      const sel=()=>{ const r=document.createRange(); r.selectNodeContents($('lines')); const s=root.getSelection?root.getSelection():getSelection(); s.removeAllRanges(); s.addRange(r); };
+      (navigator.clipboard?navigator.clipboard.writeText(tsv):Promise.reject()).then(()=>{ b.textContent='✅ 복사됨'; },()=>{ sel(); b.textContent='선택됨 · 복사하세요'; }); };
+    summary={mode:'shop', run:st.run, ante:st.ante, hearts:st.hearts, acorn:st.acorn, bank:st.bank, boss:st.boss, progress:0,
+      line:`🛒 상점 열림 · 이번 주 보스 ${st.boss.e} ${st.boss.n}${locked?' · 선택 완료':''}`};
+  }
 
-/* ── 경험치 ── */
-const XPP=[['harvest','🧺 수확 (실현)','var(--gold)'],['weekly','📆 주간 업적','var(--leaf)'],['monthly','🗓️ 월간 업적','var(--kospi)'],['life','🏆 평생 업적','var(--r3)'],['quest','📜 퀘스트','var(--muted)']];
-$('xp-chip').textContent=fmt(G.xp)+' XP';
-$('xpbar').innerHTML=XPP.map(([k,,c])=>`<i style="flex:${G.xpParts[k]};background:${c}" title="${k}"></i>`).join('');
-$('legend').innerHTML=XPP.map(([k,n,c])=>`<span class="sw" style="background:${c}"></span><span>${n}</span><span class="num">${fmt(G.xpParts[k])}</span>`).join('');
-const TT=[[1,'🌱','새싹'],[5,'🧑‍🌾','견습'],[10,'🚜','숙련'],[15,'🌾','베테랑'],[20,'🏆','명인'],[25,'👑','전설']];
-$('ladder').innerHTML=TT.map(t=>`<span class="rung ${G.tt[0]===t[0]?'on':G.lv>=t[0]?'done':''}">${t[1]} Lv.${t[0]} ${t[2]}</span>`).join('');
+  /* ── 📅 한 주 진행 ── */
+  let timers=[]; const later=(f,ms)=>timers.push(setTimeout(f,RM?0:ms)); const clearT=()=>{ timers.forEach(clearTimeout); timers=[]; };
+  const cardHTML=c=>{
+    if(c.k==='wx') return `<div class="pc ${c.v===0?'zero':''}"><span class="ic">${c.s}${Q.W[c.w]}</span><span class="t">${Q.WN[c.w]}</span><span class="s">${sg(c.p)}</span><span class="cv">+${c.v}</span></div>`;
+    if(c.k==='vs') return `<div class="pc k-vs"><span class="ic">🐯</span><span class="t">코스피 ${c.win?'이김':'짐'}</span><span class="cv">+${c.v}</span></div>`;
+    if(c.k==='sow') return `<div class="pc k-sow ${c.v===0?'zero':''}"><span class="ic">🌱</span><span class="t">${c.cell} 파종</span><span class="cv">+${c.v}</span></div>`;
+    if(c.k==='harv') return `<div class="pc k-harv ${c.v===0?'zero':''}"><span class="ic">🧺</span><span class="t">${c.cell} 수확</span><span class="cv">+${c.v}</span></div>`;
+    return `<div class="pc k-rest"><span class="ic">🌾</span><span class="t">쉬는 날</span><span class="s">밭 돌보기</span><span class="cv">+${c.v}</span></div>`; };
+  const fmtM=m=>Number.isInteger(m)?m:m.toFixed(1);
+  function countUp(el,to,ms){ if(!ms){ el.textContent=to; return; } const t0=performance.now(); const f=n=>{ const k=Math.min(1,(n-t0)/ms); el.textContent=Math.round(to*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
 
-/* ── 진열장 ── */
-const curMonthLabel=+G.curM.k.slice(5)+'월';
-function repCard(a,unit){
-  const now=a.now===true, locked=a.cnt===0;
-  return `<div class="ach ${now?'now':''} ${locked?'locked':''}"><span class="ic">${a.ic}</span><b>${a.n}</b><span class="ds">${a.d}</span>
-    <span class="meta"><span class="rar t${a.tier}">${RAR[a.tier]}</span><span class="cnt">×${a.cnt}</span><span class="muted">${a.base?`${a.base}${unit} 중 ${(a.rate*100).toFixed(0)}%`:'첫 도전'}</span></span></div>`;
-}
-function lifeCard(a){
-  if(a.hidden && !a.ok) return `<div class="ach locked secret"><span class="ic">❓</span><b>숨겨진 업적</b><span class="ds">조건은 따면 공개돼요</span><span class="meta"><span class="rar t${a.tier}">${RAR[a.tier]}</span></span></div>`;
-  const pv=Math.max(0,Math.min(1,a.p||0));
-  return `<div class="ach life ${a.ok?'got':'locked'} ${a.ok&&a.n===eq?'equip':''}" ${a.ok?`role="button" tabindex="0" data-n="${a.n}" title="눌러서 칭호로 장착"`:''}><span class="ic">${a.ic}</span><b>${a.n}${a.hidden?' 🔓':''}</b><span class="ds">${a.d}</span>
-    <span class="meta"><span class="rar t${a.tier}">${RAR[a.tier]}</span><span class="cnt">${a.v}</span></span>${a.ok||a.hidden?'':`<div class="pb"><i style="width:${(pv*100).toFixed(0)}%"></i></div>`}</div>`;
-}
-const TABS={
-  w:()=>({html:G.repW.map(a=>repCard(a,'주')).join(''), note:`${md(W.from)}~${md(W.to)} · 이번 주 ${G.repW.filter(a=>a.now).length}개 획득 · 매주 월요일에 다시 도전 · 희귀도 = 지금까지 달성한 주의 비율`}),
-  m:()=>({html:G.repM.map(a=>repCard(a,'달')).join(''), note:`${curMonthLabel} 진행 중 · 지금까지 ${G.repM.filter(a=>a.now).length}개 · 월말에 확정`}),
-  l:()=>({html:G.life.map(lifeCard).join(''), note:`${earnedLife.length}/${G.life.length}개 획득 (숨겨진 업적 ${G.life.filter(a=>a.hidden).length}개 포함) · 딴 업적을 누르면 칭호로 장착돼요`}),
-};
-let tab=store.get('wcg_tab')||'w'; if(!TABS[tab]) tab='w';
-function paint(){
-  root.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===tab));
-  const t=TABS[tab](); $('achs').innerHTML=t.html; $('tabnote').textContent=t.note;
-}
-root.querySelector('.tabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; tab=b.dataset.t; store.set('wcg_tab',tab); paint(); });
-const equip=e=>{ const c=e.target.closest('.ach.got.life'); if(!c) return; eq=c.dataset.n; store.set('wcg_title',eq); paintTitle(); paint(); };
-$('achs').addEventListener('click',equip);
-$('achs').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); equip(e); } });
-paint();
-const wN=G.repW.reduce((s,a)=>s+a.cnt,0), mN=G.repM.reduce((s,a)=>s+a.cnt,0);
-$('ach-sum').textContent=`주간 ${wN}회 · 월간 ${mN}회 · 평생 ${earnedLife.length}개`;
+  function renderWeek(sel){
+    clearT();
+    const F=RES(), W=F.log.find(x=>x.wk===wk), pre=SHOP(wk);
+    const played=W?W.days:[];
+    const st=W?{run:W.run, ante:W.ante, hearts:W.hearts, acorn:W.acorn, bank:W.bank}:pre;
+    hud(st,F);
+    const byD=Object.fromEntries(played.map(r=>[r.day.d,r]));
+    if(sel==null) sel=played.length-1;
+    const r=played[sel];
+    const sealed=r&&r.boss&&pre.boss.id==='crow'&&!pre.jokers.includes('scare');
+    slots(pre,{seal:sealed});
+    const track=[0,1,2,3,4].map(i=>{ const d=addDays(monday,i), x=byD[d], boss=i===4;
+      if(x) return `<button class="blind ${boss?'boss':''} ${x.pass?'pass':'fail'} ${r&&r.day.d===d?'cur':''}" data-i="${played.indexOf(x)}">${DOW[i]} ${md(d)}${boss?' '+pre.boss.e:''}<b>${x.pass?'✅':'❌'} ${x.score}</b></button>`;
+      const gone=d<today || (d===today && false);
+      return `<div class="blind ${boss?'boss':''} wait">${DOW[i]} ${md(d)}${boss?' '+pre.boss.e:''}<b>${gone?'휴장':'목표 '+Q.TARGET(pre.ante,boss)}</b></div>`; }).join('');
+    const head=`<div class="sec-h"><h2>📅 ${md(monday)}~${md(addDays(monday,4))} 주 · 런 ${st.run} ${st.ante}주차</h2><span class="badge">📊 점수 ≠ 수익률</span></div>
+      <div class="track" id="track">${track}</div>`;
+    if(!r){
+      $('stage').innerHTML=`${head}<div class="banner info">🌙 오늘(${md(today)}) 장 마감 데이터가 올라오면 첫 판이 열려요. 금요일 보스는 ${pre.boss.e} <b>${pre.boss.n}</b> — ${pre.boss.d}.</div>`;
+      summary={mode:'week', run:st.run, ante:st.ante, hearts:st.hearts, acorn:st.acorn, bank:st.bank, boss:pre.boss, progress:0, line:`이번 주 첫 판 대기 · 금요일 ${pre.boss.e} ${pre.boss.n}`};
+      return;
+    }
+    $('stage').innerHTML=`${head}
+      ${r.boss?`<div class="banner info">${pre.boss.e} <b>${pre.boss.n}</b> 보스 판: ${pre.boss.d}${pre.jokers.includes('scare')?' → 🎃 허수아비가 막았어요!':''}</div>`:''}
+      <div class="table">
+        <div class="day-h"><h3>${md(r.day.d)} (${DOW[r.day.wd]}) 마감 · ${r.boss?'보스 판':'오늘의 판'}</h3>
+          <span class="real">🐂 ${sg(r.day.lr)} · 🐎 ${sg(r.day.qr)} · 기준가 ${sg(r.day.navr)} vs 코스피 ${sg(r.day.kr)}</span></div>
+        <div class="hand" id="hand"></div>
+        <div class="calc"><div class="box c"><small>칩</small><span id="v-c">0</span></div><span class="op">×</span>
+          <div class="box m"><small>배수</small><span id="v-m">1</span></div><span class="op">=</span>
+          <span class="score" id="v-s">0</span><span class="tgt">/ 목표 <b class="num">${r.target}</b></span><span id="v-stamp"></span></div>
+        <div class="why" id="why"></div>
+      </div>
+      <div class="row"><button class="btn" id="b-again">🔁 다시 보기</button><span class="note">지난 날은 위 칸을 눌러서 볼 수 있어요.</span></div>`;
+    root.querySelectorAll('button.blind').forEach(b=>b.onclick=()=>renderWeek(+b.dataset.i));
+    $('b-again').onclick=()=>renderWeek(sel);
+    let t=120, c=0, m=1; const hand=$('hand'), vc=$('v-c'), vm=$('v-m'), whys=[];
+    r.cards.forEach(card=>{ later(()=>{ hand.insertAdjacentHTML('beforeend',cardHTML(card)); c+=card.v; vc.textContent=c; },t); t+=160; });
+    const fire=(id,cls,txt)=>{ const el=$('slots').querySelector(`[data-j="${id}"]`); if(!el) return; el.classList.add('fire'); el.insertAdjacentHTML('beforeend',`<span class="pop ${cls}">${txt}</span>`); later(()=>el.classList.remove('fire'),520); };
+    r.lines.forEach(Ln=>{ later(()=>{
+      if(Ln.id==='bank'){ c+=Ln.v; vc.textContent=c; whys.push(`🌱 씨앗 은행 +${Ln.v}칩`); }
+      else if(Ln.id==='bear'){ m=+(m*Ln.v).toFixed(2); vm.textContent=fmtM(m); whys.push('🐻 베어킹: 배수 절반'); }
+      else if(Ln.t==='chips'){ c+=Ln.v; vc.textContent=c; fire(Ln.id,'chips','+'+Ln.v); whys.push(`${Q.JK[Ln.id].e} +${Ln.v}칩`); }
+      else if(Ln.t==='mult'){ m=+(m+Ln.v).toFixed(2); vm.textContent=fmtM(m); fire(Ln.id,'mult','+'+Ln.v+' 배수'); whys.push(`${Q.JK[Ln.id].e} +${Ln.v} 배수`); }
+      else { m=+(m*Ln.v).toFixed(2); vm.textContent=fmtM(m); fire(Ln.id,'x','×'+Ln.v); whys.push(`${Q.JK[Ln.id].e} ×${Ln.v}`); }
+      $('why').textContent=whys.join(' · '); },t); t+=400; });
+    later(()=>countUp($('v-s'),r.score,RM?0:500),t); t+=RM?0:600;
+    later(()=>{ $('v-stamp').innerHTML=r.pass?`<span class="stamp ok">통과 +${r.boss?Q.BOSSPAY+(pre.jokers.includes('squirrel')?2:0):Q.DAYPAY}🌰</span>`:`<span class="stamp no">${r.boss?'보스 실패 ❤️−1':'실패'}</span>`;
+      if(!whys.length) $('why').textContent='발동한 조커가 없어요. 카드 칩만으로 계산했어요.'; },t);
+    summary={mode:'week', run:st.run, ante:st.ante, hearts:st.hearts, acorn:st.acorn, bank:st.bank, boss:pre.boss, progress:W.cleared/5,
+      line:`이번 주 ${W.cleared}/${played.length} 통과${W.bossPass===true?' · 보스 처치!':W.bossPass===false?' · 보스 실패':` · 금요일 ${pre.boss.e} ${pre.boss.n}`}`};
+  }
 
-/* ── 도감 ── */
-const need=c=>c.g==null?null:(1.003/(1+c.g/100)-1)*100;
-$('dex').innerHTML=[['🐂','KODEX 레버리지'],['🐎','KODEX 코스닥150레버리지']].map(([e,nm])=>
-  `<div class="dex-lab">${e} ${nm}</div>`+G.dex.filter(c=>c.e===e).map(c=>{
-    const nd=need(c);
-    return c.n ? `<div class="cardx have t${c.rar}" title="${c.cell} · 첫 수확 ${md(c.first)}"><span class="em">${e}</span><span class="no">${c.no}</span><span class="x">×${c.n}</span><small>첫 수확 ${md(c.first)}</small></div>`
-               : `<div class="cardx lock t${c.rar}" title="${c.cell} · 아직 못 거둔 칸"><span class="em">${e}</span><span class="no">${c.no}</span><span>🔒</span><small>${nd!=null?'수확선 '+sg(nd,0):'빈 칸'}</small></div>`;
-  }).join('')).join('');
-$('dex-chip').textContent=`${G.dexN} / 16장`;
+  function renderEnd(){
+    const F=RES(), L=F.log.at(-1);
+    if(L) hud({run:L.run, ante:L.ante, hearts:L.hearts, acorn:L.acorn, bank:L.bank},F);
+    const boss=F.runs.reduce((s,r)=>s+r.bosses,0), best=Math.max(0,...F.runs.map(r=>r.weeks)), pass=F.log.reduce((s,w)=>s+w.cleared,0);
+    $('stage').innerHTML=`<div class="sec-h"><h2>🏁 시즌 ${SEASON.n} 끝</h2></div>
+      <div class="banner info">통과 ${pass}판 · 보스 ${boss}마리 · 최장 런 ${best}주 · 씨앗 은행 ${L?L.bank:0}칸. 다음 시즌 규칙은 따로 정해요.</div>`;
+    summary={mode:'end', run:L?L.run:1, ante:L?L.ante:1, hearts:L?L.hearts:3, acorn:L?L.acorn:0, bank:L?L.bank:0, progress:1, line:`시즌 ${SEASON.n} 끝 · 보스 ${boss}마리`};
+  }
 
-  return G;
+  function renderHist(){
+    const F=RES(), past=F.log.filter(x=>x.wk<wk || (mode==='shop' && x.wk<wk));
+    if(!past.length){ $('hist-sec').hidden=true; return; }
+    $('hist-sec').hidden=false;
+    $('hist-note').textContent=`런 ${F.runs.map(r=>`R${r.n} ${r.weeks}주·보스 ${r.bosses}`).join(' / ')}`;
+    $('hist').innerHTML=past.slice().reverse().map(x=>`<div class="hrow"><span>${md(x.days[0].day.d)}~${md(x.days.at(-1).day.d)} · R${x.run}</span>
+      <span class="j">${x.jokers.map(j=>Q.JK[j].e+((x.lv[j]||1)>1?x.lv[j]:'')).join(' ')}</span>
+      <b class="num">${x.cleared}/${x.days.length} ${x.bossPass===true?x.boss.e+' 처치':x.bossPass===false?x.boss.e+' 실패 ❤️−1':'보스 휴무'}</b></div>`).join('');
+  }
+
+  /* ── 📒 장부: 계단 산 지도 · 수확 도감 (실제 성적) ── */
+  function renderLedger(){
+    let G=null; try{ G=farmGame(raw.daily, S.CL, {goal:(S.monthly&&S.monthly.goal)||1e7, hist:raw.hist}); }catch(e){ console.error('ledger',e); }
+    if(!G){ $('ledger').hidden=true; return; }
+    const B=G.boss, rows=[];
+    $('tw-sub').textContent=`계단 +${Math.round((G.STEP-1)*100)}% · 2024년부터`;
+    if(B.mode==='raid'){
+      const crown=B.cells.at(-1);
+      rows.push(`<div class="stp peak"><span>👑</span><div><b>고점 ${sg(crown.sret,0)}</b><small>${md(B.peakD)} · ${B.e} ${B.n}</small></div><span class="need">${sg(crown.need)}</span></div>`);
+      const steps=B.cells.slice(0,-1).reverse(); let marked=false;
+      steps.forEach((c,i)=>{ const below=steps[i+1];
+        if(c.got){ if(!marked){ rows.push(`<div class="here">🐹 지금 ${sg(G.sret(G.IX.at(-1).v))}</div>`); marked=true; }
+          rows.push(`<div class="stp got"><span>✅</span><div><b>${sg(c.sret,0)} 계단</b><small>${md(c.got)} 되찾음</small></div><span class="need">탈환</span></div>`); return; }
+        const tgt=!below||below.got;
+        rows.push(`<div class="stp lost ${tgt?'target':''}"><span>${tgt?'⚔️':'🔒'}</span><div><b>${sg(c.sret,0)} 계단</b><small>${tgt?'다음 목표':'빼앗긴 칸'}</small></div><span class="need">${sg(c.need)}</span></div>`); });
+      if(!marked) rows.push(`<div class="here">🐹 지금 ${sg(G.sret(G.IX.at(-1).v))}</div>`);
+    } else {
+      rows.push(`<div class="stp peak"><span>🐐</span><div><b>${sg(B.nextS,0)} 새 계단</b><small>고점 위 첫 개척지</small></div><span class="need">${sg(B.next)}</span></div>`);
+      rows.push(`<div class="here">🐹 지금 ${sg(G.sret(G.IX.at(-1).v))}</div>`);
+    }
+    $('tower').innerHTML=rows.join('');
+    $('dex-sub').textContent=`${G.dexN} / 16장`;
+    $('dex').innerHTML=[['🐂','KODEX 레버리지'],['🐎','코스닥150레버리지']].map(([e,nm])=>`<div class="dex-lab">${e} ${nm}</div>`+
+      G.dex.filter(c=>c.e===e).map(c=>c.n?`<div class="cardx have t${c.rar}" title="${c.cell} 첫 수확 ${md(c.first)}"><span>${e}</span><span class="no">${c.no}</span><small>×${c.n}</small></div>`
+        :`<div class="cardx lock t${c.rar}" title="${c.cell}"><span style="opacity:.4">${e}</span><span class="no">${c.no}</span><small>🔒</small></div>`).join('')).join('');
+  }
+
+  $('jdex').innerHTML=Q.JOKERS.map(j=>jkCard(j.id,{extra:`<span class="note num">${Q.PRICE[j.r]}🌰</span>`})).join('')
+    +Q.BOSSES.map(b=>`<div class="jk r3"><span class="e">${b.e}</span><b>보스 · ${b.n}</b><span class="d">${b.d}</span><div class="ft"><span class="rar r3">보스</span></div></div>`).join('');
+
+  if(mode==='shop') renderShop(); else if(mode==='week') renderWeek(); else renderEnd();
+  renderHist(); renderLedger();
+  return Object.assign({}, summary, {season:SEASON.n, wk, days:days.length, get live(){ return summary; }});
 }
 
 /* ════════ main ════════ */
@@ -2010,16 +2061,15 @@ load().then(raw=>{
   $('t-dd').closest('.tile').dataset.tone = curDD<-0.05?'dn':'gold';
   $('t-dd-s').textContent = curDD<-0.05 ? `고점 ${md(peakRow.d)} · 탈환까지 ${pct((navPeak/L.nav-1)*100)}` : '🏔 지금이 신고점!';
   // level — 🎮 농장 게임 XP 기준 (실패하면 예전 방식)
-  let FG = null, lv, tt, lvNext;
-  try{ FG = mountFarmGame(raw, S); }catch(e){ console.error('farm game', e); const h=document.getElementById('farmgame'); if(h) h.innerHTML='<p class="muted">농장 게임을 불러오지 못했어요.</p>'; }
+  let FG = null, lv, tt, lvNext, deckLine = '';
+  try{ FG = mountDeck(raw, S); }catch(e){ console.error('deck game', e); const h=document.getElementById('farmgame'); if(h) h.innerHTML='<p class="muted">농장 게임을 불러오지 못했어요.</p>'; }
   if(FG){
-    const into = (FG.xp-FG.lo)/(FG.hi-FG.lo);
-    lv = FG.lv; tt = [FG.tt[0], FG.tt[2], FG.tt[1]]; lvNext = `다음 레벨까지 ${(FG.hi-FG.xp).toLocaleString('ko-KR')} XP`;
-    $('lv-ic').textContent = FG.tt[1];
-    $('lv-name').textContent = 'Lv.'+FG.lv+' '+FG.tt[2];
-    $('lv-xp').textContent = FG.xp.toLocaleString('ko-KR')+' XP';
-    setTimeout(()=>{ $('lv-bar').style.width = (into*100).toFixed(1)+'%'; }, 200);
-    $('lv-next').textContent = `${lvNext} · ${FG.boss.e} ${FG.boss.n} HP ${FG.boss.mode==='raid'?FG.boss.hpCells.toFixed(1)+'/'+FG.boss.total+'칸':Math.round(FG.boss.hp*100)+'%'} · 🎮 게임에서 자세히`;
+    $('lv-ic').textContent = FG.mode==='shop' ? '🛒' : '🃏';
+    $('lv-name').textContent = `시즌 ${FG.season} · 런 ${FG.run} · ${FG.ante}주차`;
+    $('lv-xp').textContent = '❤️'.repeat(Math.max(0,FG.hearts)) + ' 🌰' + FG.acorn;
+    setTimeout(()=>{ $('lv-bar').style.width = (Math.max(0.02,FG.progress)*100).toFixed(1)+'%'; }, 200);
+    $('lv-next').textContent = `${FG.line} · 🃏 게임에서 자세히`;
+    deckLine = `🃏 ${FG.line}`;
   } else {
   const STEP = 5000000, into = real26 - Math.floor(real26/STEP)*STEP; lv = Math.floor(real26/STEP)+1;
   const titles = [[1,'새싹 농부','🌱'],[4,'견습 농부','🧑‍🌾'],[8,'숙련 농부','🚜'],[13,'베테랑 농부','🌾'],[19,'전설의 농부','👑']];
@@ -2086,7 +2136,7 @@ load().then(raw=>{
     else if(L.pnl<0 && worstRank<=top){ k='papers'; lines=[`${won(L.pnl,true)}… 오늘은 좀 버거웠어요`, `씨앗은 남아 있어요. 내일 또 심어요`]; }
     else if(L.pnl<0){ k='leak'; lines=[`${won(L.pnl,true)} 새는 중… 그래도 밭은 그대로`]; }
     else { k='clipboard'; lines=['오늘 농사일지 정리 완료!']; }
-    MOOD.extra = [`코스피보다 ${pp(alpha)} ${alpha>0?'앞서는 중':'뒤처진 중'}`, `${cur}일 연속 ${curSign>0?'수익':'손실'}`, `Lv.${lv} ${tt[1]} · ${lvNext}`, `2026 누적 수확 ${won(real26)}`];
+    MOOD.extra = [`코스피보다 ${pp(alpha)} ${alpha>0?'앞서는 중':'뒤처진 중'}`, `${cur}일 연속 ${curSign>0?'수익':'손실'}`, (deckLine || `Lv.${lv} ${tt[1]} · ${lvNext}`), `2026 누적 수확 ${won(real26)}`];
     setMood(k, lines);
   }
 });
