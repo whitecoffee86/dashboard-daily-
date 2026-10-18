@@ -1990,7 +1990,11 @@ function mountDeck(raw, S, opt){
   const LKEY='wcg_deck_rows';
   let localRows=[]; try{ localRows=JSON.parse(localStorage.getItem(LKEY)||'[]')||[]; }catch(e){}
   const saveLocal=()=>{ try{ localStorage.setItem(LKEY, JSON.stringify(localRows)); }catch(e){} };
-  const official=Q.parseRows((raw.game&&raw.game.rows)||[]);
+  let sheetRows=(raw.game&&raw.game.rows)||[], official=Q.parseRows(sheetRows);
+  const setRows=rows=>{ sheetRows=rows||[]; official=Q.parseRows(sheetRows); };
+  /* 클릭 → Apps Script 웹 앱(시세 주소와 같은 곳)이 GAME 탭에 줄 추가 + game.json 업로드 */
+  const WEB=(S.acc&&S.acc._quoteUrl)||'', PKEY='wcg_pin';
+  let webOK=null, pin='', busy=false, note=''; try{ pin=localStorage.getItem(PKEY)||''; }catch(e){}
   const picks=()=>{ const p=Q.parseRows(localRows); Object.keys(official).forEach(k=>p[k]=official[k]); return p; };
   const rowWk=r=>Q.isoWeek(Q.nextMonday(String(r[0]).slice(0,10)));
   const OPT={fridayBoss:true};
@@ -2051,12 +2055,12 @@ function mountDeck(raw, S, opt){
   let summary={};
   function renderShop(){
     const st=SHOP(wk), F=RES(); hud(st,F);
-    const locked=!!official[wk];
-    slots(st,{shop:true, locked});
+    const locked=!webOK && !!official[wk];
+    slots(st,{shop:true, locked:locked||busy});
     const prev=F.log.at(-1), newRun=prev && prev.hearts<=0 && prev.wk<wk;
     const mine=localRows.filter(r=>rowWk(r)===wk);
     const tg=[0,1,2,3,4].map(i=>`<span class="${i===4?'b':''}">${DOW[i]} ${Q.TARGET(st.ante,i===4)}</span>`).join('');
-    const sheetLines=(raw.game&&raw.game.rows||[]).filter(r=>rowWk(r)===wk);
+    const sheetLines=sheetRows.filter(r=>rowWk(r)===wk), dis=locked||busy;
     $('stage').innerHTML=`
       ${newRun?`<div class="banner dead">💀 <b>흉년!</b> 지난주에 하트를 다 잃어 런 ${st.run}이 시작돼요. 조커·도토리는 처음으로, 목표는 1주차로. 씨앗 은행 ${st.bank}칸(+${5*st.bank}칩)은 남아요.</div>`:''}
       ${wk===SW[0]&&!F.log.length?`<div class="banner info">🎉 <b>시즌 ${SEASON.n} 개막!</b> ${md(SEASON.start)} 월요일 마감부터 하루 한 판씩 진행돼요. ⛏️ 튼튼한 호미 하나와 도토리 4개로 시작해요.</div>`:''}
@@ -2068,33 +2072,49 @@ function mountDeck(raw, S, opt){
           <span class="eyebrow" style="margin-top:6px">이번 주 목표 점수</span><div class="tgts">${tg}</div></div>
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           ${locked?`<div class="banner ok">✅ 시트 GAME 탭에 이번 주 선택이 기록돼 있어요. 바꾸려면 시트에서 고쳐 주세요.</div>`:''}
+          ${webOK&&!pin?`<div class="banner info"><div class="row"><span>🔑 처음 한 번만 게임 PIN을 넣어 주세요 (Apps Script <b>setupGamePin</b> 실행 로그의 6자리)</span><input id="pin-in" inputmode="numeric" maxlength="6" autocomplete="off" style="width:7rem;padding:6px 8px;border-radius:8px;border:1px solid var(--line2);background:var(--card);color:var(--fg);font-family:var(--mono)"><button class="btn sm" id="pin-ok">저장</button></div></div>`:''}
           <div class="offers">${st.offer.length?st.offer.map(id=>{ const p=Q.PRICE[Q.JK[id].r], full=st.jokers.length>=Q.SLOTS;
-            return `<div class="offer">${jkCard(id)}<button class="btn" data-buy="${id}" ${st.acorn<p||full||locked?'disabled':''}>${full?'칸이 꽉 찼어요':`구매 <span class="num">${p}🌰</span>`}</button></div>`; }).join(''):'<p class="muted">상점이 비었어요. 새로고침해 보세요.</p>'}</div>
-          <div class="row"><button class="btn" id="b-reroll" ${st.acorn<2||locked?'disabled':''}>🔄 새로고침 2🌰</button>
-            <button class="btn" id="b-undo" ${mine.length&&!locked?'':'disabled'}>↩️ 되돌리기</button></div>
-          ${locked ? `<div class="lines"><span class="note">시트에 기록된 줄</span><pre>${sheetLines.map(r=>r.slice(0,3).join(' | ')).join('\n')}</pre></div>`
+            return `<div class="offer">${jkCard(id)}<button class="btn" data-buy="${id}" ${st.acorn<p||full||dis?'disabled':''}>${full?'칸이 꽉 찼어요':`구매 <span class="num">${p}🌰</span>`}</button></div>`; }).join(''):'<p class="muted">상점이 비었어요. 새로고침해 보세요.</p>'}</div>
+          <div class="row"><button class="btn" id="b-reroll" ${st.acorn<2||dis?'disabled':''}>🔄 새로고침 2🌰</button>
+            <button class="btn" id="b-undo" ${(webOK?sheetLines.length:mine.length)&&!dis?'':'disabled'}>↩️ 되돌리기</button>${note?`<span class="note">${note}</span>`:''}</div>
+          ${webOK ? (sheetLines.length?`<div class="lines"><span class="note">✅ 시트 GAME 탭에 저장된 이번 주 선택 (월요일부터 적용)</span><pre>${sheetLines.map(r=>r.slice(0,3).join(' | ')).join('\n')}</pre></div>`
+              :`<p class="note">누르면 바로 시트 GAME 탭에 저장돼요. 월요일 전까지 몇 번이든 바꿀 수 있고, 아무것도 안 사도 괜찮아요.</p>`)
+          : locked ? `<div class="lines"><span class="note">시트에 기록된 줄</span><pre>${sheetLines.map(r=>r.slice(0,3).join(' | ')).join('\n')}</pre></div>`
             : mine.length ? `<div class="lines"><div class="sec-h"><span class="note">📝 이 기기에만 저장됐어요. 시트 GAME 탭에 붙여넣어야 확정돼요.</span><button class="btn sm" id="b-copy">📋 복사</button></div><pre id="lines">${mine.map(r=>r.join(' | ')).join('\n')}</pre></div>`
-            : `<p class="note">고른 내용은 아래에 줄로 쌓여요. 복사해서 시트 GAME 탭에 붙여넣으면(A 날짜 · B 행동 · C 조커) 다음 업데이트 때 확정돼요. 아무것도 안 사도 괜찮아요.</p>`}
+            : `<p class="note">고른 내용은 아래에 줄로 쌓여요. 복사해서 시트 GAME 탭에 붙여넣으면(A 날짜 · B 행동 · C 조커) 다음 업데이트 때 확정돼요.${webOK===false?' (Apps Script 새 버전을 배포하면 누르는 즉시 저장돼요)':''} 아무것도 안 사도 괜찮아요.</p>`}
         </div>
       </div>`;
     const lastW=F.log.at(-1), fresh=lastW && dayDiff(today,lastW.days.at(-1).day.d)<=1;
     const fri=fresh && lastW.days.find(x=>x.boss);
     if(fri) arena({boss:lastW.boss, mood:fri.pass?'hurt':'smug', qk:fri.pass?'thumbs':'shock', res:fri.pass?'ok':'no',
         bossSay:fri.pass?'크윽… 다음 주엔 안 봐준다!':'흐흐, 이번 주는 내가 이겼다.', meSay:fri.pass?`보스 처치! ${fri.score}점 · 🌰+${Q.BOSSPAY} · 씨앗 은행 +1`:`보스에게 졌어요… ${fri.target-fri.score}점 모자랐어요 ❤️−1`, sub:`${md(fri.day.d)} 보스 판`});
-    else arena({boss:st.boss, mood:'angry', qk:'thinking', meSay: locked?'이번 주 농기구는 챙겼어요. 월요일부터 시작!':'이번 주엔 어떤 농기구를 챙길까…', sub:'금요일 보스 판'});
+    else arena({boss:st.boss, mood:'angry', qk:'thinking', meSay: (locked||sheetLines.length)?'이번 주 농기구는 챙겼어요. 월요일부터 시작!':'이번 주엔 어떤 농기구를 챙길까…', sub:'금요일 보스 판'});
     if(fresh) $('stage').insertAdjacentHTML('afterbegin',`<div class="banner ${lastW.bossPass?'ok':'info'}"><div class="sec-h"><span>📋 <b>지난주 결과</b> ${lastW.cleared}/${lastW.days.length} 통과 · ${lastW.bossPass===true?`${lastW.boss.e} 보스 처치!`:lastW.bossPass===false?`${lastW.boss.e} 보스 실패 ❤️−1`:'보스 휴무'}</span><button class="btn sm" id="b-past">📅 지난주 판 다시 보기</button></div></div>`);
     if($('b-past')) $('b-past').onclick=()=>{ viewingPast=true; wk=lastW.wk; const f0=lastW.days[0].day; monday=addDays(f0.d,-f0.wd); renderWeek(); };
-    const act=(a,arg)=>{ localRows.push([today,a,arg||'']); saveLocal(); renderShop(); };
+    const act=(a,arg)=>{
+      if(webOK){ if(!pin){ note='🔑 PIN을 먼저 넣어 주세요'; renderShop(); const i=$('pin-in'); if(i) i.focus(); return; } remote({game:'add', act:a, id:arg||''}); return; }
+      localRows.push([today,a,arg||'']); saveLocal(); renderShop(); };
+    if($('pin-ok')) $('pin-ok').onclick=()=>{ const v=($('pin-in').value||'').replace(/\D/g,''); if(v.length!==6){ note='PIN은 6자리 숫자예요'; renderShop(); return; } pin=v; try{ localStorage.setItem(PKEY,pin); }catch(e){} note='🔑 PIN 저장됨'; renderShop(); };
     root.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>act('BUY',b.dataset.buy));
     root.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>act('UP',b.dataset.up));
     root.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>act('SELL',b.dataset.sell));
     $('b-reroll').onclick=()=>act('REROLL');
-    $('b-undo').onclick=()=>{ for(let i=localRows.length-1;i>=0;i--){ if(rowWk(localRows[i])===wk){ localRows.splice(i,1); break; } } saveLocal(); renderShop(); };
+    $('b-undo').onclick=()=>{ if(webOK){ if(pin) remote({game:'undo'}); return; } for(let i=localRows.length-1;i>=0;i--){ if(rowWk(localRows[i])===wk){ localRows.splice(i,1); break; } } saveLocal(); renderShop(); };
     if($('b-copy')) $('b-copy').onclick=()=>{ const tsv=mine.map(r=>r.join('\t')).join('\n'), b=$('b-copy');
       const sel=()=>{ const r=document.createRange(); r.selectNodeContents($('lines')); const s=root.getSelection?root.getSelection():getSelection(); s.removeAllRanges(); s.addRange(r); };
       (navigator.clipboard?navigator.clipboard.writeText(tsv):Promise.reject()).then(()=>{ b.textContent='✅ 복사됨'; },()=>{ sel(); b.textContent='선택됨 · 복사하세요'; }); };
     summary={mode:'shop', run:st.run, ante:st.ante, hearts:st.hearts, acorn:st.acorn, bank:st.bank, boss:st.boss, progress:0,
-      line:`🛒 상점 열림 · 이번 주 보스 ${st.boss.e} ${st.boss.n}${locked?' · 선택 완료':''}`};
+      line:`🛒 상점 열림 · 이번 주 보스 ${st.boss.e} ${st.boss.n}${(locked||sheetLines.length)?' · 선택 완료':''}`};
+  }
+  async function remote(params){
+    busy=true; note='⏳ 시트에 저장 중…'; renderShop();
+    try{
+      const u=WEB+(WEB.includes('?')?'&':'?')+new URLSearchParams(Object.assign({}, params, {pin, t:Date.now()})).toString();
+      const j=await (await fetch(u,{cache:'no-store'})).json();
+      if(j && j.ok){ setRows(j.rows); note='✅ 시트에 저장했어요'; localRows=localRows.filter(r=>rowWk(r)!==wk); saveLocal(); }
+      else { if(j && j.badPin){ pin=''; try{ localStorage.removeItem(PKEY); }catch(e){} } if(j && j.rows) setRows(j.rows); note='⚠️ '+((j&&j.error)||'저장하지 못했어요'); }
+    }catch(e){ note='⚠️ 연결이 안 돼요. 잠시 후 다시 눌러 주세요.'; }
+    busy=false; renderShop();
   }
 
   /* ── 📅 한 주 진행 ── */
@@ -2270,6 +2290,13 @@ function mountDeck(raw, S, opt){
 
   if(mode==='shop') renderShop(); else if(mode==='week') renderWeek(); else renderEnd();
   if(!days.length) renderReplay();
+  /* 시트 최신 줄 읽기(웹 앱 새 버전이면 rows가 옴) → 바뀌었으면 다시 그리기 */
+  if(WEB) fetch(WEB+(WEB.includes('?')?'&':'?')+'game=list&t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(j=>{
+    const ok=!!(j && Array.isArray(j.rows)); const changed=ok && JSON.stringify(j.rows)!==JSON.stringify(sheetRows);
+    webOK=ok; if(changed) setRows(j.rows);
+    if(mode==='shop' && !viewingPast) renderShop(); else if(changed && mode==='week' && !viewingPast) renderWeek();
+  }).catch(()=>{ webOK=false; if(mode==='shop' && !viewingPast) renderShop(); });
+  else webOK=false;
   renderHist(); renderLedger();
   return Object.assign({}, summary, {season:SEASON.n, wk, days:days.length, get live(){ return summary; }});
 }
