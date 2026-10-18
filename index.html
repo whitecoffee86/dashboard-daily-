@@ -987,6 +987,32 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--gold-hi);outl
 .titles{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .titles button{font:inherit;font-size:.78rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line2);background:var(--panel2);color:var(--muted);cursor:pointer}
 .titles button[aria-pressed="true"]{background:var(--gold-soft);color:var(--gold-hi);border-color:var(--gold);font-weight:700}
+.titles button.gold{background:linear-gradient(90deg,#f6c443,#ffe9a0,#f6c443);color:#3a2a00;border-color:#b07a0a;font-weight:800}
+/* ✨ 별·등급·황금 무대 */
+.twk{animation:twk 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes twk{0%,100%{opacity:.25}50%{opacity:1}}
+.it .stars{position:absolute;top:5px;left:7px;font-size:.62rem;letter-spacing:-1px;color:var(--muted)}
+.it.g2{border-color:#b9c6dc} .it.g2 .stars{color:#9fb3d6}
+.it.g3{border-color:#e0a91a;background:linear-gradient(180deg,rgba(246,196,67,.22),transparent 70%),var(--panel2)} .it.g3 .stars{color:#e0a91a}
+.troph .tier-h{font-size:.6rem;color:var(--dim)}
+.troph.t-동 .cnt{color:#c98a5a} .troph.t-은 .cnt{color:#a9b8cf} .troph.t-금 .cnt{color:var(--gold-hi)} .troph.t-다이아 .cnt{color:#5fd0ff}
+.troph.t-금{box-shadow:inset 0 0 0 2px var(--gold)} .troph.t-다이아{box-shadow:inset 0 0 0 2px #5fd0ff}
+.arena.gold{background:radial-gradient(70% 90% at 50% 110%,rgba(255,214,90,.55),transparent 65%),radial-gradient(90% 120% at 85% 100%,rgba(255,100,112,.12),transparent 60%),linear-gradient(180deg,#5a4510,#2c2108);border-color:#e0a91a}
+.arena.gold{padding-top:36px!important}
+.gold-tag{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:.72rem;font-weight:800;color:#3a2a00;background:linear-gradient(90deg,#f6c443,#ffe9a0,#f6c443);padding:2px 10px;border-radius:999px;z-index:3;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.cl-done{padding:10px 12px;border-radius:12px;background:linear-gradient(90deg,rgba(246,196,67,.25),rgba(246,196,67,.08));border:1px solid var(--gold);font-size:.86rem}
+/* 🏛️ 명예의 전당 */
+.hof{display:flex;flex-direction:column;gap:8px}
+.hof-card{padding:10px 12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);display:flex;flex-direction:column;gap:8px;min-width:0}
+.hof-card.live{border-color:var(--gold);background:linear-gradient(180deg,var(--gold-soft),transparent 60%),var(--panel2)}
+.hof-card.next{border-style:dashed;opacity:.9}
+.hof-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap} .hof-h .note{margin-left:auto}
+.sbadge{font-family:var(--mono);font-weight:800;font-size:.8rem;padding:2px 8px;border-radius:8px;background:var(--fg);color:var(--bg)}
+.hs-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.hs{display:flex;flex-direction:column;gap:1px;padding:6px 8px;border-radius:10px;background:var(--panel3);min-width:0}
+.hs small{font-size:.68rem;color:var(--muted)} .hs b{font-size:1.05rem}
+.hs .tag{font-size:.62rem;color:var(--dim)} .hs .tag.up,.hs.rec .tag{color:var(--mult);font-weight:700}
+.hs.rec{box-shadow:inset 0 0 0 1.5px var(--mult)}
 .closet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,8.6rem),1fr));gap:8px}
 .it{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;padding:8px 8px 10px;border-radius:12px;background:var(--panel2);border:2px solid transparent;color:var(--fg);font:inherit;cursor:pointer;min-width:0}
 .it svg{width:3.4rem;height:3.4rem;overflow:visible}
@@ -1091,6 +1117,8 @@ details summary{cursor:pointer;font-family:var(--display);font-size:1.12rem}
   .jk{flex-direction:row} .jk .art{width:5.2rem;height:auto;min-height:5.6rem;flex:0 0 auto} .jk .art .e{font-size:2.4rem} .jk .art .rar{top:auto;bottom:6px;right:auto;left:50%;transform:translateX(-50%)}
   .jk.empty{min-height:3.4rem}
   .arena{padding:12px 10px 10px} .say{font-size:.74rem;padding:5px 8px} .vs span{font-size:1.5rem} .vs{padding-bottom:2.6rem}
+  .hs-row{grid-template-columns:repeat(2,minmax(0,1fr))} .hof-h .note{margin-left:0;width:100%}
+  .troph .tn{display:none} .troph b{word-break:keep-all}
   .closet{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px} .it{padding:6px 4px 8px} .it svg{width:2.6rem;height:2.6rem} .it b{font-size:.7rem} .it small{font-size:.6rem} .it .slot{display:none}
   .rp-grid{grid-template-columns:minmax(0,1fr)} .shelf{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px} .troph b{font-size:.68rem} .troph small{display:none} .rp-boss{flex-direction:row;justify-content:center} .rp-boss .bossbox{width:5rem}
   .hud{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1105,7 +1133,7 @@ details summary{cursor:pointer;font-family:var(--display);font-size:1.12rem}
 @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
 </style>
 <div class="stack">
-  <section class="arena" id="arena" aria-label="이번 주 대결">
+  <section class="arena" id="arena" aria-label="이번 주 대결"><span class="gold-tag" id="gold-tag" hidden>✨ 완벽한 농부의 황금 밭</span>
     <div class="fighter"><div class="say" id="say-me"></div><div class="qkwrap" id="qkwrap"><img class="qk" id="qk" alt="주식농부 쿼카"></div><div class="ttl" id="ttl" hidden></div></div>
     <div class="vs" id="vs"><span>VS</span><small id="vs-sub"></small></div>
     <div class="fighter"><div class="say" id="say-boss"></div><div class="bossbox m-angry" id="bossbox"></div><div class="bname" id="bname"></div></div>
@@ -1129,9 +1157,14 @@ details summary{cursor:pointer;font-family:var(--display);font-size:1.12rem}
   </section>
   <section class="panel stage" id="closet" aria-label="쿼카 옷장">
     <div class="sec-h"><h3>🎩 쿼카 옷장 <span class="note" id="cl-sub"></span></h3><span class="note">보스를 잡고 기록을 세우면 소품이 해금돼요 · 누르면 입고 벗어요</span></div>
+    <div class="cl-done" id="cl-done" hidden>✨ <b>소품 20종 완성!</b> 무대가 황금 밭으로 바뀌고 칭호 <b>완벽한 농부</b>가 생겼어요. 다음 시즌에 또 모으면 ★가 붙어요.</div>
     <div class="shelf" id="shelf"></div>
     <div class="titles" id="titles"></div>
     <div class="closet" id="cl-grid"></div>
+  </section>
+  <section class="panel stage" id="hof-sec" aria-label="명예의 전당">
+    <div class="sec-h"><h3>🏛️ 명예의 전당</h3><span class="note">시즌은 12주마다 새로 시작 · 지난 기록을 깨 보세요</span></div>
+    <div class="hof" id="hof"></div>
   </section>
   <details class="panel ledger" id="ledger">
     <summary>📒 실제 성적 장부 · 계단 산 지도 · 수확 도감</summary>
@@ -2057,7 +2090,11 @@ const COS = {
     <circle cx="76" cy="58" r="4" fill="#222"/><path d="M80 48 l6 -10 M86 52 l10 -6" stroke="#2a2010" stroke-width="2.5" stroke-linecap="round"/>`},
 };
 const SLOTS = ['back','pet','aura','head','band','eyes','chest'];
-function cosPlace(pose, id, withHead){
+/* ★ 시즌마다 같은 조건을 또 달성하면 별이 붙어요: ★★ 은빛 반짝 · ★★★ 이상 황금 반짝 */
+function sparkle(tier){ if(!tier||tier<2) return ''; const c=tier>=3?'#ffd54a':'#e6eefc', st=tier>=3?'#b07a0a':'#7a8aa8';
+  const star=(x,y,r,dl)=>`<path class="twk" style="animation-delay:${dl}s" d="M${x} ${y-r} L${x+r*.28} ${y-r*.28} L${x+r} ${y} L${x+r*.28} ${y+r*.28} L${x} ${y+r} L${x-r*.28} ${y+r*.28} L${x-r} ${y} L${x-r*.28} ${y-r*.28} Z" fill="${c}" stroke="${st}" stroke-width="1.5"/>`;
+  return star(94,6,11,0)+star(2,40,8,.5)+(tier>=3?star(98,78,9,1)+star(30,-6,6,1.4):''); }
+function cosPlace(pose, id, withHead, tier){
   const A=QK_ANCHOR[pose], c=COS[id]; if(!A||!c) return '';
   const k=c.k||1; let x,y,s,rot=0;
   if(c.slot==='head'){ const [cx,top,w]=A.hat; s=w*0.42*k/100; x=cx-50*s; y=top-80*s; }
@@ -2068,20 +2105,20 @@ function cosPlace(pose, id, withHead){
   else if(c.slot==='back'){ const [cx,cy,w]=A.back;
     if(id==='scythe'){ s=w*0.85/100; x=cx+0.32*w-60*s; y=cy-0.1*w-40*s; } else { s=w*1.5*k/100; x=cx-50*s; y=cy-8*s; } }
   else { const [px,gy,sz0]=A.pet, sz=sz0*1.3; s=sz*k/100; x=px-50*s; y=gy-92*s-(c.fly?sz*0.9:0); }
-  return `<g class="cos-${c.slot}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot} ${(50*s).toFixed(1)} ${(50*s).toFixed(1)}) scale(${s.toFixed(3)})">${c.fly?`<g class="cos-fly">${c.svg}</g>`:c.svg}</g>`;
+  return `<g class="cos-${c.slot}" data-c="${id}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot} ${(50*s).toFixed(1)} ${(50*s).toFixed(1)}) scale(${s.toFixed(3)})">${c.fly?`<g class="cos-fly">${c.svg}${sparkle(tier)}</g>`:c.svg+sparkle(tier)}</g>`;
 }
 /* 착용 목록 → {under: 쿼카 뒤 SVG, over: 쿼카 앞 SVG} */
-function cosLayers(pose, ids){
+function cosLayers(pose, ids, tiers){ tiers=tiers||{};
   const A=QK_ANCHOR[pose]; if(!A) return {under:'',over:''};
   const box=(g,cl)=>g?`<svg class="cos ${cl}" viewBox="0 0 ${A.w} ${A.h}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="overflow:visible">${g}</svg>`:'';
-  const head=ids.some(id=>COS[id]&&COS[id].slot==='head'); const by=sl=>ids.filter(id=>COS[id]&&COS[id].slot===sl).map(id=>cosPlace(pose,id,head)).join('');
+  const head=ids.some(id=>COS[id]&&COS[id].slot==='head'); const by=sl=>ids.filter(id=>COS[id]&&COS[id].slot===sl).map(id=>cosPlace(pose,id,head,tiers[id])).join('');
   return {under:box(by('back'),'under').replace('style="overflow:visible"', A.clip?'style="overflow:hidden"':'style="overflow:visible"'), over:box(['pet','aura','head','band','eyes','chest'].map(by).join(''),'over')};
 }
 /* 해금: 게임 기록(Q.play 결과)으로 계산. 반환 {id: 처음 달성한 날짜} */
 const UNLOCK = [
   ['sprout','시즌 첫 판 통과','새싹 농부'],
   ['flower','두 종목 모두 ☀️인 날 통과','해바라기 농부'],
-  ['snail','누적 10판 통과','꾸준한 농부'],
+  ['snail','한 시즌에 10판 통과','꾸준한 농부'],
   ['feather','하루 300점 이상','300점 클럽'],
   ['scythe','하루 2칸 이상 수확한 날 통과','연쇄 수확꾼'],
   ['medal','첫 보스 처치','보스 사냥꾼'],
@@ -2096,7 +2133,7 @@ const UNLOCK = [
   ['rainbow','한 주에 날씨 4종 다 만나기','무지개를 본 농부'],
   ['party','보스 2주 연속 처치','연승 농부'],
   ['brooch','하루 1,500점 이상','천오백점 농부'],
-  ['bee','누적 30판 통과','베테랑 농부'],
+  ['bee','한 시즌에 30판 통과','베테랑 농부'],
   ['halo','한 런에서 8주 버티기','불사의 농부'],
   ['cape','흉년 뒤 새 런에서 보스 처치','재기한 농부'],
 ];
@@ -2122,7 +2159,7 @@ function cosUnlocks(F){
   });
   return got;
 }
-const QCOS_API={QK_ANCHOR,COS,SLOTS,SLOT_NAME,cosPlace,cosLayers,UNLOCK,cosUnlocks};
+const QCOS_API={QK_ANCHOR,COS,SLOTS,SLOT_NAME,cosPlace,cosLayers,UNLOCK,cosUnlocks,sparkle};
 return QCOS_API;
 
 })();
@@ -2137,13 +2174,16 @@ function mountDeck(raw, S, opt){
   const root=host.shadowRoot||host.attachShadow({mode:'open'});
   root.innerHTML=document.getElementById('farmgame-tpl').innerHTML;
   const $=id=>root.getElementById(id), Q=window.QDeck;
-  const SEASON={n:1, start:'2026-10-19', weeks:12};
+  /* 🗓️ 시즌: 2026-10-19부터 12주씩 자동으로 이어져요. 새 시즌엔 런·하트·도토리·조커·씨앗 은행이 리셋, 옷장·트로피·칭호·명예의 전당은 계속 */
+  const S0='2026-10-19', SWEEKS=12;
   const RAR=['흔함','레어','에픽','전설'], DOW=['월','화','수','목','금','토','일'];
   const md=d=>+d.slice(5,7)+'/'+ +d.slice(8);
   const sg=(v,k=1)=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(k)+'%';
   const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const addDays=(s,n)=>{ const t=new Date(s+'T00:00:00Z'); t.setUTCDate(t.getUTCDate()+n); return t.toISOString().slice(0,10); };
   const wdOf=s=>(new Date(s+'T00:00:00Z').getUTCDay()+6)%7;
+  const dayDiff=(a,b)=>Math.round((new Date(a+'T00:00:00Z')-new Date(b+'T00:00:00Z'))/864e5);
+  const seasonStart=n=>addDays(S0,SWEEKS*7*(n-1)), seasonNo=d=>d<S0?1:Math.floor(dayDiff(d,S0)/(SWEEKS*7))+1;
 
   /* 1) 마감 기록 → 카드 재료 */
   const D=S.D, CL=S.CL;
@@ -2157,7 +2197,7 @@ function mountDeck(raw, S, opt){
       out.push({d:b.d, wd:wdOf(b.d), wk:Q.isoWeek(b.d), lr:+((cb[0]/ca[0]-1)*100).toFixed(2), qr:+((cb[1]/ca[1]-1)*100).toFixed(2), sow, harv,
         navr:+((b.nav/a.nav-1)*100).toFixed(2), kr:+(((1+b.kospi/100)/(1+a.kospi/100)-1)*100).toFixed(2)}); }
     return out; };
-  const days=build(SEASON.start);
+  const allDays=build(S0);
 
   /* 2) 선택: 시트 GAME 탭(game.json)이 우선, 없는 주는 이 기기 임시 기록 */
   const LKEY='wcg_deck_rows';
@@ -2174,19 +2214,27 @@ function mountDeck(raw, S, opt){
 
   /* 3) 지금이 상점인지, 한 주 진행 중인지 */
   const kst=new Date(Date.now()+9*36e5), today=opt.today||kst.toISOString().slice(0,10), twd=wdOf(today), todayWk=Q.isoWeek(today);
-  const last=days.at(-1), fridayDone=!!(last && last.wk===todayWk && last.wd===4);
-  const SW=[]; for(let i=0;i<SEASON.weeks;i++) SW.push(Q.isoWeek(addDays(SEASON.start,7*i)));
-  let mode, wk;
-  if(today<SEASON.start){ mode='shop'; wk=SW[0]; }
-  else if(twd>=5 || fridayDone){ mode='shop'; wk=Q.isoWeek(Q.nextMonday(today)); }
-  else { mode='week'; wk=todayWk; }
-  if(wk>SW.at(-1)) mode='end';
-  let monday = mode==='week' ? addDays(today,-twd) : (wk===SW[0]?SEASON.start:Q.nextMonday(today));
+  const last=allDays.at(-1), fridayDone=!!(last && last.wk===todayWk && last.wd===4);
+  let mode, monday;
+  if(today<S0){ mode='shop'; monday=S0; }
+  else if(twd>=5 || fridayDone){ mode='shop'; monday=Q.nextMonday(today); }
+  else { mode='week'; monday=addDays(today,-twd); }
+  let wk=Q.isoWeek(monday);
+  const SEASONS=[]; for(let n=1;n<=seasonNo(monday);n++){ const st=seasonStart(n), en=seasonStart(n+1), SWn=[];
+    for(let i=0;i<SWEEKS;i++) SWn.push(Q.isoWeek(addDays(st,7*i)));
+    SEASONS.push({n, start:st, end:addDays(en,-3), SW:SWn, days:allDays.filter(d=>d.d>=st && d.d<en)}); }
+  const SEASON=SEASONS.at(-1), days=SEASON.days, SW=SEASON.SW;
+  const seasonOfWk=w=>SEASONS.find(x=>x.SW.includes(w))||SEASON;
   const shopWk=wk, shopMonday=monday; let viewingPast=false;
-  const dayDiff=(a,b)=>Math.round((new Date(a+'T00:00:00Z')-new Date(b+'T00:00:00Z'))/864e5);
 
-  const RES=()=>Q.play(days, picks(), OPT);
-  const SHOP=w=>Q.play(days, picks(), {...OPT, shopOnly:w, nextWeek:w}).shop;
+  const RES=sn=>Q.play((sn||SEASON).days, picks(), OPT);
+  const SHOP=w=>Q.play(seasonOfWk(w).days, picks(), {...OPT, shopOnly:w, nextWeek:w}).shop;
+  const lastWeekAny=()=>{ for(let k=SEASONS.length-1;k>=0;k--){ const L=RES(SEASONS[k]).log; if(L.length) return L.at(-1); } return null; };
+  const seasonStats=sn=>{ const F=RES(sn), runs=F.runs.filter(r=>r.weeks), scores=F.log.flatMap(w=>w.days.map(r=>r.score));
+    return {F, pass:F.log.reduce((a,w)=>a+w.cleared,0), played:F.log.reduce((a,w)=>a+w.days.length,0), boss:F.runs.reduce((a,r)=>a+r.bosses,0),
+      best:runs.length?Math.max(...runs.map(r=>r.weeks)):0, top:scores.length?Math.max(...scores):0, weeks:F.log.length, done:sn.n<SEASON.n || today>sn.end}; };
+  const GRADE=[[8,'👑','레전드'],[6,'🥇','골드'],[4,'🥈','실버'],[2,'🥉','브론즈']], gradeOf=b=>GRADE.find(g=>b>=g[0])||null;
+  const TIER=[[10,'💎','다이아'],[5,'🥇','금'],[3,'🥈','은'],[1,'🥉','동']];
 
   /* ── 공통 그리기 ── */
   const jkCard=(id,o)=>{ o=o||{}; const j=Q.JK[id], lv=o.lv||1;
@@ -2194,13 +2242,24 @@ function mountDeck(raw, S, opt){
       <div class="body"><b>${j.n}</b><span class="d">${j.d}</span>${o.extra?`<div class="ft">${o.extra}</div>`:''}</div></div>`; };
   /* 🎩 꾸미기: 해금·착용·칭호 (해금은 게임 기록으로 자동, 착용·칭호 선택은 이 기기에 저장) */
   const EKEY='wcg_equip', TKEY='wcg_title2';
-  let unlocked={}, equip={}, titleSel=''; try{ equip=JSON.parse(localStorage.getItem(EKEY)||'{}')||{}; titleSel=localStorage.getItem(TKEY)||''; }catch(e){}
-  const refreshUnlocks=()=>{ try{ unlocked=(typeof QCos!=='undefined')?QCos.cosUnlocks(RES()):{}; }catch(e){ unlocked={}; } };
+  let unlocked={}, stars={}, kills={}, TITLES=[], equip={}, titleSel=''; try{ equip=JSON.parse(localStorage.getItem(EKEY)||'{}')||{}; titleSel=localStorage.getItem(TKEY)||''; }catch(e){}
+  /* 해금은 시즌마다 따로 계산해 합쳐요: 처음 해금한 날 + 달성한 시즌 수(★) */
+  const refreshUnlocks=()=>{ unlocked={}; stars={}; kills={}; TITLES=[];
+    try{ SEASONS.forEach(sn=>{ const F=RES(sn), U=(typeof QCos!=='undefined')?QCos.cosUnlocks(F):{}, n=Object.keys(U).length;
+        Object.entries(U).forEach(([id,d])=>{ if(!unlocked[id]||d<unlocked[id]) unlocked[id]=d; stars[id]=(stars[id]||0)+1; });
+        let b=0; F.log.forEach(w=>{ if(w.bossPass===true){ const d=w.days.at(-1).day.d, k=w.boss.id; b++;
+          const K=(kills[k]=kills[k]||{n:0,d,at:{}}); K.n++; K.at[K.n]=d; const g=GRADE.find(x=>x[0]===b); if(g) TITLES.push({t:`S${sn.n} ${g[2]} 농부`, d}); } });
+        if(typeof QCos!=='undefined' && n===QCos.UNLOCK.length) TITLES.push({t:`S${sn.n} 그랜드슬램`, d:Object.values(U).sort().at(-1)}); });
+      if(typeof QCos!=='undefined'){ QCos.UNLOCK.forEach(u=>{ if(unlocked[u[0]]) TITLES.push({t:u[2], d:unlocked[u[0]]}); });
+        if(Object.keys(unlocked).length===QCos.UNLOCK.length) TITLES.push({t:'완벽한 농부', d:Object.values(unlocked).sort().at(-1), gold:1}); }
+      Q.BOSSES.forEach(b=>{ const K=kills[b.id]; if(K&&K.n>=5) TITLES.push({t:`${b.n} 천적`, d:K.at[5]}); if(K&&K.n>=10) TITLES.push({t:`${b.n} 전설`, d:K.at[10]}); });
+      TITLES.sort((a,b)=>a.d.localeCompare(b.d));
+    }catch(e){ console.error('unlocks',e); } };
+  const allDone=()=>typeof QCos!=='undefined' && Object.keys(unlocked).length===QCos.UNLOCK.length;
   function wearing(){ if(typeof QCos==='undefined') return [];
     return QCos.SLOTS.map(sl=>{ const pick=equip[sl]; if(pick==='none') return null; if(pick && unlocked[pick]) return pick;
       const own=Object.keys(unlocked).filter(id=>QCos.COS[id]&&QCos.COS[id].slot===sl).sort((a,b)=>unlocked[b].localeCompare(unlocked[a])); return own[0]||null; }).filter(Boolean); }
-  function titleNow(){ if(typeof QCos==='undefined') return ''; const own=QCos.UNLOCK.filter(u=>unlocked[u[0]]);
-    const sel=own.find(u=>u[2]===titleSel); if(sel) return sel[2]; const last=own.sort((a,b)=>unlocked[b[0]].localeCompare(unlocked[a[0]]))[0]; return last?last[2]:''; }
+  function titleNow(){ const sel=TITLES.find(x=>x.t===titleSel); if(sel) return sel.t; const last=TITLES.at(-1); return last?last.t:''; }
   /* 🎭 대결 무대 */
   const TAUNT={wolf:'금요일엔 수확 카드를 전부 물어뜯어 주지! 🧺 칩 0', boar:'금요일엔 씨앗 한 톨도 못 심게 하겠다! 🌱 칩 0', bear:'금요일엔 네 배수를 반토막 내주마.',
     crow:'금요일엔 맨 왼쪽 농기구를 잠가버리겠다, 까악!', mole:'금요일엔 날씨 카드를 땅속에 묻어버릴 테다.'};
@@ -2210,18 +2269,20 @@ function mountDeck(raw, S, opt){
     $('say-boss').textContent=o.bossSay||TAUNT[o.boss.id]||''; $('say-me').textContent=o.meSay||'';
     const pose=(typeof QK!=='undefined'&&QK[o.qk])?o.qk:'thinking', img=(typeof QK!=='undefined'&&QK[pose])||''; const q=$('qk'); if(img){ q.src=img; q.hidden=false; } else q.hidden=true;
     const w=$('qkwrap'); w.querySelectorAll('svg.cos').forEach(x=>x.remove());
-    if(img && typeof QCos!=='undefined'){ const Ly=QCos.cosLayers(pose, wearing()); if(Ly.under) q.insertAdjacentHTML('beforebegin',Ly.under); if(Ly.over) q.insertAdjacentHTML('afterend',Ly.over); }
+    if(img && typeof QCos!=='undefined'){ const Ly=QCos.cosLayers(pose, wearing(), stars); if(Ly.under) q.insertAdjacentHTML('beforebegin',Ly.under); if(Ly.over) q.insertAdjacentHTML('afterend',Ly.over); }
+    $('arena').classList.toggle('gold', allDone()); $('gold-tag').hidden=!allDone();
     const tt=titleNow(); $('ttl').hidden=!tt; if(tt) $('ttl').textContent='🎖️ '+tt;
     $('vs').innerHTML=`<span>VS</span>${o.res?`<span class="res ${o.res}">${o.res==='ok'?'처치!':'패배'}</span>`:''}<small>${o.sub||''}</small>`;
   }
   function hud(st, F){
-    $('h-run').textContent=`S${SEASON.n} · 런 ${st.run} · ${st.ante}주차`;
+    const SN=seasonOfWk(wk), SWv=SN.SW;
+    $('h-run').textContent=`S${SN.n} · 런 ${st.run} · ${st.ante}주차`;
     $('h-heart').textContent='❤️'.repeat(Math.max(0,st.hearts))+'🤍'.repeat(Math.max(0,3-st.hearts));
     $('h-acorn').textContent=st.acorn+'개';
     $('h-bank').textContent=st.bank?`${st.bank}칸 (+${5*st.bank}칩)`:'0칸';
-    const L=Object.fromEntries((F||RES()).log.map(x=>[x.wk,x]));
-    $('h-season-l').textContent=`시즌 ${SEASON.n} · ${md(SEASON.start)}부터 12주`;
-    $('h-season').innerHTML=SW.map(w=>{ const x=L[w]; let c=''; if(x && x.wk!==wk){ c=x.hearts<=0?'dead':x.bossPass?'w5':x.cleared>=3?'w3':'w1'; }
+    const L=Object.fromEntries((F||RES(SN)).log.map(x=>[x.wk,x]));
+    $('h-season-l').textContent=`시즌 ${SN.n} · ${md(SN.start)}~${md(SN.end)} (${SWEEKS}주)`;
+    $('h-season').innerHTML=SWv.map(w=>{ const x=L[w]; let c=''; if(x && x.wk!==wk){ c=x.hearts<=0?'dead':x.bossPass?'w5':x.cleared>=3?'w3':'w1'; }
       return `<i class="${c} ${w===wk?'now':''}" title="${w}${x?` · ${x.cleared}/${x.days.length} 통과`:''}"></i>`; }).join('');
   }
   function slots(st, o){
@@ -2243,12 +2304,14 @@ function mountDeck(raw, S, opt){
     const locked=!webOK && !!official[wk];
     slots(st,{shop:true, locked:locked||busy});
     const prev=F.log.at(-1), newRun=prev && prev.hearts<=0 && prev.wk<wk;
+    const PS=SEASON.n>1 && wk===SW[0] && !F.log.length ? seasonStats(SEASONS[SEASON.n-2]) : null, pg=PS&&gradeOf(PS.boss);
     const mine=localRows.filter(r=>rowWk(r)===wk);
     const tg=[0,1,2,3,4].map(i=>`<span class="${i===4?'b':''}">${DOW[i]} ${Q.TARGET(st.ante,i===4)}</span>`).join('');
     const sheetLines=sheetRows.filter(r=>rowWk(r)===wk), dis=locked||busy;
     $('stage').innerHTML=`
       ${newRun?`<div class="banner dead">💀 <b>흉년!</b> 지난주에 하트를 다 잃어 런 ${st.run}이 시작돼요. 조커·도토리는 처음으로, 목표는 1주차로. 씨앗 은행 ${st.bank}칸(+${5*st.bank}칩)은 남아요.</div>`:''}
-      ${wk===SW[0]&&!F.log.length?`<div class="banner info">🎉 <b>시즌 ${SEASON.n} 개막!</b> ${md(SEASON.start)} 월요일 마감부터 하루 한 판씩 진행돼요. ⛏️ 튼튼한 호미 하나와 도토리 4개로 시작해요.</div>`:''}
+      ${PS?`<div class="banner ok">🏁 <b>시즌 ${SEASON.n-1} 결산</b> ${pg?pg[1]+' '+pg[2]+' · ':''}통과 ${PS.pass}/${PS.played}판 · 보스 ${PS.boss}마리 · 최장 런 ${PS.best}주 · 최고 ${PS.top}점</div>`:''}
+      ${wk===SW[0]&&!F.log.length?`<div class="banner info">🎉 <b>시즌 ${SEASON.n} 개막!</b> ${md(SEASON.start)} 월요일 마감부터 하루 한 판씩 진행돼요. ⛏️ 튼튼한 호미 하나와 도토리 4개로 시작해요.${SEASON.n>1?` 런·도토리·조커·씨앗 은행은 처음부터, 🎩 옷장·🏆 트로피·🎖️ 칭호는 그대로예요. 지난 시즌 기록을 깨 보세요!`:''}</div>`:''}
       <div class="sec-h"><h2>🛒 상점 · ${md(monday)}~${md(addDays(monday,4))} 주</h2>
         <span class="note">${st.shopLog&&st.ante>1?`이자 +${st.shopLog.interest} · 배급 +${st.shopLog.allowance} · `:''}지금 🌰 ${st.acorn}</span></div>
       <div class="shop">
@@ -2269,7 +2332,7 @@ function mountDeck(raw, S, opt){
             : `<p class="note">고른 내용은 아래에 줄로 쌓여요. 복사해서 시트 GAME 탭에 붙여넣으면(A 날짜 · B 행동 · C 조커) 다음 업데이트 때 확정돼요.${webOK===false?' (Apps Script 새 버전을 배포하면 누르는 즉시 저장돼요)':''} 아무것도 안 사도 괜찮아요.</p>`}
         </div>
       </div>`;
-    const lastW=F.log.at(-1), fresh=lastW && dayDiff(today,lastW.days.at(-1).day.d)<=1;
+    const lastW=F.log.at(-1)||lastWeekAny(), fresh=lastW && dayDiff(today,lastW.days.at(-1).day.d)<=1;
     const fri=fresh && lastW.days.find(x=>x.boss);
     if(fri) arena({boss:lastW.boss, mood:fri.pass?'hurt':'smug', qk:fri.pass?'thumbs':'shock', res:fri.pass?'ok':'no',
         bossSay:fri.pass?'크윽… 다음 주엔 안 봐준다!':'흐흐, 이번 주는 내가 이겼다.', meSay:fri.pass?`보스 처치! ${fri.score}점 · 🌰+${Q.BOSSPAY} · 씨앗 은행 +1`:`보스에게 졌어요… ${fri.target-fri.score}점 모자랐어요 ❤️−1`, sub:`${md(fri.day.d)} 보스 판`});
@@ -2315,7 +2378,7 @@ function mountDeck(raw, S, opt){
 
   function renderWeek(sel){
     clearT();
-    const F=RES(), W=F.log.find(x=>x.wk===wk), pre=SHOP(wk);
+    const F=RES(seasonOfWk(wk)), W=F.log.find(x=>x.wk===wk), pre=SHOP(wk);
     const played=W?W.days:[];
     const st=W?{run:W.run, ante:W.ante, hearts:W.hearts, acorn:W.acorn, bank:W.bank}:pre;
     hud(st,F);
@@ -2373,33 +2436,38 @@ function mountDeck(raw, S, opt){
       line:`이번 주 ${W.cleared}/${played.length} 통과${W.bossPass===true?' · 보스 처치!':W.bossPass===false?' · 보스 실패':` · 금요일 ${pre.boss.e} ${pre.boss.n}`}`};
   }
 
-  function renderEnd(){
-    const F=RES(), L=F.log.at(-1);
-    if(L) hud({run:L.run, ante:L.ante, hearts:L.hearts, acorn:L.acorn, bank:L.bank},F);
-    const boss=F.runs.reduce((s,r)=>s+r.bosses,0), best=Math.max(0,...F.runs.map(r=>r.weeks)), pass=F.log.reduce((s,w)=>s+w.cleared,0);
-    if(L) arena({boss:L.boss, mood:'hurt', qk:'thumbs', bossSay:'다음 시즌에 보자…', meSay:`시즌 ${SEASON.n} 완주!`, sub:'시즌 끝'});
-    $('stage').innerHTML=`<div class="sec-h"><h2>🏁 시즌 ${SEASON.n} 끝</h2></div>
-      <div class="banner info">통과 ${pass}판 · 보스 ${boss}마리 · 최장 런 ${best}주 · 씨앗 은행 ${L?L.bank:0}칸. 다음 시즌 규칙은 따로 정해요.</div>`;
-    summary={mode:'end', run:L?L.run:1, ante:L?L.ante:1, hearts:L?L.hearts:3, acorn:L?L.acorn:0, bank:L?L.bank:0, progress:1, line:`시즌 ${SEASON.n} 끝 · 보스 ${boss}마리`};
-  }
-
   function renderCloset(){
     if(typeof QCos==='undefined'){ $('closet').hidden=true; return; }
-    const F=RES(), C=QCos, on=new Set(wearing()), n=Object.keys(unlocked).length;
-    $('cl-sub').textContent=`해금 ${n} / ${C.UNLOCK.length}`;
-    const kills={}; F.log.forEach(w=>{ if(w.bossPass===true){ const k=w.boss.id; (kills[k]=kills[k]||{n:0,d:w.days.at(-1).day.d}).n++; } });
-    $('shelf').innerHTML=Q.BOSSES.map(b=>{ const k=kills[b.id]; return `<div class="troph ${k?'':'none'}"><div class="bossbox m-${k?'hurt':'angry'}">${(typeof BOSS_ART!=='undefined'&&BOSS_ART[b.id])||b.e}</div>
-      <b>${b.n}</b>${k?`<span class="cnt">🏆 ×${k.n}</span><small>첫 처치 ${md(k.d)}</small>`:'<small>아직 못 잡음</small>'}</div>`; }).join('');
-    const own=C.UNLOCK.filter(u=>unlocked[u[0]]), cur=titleNow();
-    $('titles').innerHTML=own.length?`<span class="note">🎖️ 칭호</span>`+own.map(u=>`<button type="button" data-t="${u[2]}" aria-pressed="${u[2]===cur}">${u[2]}</button>`).join(''):`<span class="note">🎖️ 칭호는 소품을 해금하면 함께 생겨요.</span>`;
+    const C=QCos, on=new Set(wearing()), n=Object.keys(unlocked).length, starN=Object.values(stars).reduce((a,v)=>a+v,0);
+    $('cl-sub').textContent=`해금 ${n} / ${C.UNLOCK.length}${starN>n?` · ★ ${starN}`:''}`;
+    $('cl-done').hidden=!allDone();
+    $('shelf').innerHTML=Q.BOSSES.map(b=>{ const k=kills[b.id], t=k&&TIER.find(x=>k.n>=x[0]), nx=k?[...TIER].reverse().find(x=>x[0]>k.n):null;
+      return `<div class="troph ${k?'t-'+t[2]:'none'}"><div class="bossbox m-${k?'hurt':'angry'}">${(typeof BOSS_ART!=='undefined'&&BOSS_ART[b.id])||b.e}</div>
+      <b>${b.n}</b>${k?`<span class="cnt">${t[1]}<span class="tn"> ${t[2]} ·</span> ×${k.n}</span><small>${nx?`${nx[1]} ${nx[2]}까지 ${nx[0]-k.n}마리`:'최고 등급!'}</small>`:'<small>아직 못 잡음</small><small class="tier-h">1마리 🥉 · 3 🥈 · 5 🥇 · 10 💎</small>'}</div>`; }).join('');
+    const cur=titleNow();
+    $('titles').innerHTML=TITLES.length?`<span class="note">🎖️ 칭호 ${TITLES.length}</span>`+TITLES.map(x=>`<button type="button" class="${x.gold?'gold':''}" data-t="${x.t}" aria-pressed="${x.t===cur}">${x.t}</button>`).join(''):`<span class="note">🎖️ 칭호는 소품을 해금하거나 보스 트로피 등급이 오르면 생겨요.</span>`;
     const recent=d=>dayDiff(today,d)<=7;
-    $('cl-grid').innerHTML=C.UNLOCK.map(([id,cond])=>{ const c=C.COS[id], u=unlocked[id], wearing_=on.has(id);
-      return `<button type="button" class="it ${u?'':'lock'} ${wearing_?'on':''}" data-id="${id}" ${u?'':'aria-disabled="true"'} title="${cond}">${u&&recent(u)?'<span class="new">NEW</span>':''}
-        <svg viewBox="-8 -8 116 116" aria-hidden="true">${c.svg}</svg><b>${u?'':'🔒 '}${c.n}</b><span class="slot">${C.SLOT_NAME[c.slot]}</span>
+    $('cl-grid').innerHTML=C.UNLOCK.map(([id,cond])=>{ const c=C.COS[id], u=unlocked[id], wearing_=on.has(id), sr=stars[id]||0;
+      return `<button type="button" class="it ${u?'':'lock'} ${wearing_?'on':''} ${sr>=3?'g3':sr>=2?'g2':''}" data-id="${id}" ${u?'':'aria-disabled="true"'} title="${cond}${u?` · 시즌 ${sr}번 달성`:''}">${u&&recent(u)?'<span class="new">NEW</span>':''}${sr>=1&&u?`<span class="stars">${'★'.repeat(Math.min(sr,3))}${sr>3?'+':''}</span>`:''}
+        <svg viewBox="-12 -12 124 124" aria-hidden="true">${c.svg}${C.sparkle?C.sparkle(sr):''}</svg><b>${u?'':'🔒 '}${c.n}</b><span class="slot">${C.SLOT_NAME[c.slot]}</span>
         <small>${u?(wearing_?'<span class="wear">착용 중 · 누르면 벗기</span>':`${md(u)} 해금 · 누르면 입기`):cond}</small></button>`; }).join('');
     root.querySelectorAll('#titles button').forEach(b=>b.onclick=()=>{ titleSel=b.dataset.t; try{ localStorage.setItem(TKEY,titleSel); }catch(e){} rerenderArena(); renderCloset(); });
     root.querySelectorAll('#cl-grid .it').forEach(b=>b.onclick=()=>{ const id=b.dataset.id; if(!unlocked[id]) return; const sl=C.COS[id].slot;
       equip[sl]= on.has(id) ? 'none' : id; try{ localStorage.setItem(EKEY,JSON.stringify(equip)); }catch(e){} rerenderArena(); renderCloset(); });
+  }
+  /* 🏛️ 명예의 전당: 시즌별 기록 + 다음 시즌 예고 */
+  function renderHof(){
+    const rows=SEASONS.map(sn=>({sn, ...seasonStats(sn)})), done=rows.filter(r=>r.done);
+    const best=k=>done.length?Math.max(...done.map(r=>r[k])):null;
+    const prevBest={boss:best('boss'), best:best('best'), top:best('top'), pass:best('pass')};
+    const stat=(r,k,ic,lab,unit)=>{ const rec=r.done&&done.length>1&&r[k]===prevBest[k]&&r[k]>0, chase=!r.done&&prevBest[k]!=null;
+      return `<div class="hs ${rec?'rec':''}"><small>${ic} ${lab}</small><b class="num">${r[k]}${unit}</b>${rec?'<span class="tag">🔥 역대 최고</span>':chase?`<span class="tag ${r[k]>prevBest[k]?'up':''}">${r[k]>prevBest[k]?'🔥 기록 경신 중':`최고 ${prevBest[k]}${unit}`}</span>`:''}</div>`; };
+    const nxt=seasonStart(SEASON.n+1);
+    $('hof').innerHTML=rows.slice().reverse().map(r=>{ const g=gradeOf(r.boss);
+      return `<div class="hof-card ${r.done?'':'live'}"><div class="hof-h"><span class="sbadge">S${r.sn.n}</span><b>${g?g[1]+' '+g[2]:r.done?'등급 없음':'등급 도전 중'}</b><span class="note">${md(r.sn.start)}~${md(r.sn.end)} · ${r.done?'완주':`진행 중 ${Math.min(SWEEKS,r.weeks)}/${SWEEKS}주`}</span></div>
+        <div class="hs-row">${stat(r,'pass','✅','통과','판')}${stat(r,'boss','👹','보스','마리')}${stat(r,'best','🏃','최장 런','주')}${stat(r,'top','💥','최고 점수','점')}</div></div>`; }).join('')
+      +`<div class="hof-card next"><div class="hof-h"><span class="sbadge">S${SEASON.n+1}</span><b>🔜 ${md(nxt)} 개막</b><span class="note">런·도토리·조커·씨앗 은행 리셋 · 옷장·트로피·칭호는 그대로</span></div>
+        <p class="note">시즌 등급(보스 수): 🥉 브론즈 2 · 🥈 실버 4 · 🥇 골드 6 · 👑 레전드 8마리 — 등급마다 칭호가 생겨요. 같은 소품 조건을 다음 시즌에 또 달성하면 ★가 붙고, ★★★부터 황금빛으로 반짝여요.</p></div>`;
   }
   let lastArena=null;
   function rerenderArena(){ if(lastArena) arena(lastArena); }
@@ -2494,13 +2562,13 @@ function mountDeck(raw, S, opt){
   }
 
   refreshUnlocks();
-  if(mode==='shop') renderShop(); else if(mode==='week') renderWeek(); else renderEnd();
-  if(!days.length) renderReplay();
-  renderCloset();
+  if(mode==='shop') renderShop(); else renderWeek();
+  if(SEASON.n===1 && !days.length) renderReplay();
+  renderCloset(); renderHof();
   /* 시트 최신 줄 읽기(웹 앱 새 버전이면 rows가 옴) → 바뀌었으면 다시 그리기 */
   if(WEB) fetch(WEB+(WEB.includes('?')?'&':'?')+'game=list&t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(j=>{
     const ok=!!(j && Array.isArray(j.rows)); const changed=ok && JSON.stringify(j.rows)!==JSON.stringify(sheetRows);
-    webOK=ok; if(changed){ setRows(j.rows); refreshUnlocks(); renderCloset(); }
+    webOK=ok; if(changed){ setRows(j.rows); refreshUnlocks(); renderCloset(); renderHof(); }
     if(mode==='shop' && !viewingPast) renderShop(); else if(changed && mode==='week' && !viewingPast) renderWeek();
   }).catch(()=>{ webOK=false; if(mode==='shop' && !viewingPast) renderShop(); });
   else webOK=false;
