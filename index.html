@@ -619,7 +619,7 @@ h2{display:flex;align-items:center;gap:.5em}
 #pnlrace .pr-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
 #pnlrace .pr-k{position:relative;display:flex;flex-direction:column;gap:3px;padding:12px 14px 11px 16px;border-radius:14px;background:var(--panel2);border:1px solid var(--line2);overflow:hidden}
 #pnlrace .pr-k::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--accent,var(--line2))}
-#pnlrace .k-tot{--accent:var(--fg)}
+#pnlrace .k-tot{--accent:var(--leaf)}
 #pnlrace .k-re{--accent:var(--gold-hi)}
 #pnlrace .k-un.up{--accent:var(--up)} #pnlrace .k-un.dn{--accent:var(--down)}
 #pnlrace .pr-k .lab{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -784,7 +784,7 @@ h2{display:flex;align-items:center;gap:.5em}
   <!-- PNL RACE (실현 vs 평가, 2026-10-16) -->
   <section id="pnlrace">
     <div class="sec-head">
-      <div><span class="eyebrow">Realized vs Unrealized</span><h2><span class="hi" aria-hidden="true">💰</span>거둔 돈 vs 밭에 남은 돈</h2><p>2026년 1월부터 누적 실현(거둔 돈)과 평가손익(아직 밭에 있는 작물)이 금액으로 어떻게 움직였는지 재생해요. 🧺 금색 = 거둔 돈, 🌱 빨강·파랑 = 밭에 남은 돈(0선 기준), 📊 굵은 선 = 둘을 더한 총 손익.</p></div>
+      <div><span class="eyebrow">Realized vs Unrealized</span><h2><span class="hi" aria-hidden="true">💰</span>거둔 돈 vs 밭에 남은 돈</h2><p>2026년 1월부터 누적 실현(거둔 돈)과 평가손익(아직 밭에 있는 작물)이 금액으로 어떻게 움직였는지 재생해요. 🧺 금색 = 거둔 돈, 🌱 빨강·파랑 = 밭에 남은 돈(0선 기준), 📊 굵은 초록 선 = 둘을 더한 총 손익.</p></div>
     </div>
     <div class="panel stage">
       <div class="stage-ctl">
@@ -2752,6 +2752,28 @@ load().then(raw=>{
 });
 
 /* ════════ 💰 거둔 돈 vs 밭에 남은 돈 (실현 vs 평가 리플레이, 2026-10-16) ════════ */
+/* chart-v2 (2026-10-29): 곡선 연결 + 긴 구간 주 단위 점 */
+const CHART_V = 'A';
+function wcCurve(ctx, P, cont){ // P=[[x,y],..] 단조 3차 곡선(점을 넘어 튀지 않음), 장기 대시보드와 같은 방식
+  const n=P.length; if(!n) return;
+  const go=(p,i)=> (i||cont)?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);
+  if(n<3){ P.forEach(go); return; }
+  const h=[], sl=[], m=new Array(n);
+  for(let i=0;i<n-1;i++){ h[i]=P[i+1][0]-P[i][0]; sl[i]=Math.abs(h[i])>1e-6?(P[i+1][1]-P[i][1])/h[i]:0; }
+  for(let i=1;i<n-1;i++){ const a=sl[i-1], b=sl[i]; if(a*b<=0||Math.abs(h[i-1])<1e-6||Math.abs(h[i])<1e-6){ m[i]=0; continue; }
+    const pm=(a*h[i]+b*h[i-1])/(h[i-1]+h[i]); m[i]=Math.sign(a)*Math.min(Math.abs(a),Math.abs(b),.5*Math.abs(pm))*2; }
+  m[0]=sl[0]; m[n-1]=sl[n-2];
+  go(P[0],0);
+  for(let i=0;i<n-1;i++){ const a=P[i], b=P[i+1], d=h[i]/3; if(Math.abs(h[i])<1e-6){ ctx.lineTo(b[0],b[1]); continue; }
+    ctx.bezierCurveTo(a[0]+d, a[1]+m[i]*d, b[0]-d, b[1]-m[i+1]*d, b[0], b[1]); }
+}
+function wcWeekEnds(data){ // 주(월~금) 마지막 거래일 인덱스 + 첫날
+  const wk = i => Math.floor((Date.parse(data[i].d.slice(0,10)+'T00:00:00Z')/864e5+3)/7), out=[0];
+  for(let i=0;i<data.length;i++){ if((i===data.length-1 || wk(i)!==wk(i+1)) && i!==0) out.push(i); }
+  return out;
+}
+function wcRgba(hex,a){ const m=String(hex).trim().replace('#','').match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i); return m?`rgba(${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)},${a})`:hex; }
+function wcSnap(list,k){ let b=list[0]; list.forEach(i=>{ if(Math.abs(i-k)<Math.abs(b-k)) b=i; }); return b; }
 function pnlRace(S){
   const cv = $('pr'); if(!cv) return;
   const ctx = cv.getContext('2d');
@@ -2766,7 +2788,8 @@ function pnlRace(S){
   const C = {};
   const colors = ()=>Object.assign(C,{gold:css('--gold-hi'), fg:css('--fg'), muted:css('--muted'), dim:css('--dim'), up:css('--up'), dn:css('--down'), panel:css('--panel'), light: document.documentElement.getAttribute('data-theme')==='light'});
   colors();
-  let W=0, Hh=0, dpr=1, ev=[], yr={min:0,max:1}, narrow=false;
+  let W=0, Hh=0, dpr=1, ev=[], yr={min:0,max:1}, narrow=false, WK=[0];
+  const weekly = ()=> CHART_V==='B' && st.mode==='all';
   const pad = {l:10, r:120, t:22, b:26};
   const padFit = ()=>{ const k=RS(); narrow = (cv.getBoundingClientRect().width||innerWidth) < 600; pad.r=Math.round((narrow?86:160)*k); pad.t=Math.round(22*k); pad.b=Math.round(26*k); pad.l=Math.round(10*k); };
   const ax = v => { const a=Math.abs(v), s=v<0?'−':(v>0?'+':''); if(a===0) return '0'; if(a>=1e8) return s+(+(a/1e8).toFixed(2))+'억'; return s+Math.round(a/1e4).toLocaleString()+'만'; };
@@ -2790,8 +2813,9 @@ function pnlRace(S){
     st.data = ALL.slice(Math.max(0, n-cut));
     ev = events(st.data);
     let mn = 0, mx = 0;
-    st.data.forEach(p=>{ mn=Math.min(mn,p.tot,p.re,p.un); mx=Math.max(mx,p.tot,p.re,p.un); });
+    st.data.forEach(p=>{ const vs = CHART_V==='B' ? [p.tot,p.re] : [p.tot,p.re,p.un]; mn=Math.min(mn,...vs); mx=Math.max(mx,...vs); });
     const span = (mx-mn)||1; yr = {min:mn-span*0.08, max:mx+span*0.12};
+    WK = wcWeekEnds(st.data);
     $('pr-scrub').max = st.data.length-1;
   }
   function size(){
@@ -2806,7 +2830,8 @@ function pnlRace(S){
   // 지금까지 그릴 점들 (재생 중이면 끝점 보간)
   function pts(){
     const n = Math.floor(st.i), out = [];
-    for(let i=0;i<=n;i+=stride()) out.push({x:X(i), re:st.data[i].re, tot:st.data[i].tot, un:st.data[i].un});
+    const IX = weekly() ? WK.filter(i=>i<=n) : (()=>{ const a=[]; for(let i=0;i<=n;i+=stride()) a.push(i); return a; })();
+    IX.forEach(i=> out.push({x:X(i), re:st.data[i].re, tot:st.data[i].tot, un:st.data[i].un}));
     if(out[out.length-1].x !== X(n)) out.push({x:X(n), re:st.data[n].re, tot:st.data[n].tot, un:st.data[n].un});
     if(st.i>n && n+1<st.data.length) out.push({x:X(st.i), re:val(st.i,'re'), tot:val(st.i,'tot'), un:val(st.i,'un')});
     return out;
@@ -2846,11 +2871,14 @@ function pnlRace(S){
     const n = Math.floor(st.i), P = pts(), y0 = Y(0), k = RS();
     const xe = P[P.length-1].x, pe = {tot:val(st.i,'tot'), re:val(st.i,'re')}; pe.un = pe.tot-pe.re;
     const unC = pe.un>=0?C.up:C.dn;
+    const mid = p => (p.re+p.tot)/2;
     const gridC = C.light ? 'rgba(20,30,60,.07)' : 'rgba(150,175,230,.08)';
-    const W_TOT = narrow?2.5:3, W_SUB = narrow?2:2.5;
+    const SS = {tot:3.2, totM:2.6, halo:9, sub:2, subM:1.6, subA:.75, fillA:C.light?.16:.22, fillGrad:true, totC:css('--leaf')}; /* chart-style v1: 수익금 ④ */
+    const W_TOT = narrow?(SS.totM??2.5):(SS.tot??3), W_SUB = narrow?(SS.subM??2):(SS.sub??2.5);
+    const cTot = SS.totC||C.fg, aSub = SS.subA??1, halo = SS.halo||0;
 
     // 끝값 알약 위치 (3개, 겹치면 위아래로 벌림)
-    const tags = [{k:'tot', v:pe.tot, y:Y(pe.tot)}, {k:'re', v:pe.re, y:Y(pe.re)}, {k:'un', v:pe.un, y:Y(pe.un)}].sort((a,b)=>a.y-b.y);
+    const tags = [{k:'tot', v:pe.tot, y:Y(pe.tot)}, {k:'re', v:pe.re, y:Y(pe.re)}, {k:'un', v:pe.un, y:Y(CHART_V==='B'? mid(pe) : pe.un)}].sort((a,b)=>a.y-b.y);
     const gapMin = (narrow?20:25)*k;
     for(let it=0; it<3; it++){ for(let j=1;j<tags.length;j++){ if(tags[j].y - tags[j-1].y < gapMin){ const m=(tags[j].y+tags[j-1].y)/2; tags[j-1].y=m-gapMin/2; tags[j].y=m+gapMin/2; } } }
     tags.forEach(t=>{ t.y = Math.max(pad.t+10, Math.min(Hh-pad.b-10, t.y)); });
@@ -2872,29 +2900,54 @@ function pnlRace(S){
     st.data.forEach((p,i)=>{ const m=p.d.slice(5,7); if(m===lastM) return; lastM=m; const x=X(i); if(x-lastX < (narrow?34:40)*k) return; lastX=x;
       ctx.fillStyle=C.dim; ctx.fillText(+m+'월', x+2, Hh-7*k); });
     // 수확한 날 눈금
-    for(let i=0;i<=n;i++){ const p=st.data[i]; if(!(p.dre>0)) continue; ctx.fillStyle=rgba(C.gold,.6); ctx.fillRect(Math.round(X(i))-0.5, Hh-pad.b-5*k, 1.5, 4*k); }
+    if(CHART_V!=='B' || st.playing || st.hover>=0) for(let i=0;i<=n;i++){ const p=st.data[i]; if(!(p.dre>0)) continue; ctx.fillStyle=rgba(C.gold,.6); ctx.fillRect(Math.round(X(i))-0.5, Hh-pad.b-5*k, 1.5, 4*k); }
 
-    const path = key => { ctx.beginPath(); P.forEach((q,j)=> j?ctx.lineTo(q.x,Y(q[key])):ctx.moveTo(q.x,Y(q[key]))); };
+    const path = key => { ctx.beginPath(); wcCurve(ctx, P.map(q=>[q.x,Y(q[key])])); };
     // ① 평가 아래 옅은 색 (한 겹만)
+    if(CHART_V==='B'){
+      // B: 실현 선과 총 손익 선 사이 = 밭에 남은 돈 (총 손익이 아래면 파랑, 위면 빨강)
+      const wa = C.light ? .14 : .17;
+      const band = ()=>{ ctx.beginPath(); wcCurve(ctx, P.map(q=>[q.x,Y(q.re)])); wcCurve(ctx, P.slice().reverse().map(q=>[q.x,Y(q.tot)]), true); ctx.closePath(); };
+      const reUp = ()=>{ ctx.beginPath(); wcCurve(ctx, P.map(q=>[q.x,Y(q.re)])); ctx.lineTo(xe,0); ctx.lineTo(P[0].x,0); ctx.closePath(); };
+      const reDn = ()=>{ ctx.beginPath(); wcCurve(ctx, P.map(q=>[q.x,Y(q.re)])); ctx.lineTo(xe,Hh); ctx.lineTo(P[0].x,Hh); ctx.closePath(); };
+      ctx.save(); reDn(); ctx.clip(); band(); ctx.fillStyle = rgba(C.dn, wa); ctx.fill(); ctx.restore();
+      ctx.save(); reUp(); ctx.clip(); band(); ctx.fillStyle = rgba(C.up, wa); ctx.fill(); ctx.restore();
+      ctx.lineJoin='round'; ctx.lineCap='round';
+      path('re'); ctx.strokeStyle=C.gold; ctx.lineWidth=W_SUB; ctx.stroke();
+      path('tot'); ctx.strokeStyle=C.fg; ctx.lineWidth=W_TOT; ctx.stroke();
+      // 끝: 실현~총 손익 사이 세로 괄호
+      const ya=Y(pe.re), yb=Y(pe.tot); ctx.strokeStyle=unC; ctx.lineWidth=2; ctx.globalAlpha=.75;
+      ctx.beginPath(); ctx.moveTo(xe, ya); ctx.lineTo(xe, yb); ctx.stroke(); ctx.globalAlpha=1;
+    } else {
     path('un'); ctx.lineTo(xe, y0); ctx.lineTo(P[0].x, y0); ctx.closePath();
     ctx.save(); ctx.clip();
-    const wa = C.light ? .08 : .10;
+    const wa = SS.fillA ?? (C.light ? .08 : .10);
+    if(SS.fillGrad){
+      const gu = ctx.createLinearGradient(0, pad.t, 0, y0); gu.addColorStop(0, rgba(C.up, wa)); gu.addColorStop(1, rgba(C.up, 0));
+      const gd = ctx.createLinearGradient(0, y0, 0, Hh-pad.b); gd.addColorStop(0, rgba(C.dn, 0)); gd.addColorStop(1, rgba(C.dn, wa));
+      ctx.fillStyle = gu; ctx.fillRect(0, 0, W, y0); ctx.fillStyle = gd; ctx.fillRect(0, y0, W, Hh-y0);
+    } else {
     ctx.fillStyle = rgba(C.up, wa); ctx.fillRect(0, 0, W, y0);
     ctx.fillStyle = rgba(C.dn, wa); ctx.fillRect(0, y0, W, Hh-y0);
+    }
     ctx.restore();
     // ② 선: 테두리·빛번짐 없이 얇게
     ctx.lineJoin='round'; ctx.lineCap='round';
+    ctx.globalAlpha = aSub;
     ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,y0); ctx.clip(); path('un'); ctx.strokeStyle=C.up; ctx.lineWidth=W_SUB; ctx.stroke(); ctx.restore();
     ctx.save(); ctx.beginPath(); ctx.rect(0,y0,W,Hh-y0); ctx.clip(); path('un'); ctx.strokeStyle=C.dn; ctx.lineWidth=W_SUB; ctx.stroke(); ctx.restore();
     path('re'); ctx.strokeStyle=C.gold; ctx.lineWidth=W_SUB; ctx.stroke();
-    path('tot'); ctx.strokeStyle=C.fg; ctx.lineWidth=W_TOT; ctx.stroke();
+    ctx.globalAlpha = 1;
+    if(halo){ path('tot'); ctx.save(); ctx.globalAlpha=.16; ctx.strokeStyle=cTot; ctx.lineWidth=narrow?halo*.7:halo; ctx.stroke(); ctx.restore(); }
+    path('tot'); ctx.strokeStyle=cTot; ctx.lineWidth=W_TOT; ctx.stroke();
+    }
 
     // ③ 끝점 (표면색 링) + 알약
-    const ends = [['un',unC],['re',C.gold],['tot',C.fg]];
+    const ends = CHART_V==='B' ? [['re',C.gold],['tot',C.fg]] : [['un',unC],['re',C.gold],['tot',cTot]];
     ends.forEach(([key,c])=>{ ctx.beginPath(); ctx.arc(xe,Y(pe[key]),narrow?3.4:4,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=C.panel; ctx.stroke(); });
     if(st.playing){ ctx.font=`${Math.round(15*k)}px serif`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('🧺', xe, Y(pe.re)-7); }
     tags.forEach(t=>{
-      const col = t.k==='re' ? C.gold : t.k==='tot' ? C.fg : unC;
+      const col = t.k==='re' ? C.gold : t.k==='tot' ? cTot : unC;
       const ic = t.k==='re' ? '🧺' : t.k==='tot' ? '📊' : '🌱';
       const txt = narrow ? short(t.v) : won(t.v,true);
       const x = xe + (narrow?9:12)*k, fs = Math.round((narrow?10.5:12)*k), h = Math.round((narrow?19:23)*k);
@@ -2902,7 +2955,7 @@ function pnlRace(S){
       ctx.font = `${fs}px serif`; const iw = narrow ? 0 : ctx.measureText(ic).width + 4;
       const w = tw + iw + (narrow?12:16);
       // 끝점과 알약 사이 짧은 연결선 (벌어졌을 때)
-      const ly = Y(pe[t.k]); if(Math.abs(ly - t.y) > 3){ ctx.strokeStyle = col; ctx.globalAlpha=.5; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(xe+4, ly); ctx.lineTo(x, t.y); ctx.stroke(); ctx.globalAlpha=1; }
+      const ly = (CHART_V==='B' && t.k==='un') ? Y(mid(pe)) : Y(pe[t.k]); if(Math.abs(ly - t.y) > 3){ ctx.strokeStyle = col; ctx.globalAlpha=.5; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(xe+4, ly); ctx.lineTo(x, t.y); ctx.stroke(); ctx.globalAlpha=1; }
       ctx.fillStyle = C.panel; rr(x, t.y-h/2, w, h, h/2); ctx.fill();
       ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.stroke();
       ctx.textBaseline='middle'; ctx.textAlign='left';
@@ -2914,7 +2967,8 @@ function pnlRace(S){
     // ④ 이벤트
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ev.forEach(e=>{ if(e.i>n) return; if(narrow && (e.ic==='💥' || e.ic==='🌧')) return;
-      const x=X(e.i), y=Y(st.data[e.i][e.k]); ctx.font=`${Math.round(13*k)}px serif`;
+      const ei = weekly() ? wcSnap(WK.filter(i=>i<=n).concat(n), e.i) : e.i, ek = (CHART_V==='B' && e.k==='un') ? 'tot' : e.k;
+      const x=X(ei), y=Y(st.data[ei][ek]); ctx.font=`${Math.round(13*k)}px serif`;
       ctx.fillText(e.ic, x, e.up ? y-12*k : y+12*k); });
     st.pops = st.pops.filter(q=>now-q.t0<2200);
     st.pops.forEach(q=>{
@@ -2934,7 +2988,7 @@ function pnlRace(S){
       const h=st.data[st.hover], x=X(st.hover);
       ctx.strokeStyle = C.light ? 'rgba(20,30,60,.22)' : 'rgba(234,240,252,.25)'; ctx.lineWidth=1;
       ctx.beginPath(); ctx.moveTo(Math.round(x)+.5,pad.t); ctx.lineTo(Math.round(x)+.5,Hh-pad.b); ctx.stroke();
-      [[h.un,h.un>=0?C.up:C.dn],[h.re,C.gold],[h.tot,C.fg]].forEach(([v,c])=>{ ctx.beginPath(); ctx.arc(x,Y(v),4,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=C.panel; ctx.stroke(); });
+      (CHART_V==='B' ? [[h.re,C.gold],[h.tot,C.fg]] : [[h.un,h.un>=0?C.up:C.dn],[h.re,C.gold],[h.tot,cTot]]).forEach(([v,c])=>{ ctx.beginPath(); ctx.arc(x,Y(v),4,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=C.panel; ctx.stroke(); });
       const rows = [['📊 총 손익', h.tot, C.fg], ['🧺 실현', h.re, C.gold], ['🌱 평가', h.un, h.un>=0?C.up:C.dn]];
       const fs = Math.round((narrow?11:12)*k), lh = fs+8;
       ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`;
@@ -3024,7 +3078,7 @@ function pnlRace(S){
     const r = cv.getBoundingClientRect(), x = e.clientX-r.left;
     const k = Math.round((x-pad.l)/(W-pad.l-pad.r)*(st.data.length-1));
     if(k<0||k>st.i){ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); return; }
-    st.hover = k; board(k); draw(performance.now());
+    st.hover = weekly() ? wcSnap(WK.filter(i=>i<=st.i), k) : k; board(st.hover); draw(performance.now());
   });
   cv.addEventListener('pointerleave', ()=>{ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); });
   RESIZE.push(()=>{ colors(); padFit(); size(); draw(performance.now()); });
@@ -3052,7 +3106,8 @@ function replay(S){
   const cv = $('rp'), ctx = cv.getContext('2d');
   const st = {mode:'y26', data:S.Y26, i:S.Y26.length-1, playing:false, speed:1, hover:-1, pops:[], acc:0};
   const C = {leaf:css('--leaf'), gold:css('--gold-hi'), kospi:css('--kospi'), muted:css('--muted'), dim:css('--dim'), line:'rgba(150,175,230,.13)', fg:css('--fg'), up:css('--up'), dn:css('--down')};
-  let W=0, Hh=0, dpr=1, ev=[], yr={min:0,max:1};
+  let W=0, Hh=0, dpr=1, ev=[], yr={min:0,max:1}, WK=[0];
+  const weekly = ()=> CHART_V==='B';
   const pad = {l:8, r:58, t:18, b:24};
   const padFit = ()=>{ const k=RS(); pad.r=Math.round(58*k); pad.t=Math.round(18*k); pad.b=Math.round(24*k); };
 
@@ -3079,6 +3134,7 @@ function replay(S){
     let mn = Infinity, mx = -Infinity;
     st.data.forEach(p=>{ mn=Math.min(mn,p.me,p.kp); mx=Math.max(mx,p.me,p.kp); });
     const span = mx-mn; yr = {min:mn-span*0.06, max:mx+span*0.1};
+    WK = wcWeekEnds(st.data);
     $('scrub').max = st.data.length-1;
   }
   function size(){
@@ -3102,6 +3158,8 @@ function replay(S){
 
   function draw(now){
     const n = Math.floor(st.i);
+    const LT = document.documentElement.getAttribute('data-theme')==='light', ga = a => wcRgba(C.gold, a);
+    const SR = {me:3.2, meM:2.6, border:false, kp:2, kpM:1.6, kpA:.8, halo:9, area:[ga(LT?.16:.24), ga(LT?.04:.06), ga(0)]}, meC = C.gold; /* chart-style v1: 달리기 ③ */
     ctx.clearRect(0,0,W,Hh);
     // grid
     const step = niceStep(yr.max-yr.min,5);
@@ -3119,8 +3177,8 @@ function replay(S){
       if(st.mode==='all'){ if(y!==lastY){ lastY=y; const x=X(i); if(i>0){ctx.strokeStyle='rgba(150,175,230,.22)';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,Hh-pad.b);ctx.stroke();ctx.setLineDash([]);} ctx.fillStyle=C.muted; ctx.fillText(y, Math.max(pad.l+14,x+(i>0?18:0)), Hh-6); } }
       else { if(m!==lastY){ lastY=m; if(+m%2===1){ ctx.fillStyle=C.dim; ctx.fillText(+m+'월', Math.max(pad.l+12,X(i)+10), Hh-6); } } }
     });
-    // 매매 틱 (7/23~): 수확 금색, 파종 초록
-    for(let i=0;i<=n;i++){
+    // 매매 틱 (7/23~): 수확 금색, 파종 초록 (B: 재생·호버 때만)
+    if(CHART_V!=='B' || st.playing || st.hover>=0) for(let i=0;i<=n;i++){
       const tr = S.TR[st.data[i].d]; if(!tr) continue;
       const hv = tr.some(e=>e.t==='harvest'||e.t==='partial'), sd = tr.some(e=>e.t==='seed'||e.t==='add');
       const x = X(i);
@@ -3129,29 +3187,30 @@ function replay(S){
       if(sd){ ctx.fillStyle = C.leaf; ctx.fillRect(x-tw/2, Hh-pad.b-2, tw, 5); }
     }
     // lines
+    const IX = weekly() ? WK.filter(i=>i<n) : (()=>{ const a=[]; for(let i=0;i<n;i+=stride()) a.push(i); return a; })();
+    const ptsOf = key => { const P = IX.map(i=>[X(i), Y(st.data[i][key])]); P.push([X(n), Y(st.data[n][key])]);
+      if(st.i>n && n+1<st.data.length){ const f=st.i-n, a=st.data[n], b=st.data[n+1]; P.push([X(n+f), Y(a[key]+(b[key]-a[key])*f)]); } return P; };
     function line(key, col, w, glow){
-      ctx.beginPath();
-      for(let i=0;i<=n;i+=stride()){ const x=X(i), y=Y(st.data[i][key]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
-      ctx.lineTo(X(n), Y(st.data[n][key]));
-      if(st.i>n && n+1<st.data.length){ const f=st.i-n, a=st.data[n], b=st.data[n+1]; ctx.lineTo(X(n+f), Y(a[key]+(b[key]-a[key])*f)); }
+      ctx.beginPath(); wcCurve(ctx, ptsOf(key));
       /* rp-crisp */ ctx.lineJoin='round'; ctx.lineCap='round';
       if(glow){ ctx.save(); ctx.strokeStyle = css('--panel'); ctx.globalAlpha = .9; ctx.lineWidth = w+3.5; ctx.stroke(); ctx.restore(); }
       ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke();
     }
     // area under mine
+    { const P = ptsOf('me'), xe0 = P[P.length-1][0];
     ctx.beginPath(); ctx.moveTo(X(0),Y(Math.max(yr.min,0)));
-    for(let i=0;i<=n;i+=stride()) ctx.lineTo(X(i),Y(st.data[i].me));
-    ctx.lineTo(X(n),Y(st.data[n].me));
-    ctx.lineTo(X(n),Y(Math.max(yr.min,0))); ctx.closePath();
-    const g = ctx.createLinearGradient(0,pad.t,0,Hh-pad.b); g.addColorStop(0,'rgba(242,199,95,.10)'); g.addColorStop(.55,'rgba(242,199,95,.03)'); g.addColorStop(1,'rgba(242,199,95,0)');
+    wcCurve(ctx, P, true);
+    ctx.lineTo(xe0,Y(Math.max(yr.min,0))); ctx.closePath(); }
+    const g = ctx.createLinearGradient(0,pad.t,0,Hh-pad.b); const AR = SR.area || ['rgba(242,199,95,.10)','rgba(242,199,95,.03)','rgba(242,199,95,0)']; g.addColorStop(0,AR[0]); g.addColorStop(.55,AR[1]); g.addColorStop(1,AR[2]);
     ctx.fillStyle = g; ctx.fill();
     const narrow = W < 600;
-    ctx.globalAlpha = .85; line('kp', C.kospi, narrow ? 1.1 : 1.5, false); ctx.globalAlpha = 1;
-    line('me', C.gold, narrow ? 1.9 : 2.4, true);
+    ctx.globalAlpha = SR.kpA ?? .85; line('kp', C.kospi, narrow ? (SR.kpM??1.1) : (SR.kp??1.5), false); ctx.globalAlpha = 1;
+    if(SR.halo){ ctx.save(); ctx.globalAlpha=.16; line('me', meC, narrow ? SR.halo*.7 : SR.halo, false); ctx.restore(); }
+    line('me', meC, narrow ? (SR.meM??1.9) : (SR.me??2.4), SR.border ?? true);
     // endpoints + labels
     const e = st.data[n];
     const ym = Y(e.me), yk = Y(e.kp), xe = X(n);
-    [[yk,C.kospi],[ym,C.gold]].forEach(([y,c])=>{ ctx.beginPath(); ctx.arc(xe,y,4.5,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=css('--panel'); ctx.stroke(); });
+    [[yk,C.kospi],[ym,meC]].forEach(([y,c])=>{ ctx.beginPath(); ctx.arc(xe,y,4.5,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=css('--panel'); ctx.stroke(); });
     if(st.playing){ // runner emoji
       ctx.font=`${Math.round(18*RS())}px serif`; ctx.textAlign='center'; ctx.textBaseline='bottom';
       ctx.fillText('🧑‍🌾', xe, ym-6); ctx.fillText('🐢', xe, yk-6);
@@ -3161,7 +3220,8 @@ function replay(S){
     ev.forEach(evn=>{
       if(evn.i>n) return;
       if(W<600 && !['🏔','🌧','🚀'].includes(evn.ic)) return;
-      const x = X(evn.i), y = Y(st.data[evn.i].me);
+      const ei = weekly() ? wcSnap(WK.filter(i=>i<=n).concat(n), evn.i) : evn.i;
+      const x = X(ei), y = Y(st.data[ei].me);
       ctx.font=`${Math.round(15*RS())}px serif`; ctx.fillText(evn.ic, x, evn.ic==='🌧'||evn.ic==='🥶' ? y+14 : y-14);
     });
     // pops (during play)
@@ -3181,7 +3241,7 @@ function replay(S){
     if(st.hover>=0 && !st.playing){
       const h = st.data[st.hover], x = X(st.hover);
       ctx.strokeStyle='rgba(234,240,252,.35)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,Hh-pad.b); ctx.stroke();
-      [[h.kp,C.kospi],[h.me,C.gold]].forEach(([v,c])=>{ ctx.beginPath(); ctx.arc(x,Y(v),4,0,7); ctx.fillStyle=c; ctx.fill(); });
+      [[h.kp,C.kospi],[h.me,meC]].forEach(([v,c])=>{ ctx.beginPath(); ctx.arc(x,Y(v),4,0,7); ctx.fillStyle=c; ctx.fill(); });
     }
     // direct labels at end (when not hovering)
     if(st.hover<0 || st.playing){
@@ -3189,7 +3249,7 @@ function replay(S){
       const lx = Math.max(pad.l+50, xe-10), meUp = ym <= yk;
       const top = Math.min(ym,yk), bot = Math.max(ym,yk);
       let ty = top-13, by = bot+15; if(ty < pad.t+4) ty = pad.t+4; if(by > Hh-pad.b-12) by = Hh-pad.b-12; if(by-ty < 18) by = ty+18;
-      ctx.fillStyle=C.gold; ctx.fillText('나', lx, meUp ? ty : by);
+      ctx.fillStyle=meC; ctx.fillText('나', lx, meUp ? ty : by);
       ctx.fillStyle=C.kospi; ctx.fillText('KOSPI', lx, meUp ? by : ty);
     }
   }
@@ -3239,7 +3299,7 @@ function replay(S){
     const r = cv.getBoundingClientRect(), x = e.clientX-r.left;
     const k = Math.round((x-pad.l)/(W-pad.l-pad.r)*(st.data.length-1));
     if(k<0||k>st.i){ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); return; }
-    st.hover = k; board(k); draw(performance.now());
+    st.hover = weekly() ? wcSnap(WK.filter(i=>i<=st.i), k) : k; board(st.hover); draw(performance.now());
   });
   cv.addEventListener('pointerleave', ()=>{ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); });
   RESIZE.push(()=>{ Object.assign(C,{leaf:css('--leaf'), gold:css('--gold-hi'), kospi:css('--kospi'), muted:css('--muted'), dim:css('--dim'), fg:css('--fg'), up:css('--up'), dn:css('--down')}); padFit(); size(); draw(performance.now()); });
