@@ -1178,7 +1178,7 @@ details summary{cursor:pointer;font-family:var(--display);font-size:1.12rem}
   <details class="panel ledger">
     <summary>📖 규칙 · 조커 도감 · 확률</summary>
     <ul class="note" style="margin:10px 0 0;padding-left:1.2rem;display:flex;flex-direction:column;gap:4px">
-      <li>하루 = 한 판. 그날 마감 데이터가 카드로 깔려요: 🐂·🐎 날씨(±2% 맑음/비, −5% 폭풍, 각 5칩) · 🐯 코스피 비교 5칩 · 🌱 파종/🧺 수확 칸당 10칩 · 아무것도 안 한 날은 🌾 쉬는 날 10칩.</li>
+      <li>하루 = 한 판. 그날 마감 데이터가 카드로 깔려요: 🥔·🥬 날씨(±2% 맑음/비, −5% 폭풍, 각 5칩) · 🐯 코스피 비교 5칩 · 🌱 파종/🧺 수확 칸당 10칩 · 아무것도 안 한 날은 🌾 쉬는 날 10칩.</li>
       <li>칩 × 배수 ≥ 목표면 통과(+1🌰). 목표는 런 1주차 45점에서 주마다 16%씩 커져요.</li>
       <li>금요일 = 보스 판(목표 ×1.35, 월요일에 예고). 통과하면 +4🌰·씨앗 은행 +1칸(+5칩 영구), 실패하면 ❤️ −1. 금요일이 휴장이면 보스도 쉬어요.</li>
       <li>❤️ 0 → 흉년. 다음 주부터 새 런(조커·도토리 초기화, 목표 1주차로). 씨앗 은행은 남아요.</li>
@@ -1463,7 +1463,7 @@ function drawdowns(series){
 function farmGame(D, CL, opt){
   opt = opt || {};
   const GOAL = opt.goal || 1e7, TRACK = '2026-07-23';
-  const STK = [['lever_avg','🐂','레버'],['kosdaq_avg','🐎','코닥']];
+  const STK = [['lever_avg','🥔','레버'],['kosdaq_avg','🥬','코닥']];
   const iso = s => { const d=new Date(s+'T00:00:00Z'); const t=new Date(d); t.setUTCDate(d.getUTCDate()+3-((d.getUTCDay()+6)%7)); const w1=new Date(Date.UTC(t.getUTCFullYear(),0,4)); return t.getUTCFullYear()+'-W'+String(1+Math.round(((t-w1)/864e5-3+((w1.getUTCDay()+6)%7))/7)).padStart(2,'0'); };
   const wday = s => new Date(s+'T00:00:00Z').getUTCDay();
   const T = D.filter(r=>r.pnl!==0 || (r.realized||0)!==0);          // 거래일
@@ -1593,7 +1593,7 @@ function farmGame(D, CL, opt){
     m.pnl=m.rows.reduce((s,r)=>s+r.pnl,0); m.real=m.rows.reduce((s,r)=>s+(r.realized||0),0);
     m.ret=(l.nav/base.nav-1)*100; m.kret=((1+l.kospi/100)/(1+base.kospi/100)-1)*100; m.n=m.rows.length; m.wins=m.rows.filter(r=>r.pnl>0).length;
     m.worst=Math.min(...m.rows.map(r=>r.pnl));
-    const hv=m.rows.flatMap(r=>ev[r.d]?.harv||[]); m.both = hv.some(c=>c[0]==='🐂'||c.startsWith('🐂')) && hv.some(c=>c.startsWith('🐎'));
+    const hv=m.rows.flatMap(r=>ev[r.d]?.harv||[]); m.both = hv.some(c=>c[0]==='🥔'||c.startsWith('🥔')) && hv.some(c=>c.startsWith('🥬'));
     m.harv=hv.length; m.quests=weeks.filter(w=>w.quests && w.to.slice(0,7)===m.k).reduce((s,w)=>s+w.qDone,0);
   });
   const M_DEF = [
@@ -1602,7 +1602,7 @@ function farmGame(D, CL, opt){
     {id:'m-win',   ic:'🎯', n:'승률 60%',    d:'수익 난 날이 60% 이상',        ok:m=>m.wins/m.n>=0.6},
     {id:'m-kospi', ic:'🐢', n:'코스피 추월 달', d:'한 달 수익률이 코스피보다 높음', ok:m=>m.ret>m.kret},
     {id:'m-safe',  ic:'🛡️', n:'무사고 달',   d:'하루 -500만 아래로 안 빠짐',    ok:m=>m.worst>-5e6},
-    {id:'m-both',  ic:'🐂', n:'쌍끌이',      d:'🐂·🐎 둘 다 수확한 달',          ok:m=>m.both, from:'2026-07'},
+    {id:'m-both',  ic:'🥔', n:'쌍끌이',      d:'🥔·🥬 둘 다 수확한 달',          ok:m=>m.both, from:'2026-07'},
   ];
   const tierOf = rate => rate>=0.5?0 : rate>=0.2?1 : rate>=0.05?2 : 3;
   const evalRep = (DEF, list, cur) => DEF.map(a=>{
@@ -1696,8 +1696,8 @@ const DOWN = w => w==='R' || w==='S';
 /* 하루 카드 */
 function cardsOf(day){
   const c = [];
-  c.push({k:'wx', s:'🐂', w:wx(day.lr), p:day.lr, chips:5});
-  c.push({k:'wx', s:'🐎', w:wx(day.qr), p:day.qr, chips:5});
+  c.push({k:'wx', s:'🥔', w:wx(day.lr), p:day.lr, chips:5});
+  c.push({k:'wx', s:'🥬', w:wx(day.qr), p:day.qr, chips:5});
   c.push({k:'vs', win: day.navr > day.kr, chips:5});
   day.sow.forEach(x => c.push({k:'sow', cell:x, chips:10}));
   day.harv.forEach(x => c.push({k:'harv', cell:x, chips:10}));
@@ -1717,14 +1717,14 @@ const JOKERS = [
   {id:'fert',   e:'🧪', n:'비료 포대',     r:1, t:'x',     d:'파종·수확 없는 쉬는 날 ×2.5',          f:(c,x)=>x.n(c=>c.k==='rest')?2.5:1},
   {id:'scythe', e:'🌾', n:'연쇄 낫',       r:1, t:'x',     d:'하루 2칸 이상 수확하면 ×2',            f:(c,x)=>x.n(c=>c.k==='harv')>=2?2:1},
   {id:'planter',e:'🚜', n:'쌍둥이 파종기', r:1, t:'x',     d:'하루 2칸 이상 파종하면 ×2',            f:(c,x)=>x.n(c=>c.k==='sow')>=2?2:1},
-  {id:'twin',   e:'🐂', n:'쌍두마차',     r:1, t:'x',     d:'🐂·🐎 날씨가 같으면 ×2',               f:(c,x)=>{const w=c.filter(c=>c.k==='wx');return w[0].w===w[1].w?2:1}},
+  {id:'twin',   e:'🥔', n:'쌍두마차',     r:1, t:'x',     d:'🥔·🥬 날씨가 같으면 ×2',               f:(c,x)=>{const w=c.filter(c=>c.k==='wx');return w[0].w===w[1].w?2:1}},
   {id:'split',  e:'⚖️', n:'엇갈린 운명',   r:2, t:'x',     d:'한쪽은 ☀️, 다른 쪽은 🌧️·⛈️면 ×3',       f:(c,x)=>{const w=c.filter(c=>c.k==='wx').map(c=>c.w);return (w.includes('U')&&(w.includes('R')||w.includes('S')))?3:1}},
   {id:'tail',   e:'🎯', n:'끝번호 수집가', r:1, t:'chips', d:'7·8번 칸 카드(파종·수확)마다 칩 +25',   f:(c,x)=>25*x.n(c=>(c.k==='sow'||c.k==='harv')&&/[78]$/.test(c.cell))},
   {id:'deep',   e:'🌳', n:'깊은 뿌리',     r:3, t:'x',     d:'1~6번 칸을 수확한 날 ×4',              f:(c,x)=>x.n(c=>c.k==='harv'&&/[1-6]$/.test(c.cell))?4:1},
   {id:'worm',   e:'🪱', n:'지렁이',       r:1, t:'chips', d:'파종한 날마다 이 조커 칩 +6 (계속 쌓임)', grow:(c,x,s)=>{ if(x.n(c=>c.k==='sow')) s.v=(s.v||0)+6; }, f:(c,x,s)=>s.v||0},
   {id:'streak', e:'🔥', n:'꾸준이',       r:1, t:'mult',  d:'연속 통과한 날 수만큼 배수 +1',         f:(c,x)=>x.streak},
   {id:'rainbow',e:'🌈', n:'무지개',       r:2, t:'x',     d:'이번 주에 날씨 4종이 다 나온 뒤부터 ×3', f:(c,x)=>x.weekWx.size>=4?3:1},
-  {id:'calm',   e:'🏞️', n:'잔잔한 호수',   r:2, t:'x',     d:'🐂·🐎 둘 다 ⛅면 ×3',                   f:(c,x)=>c.filter(c=>c.k==='wx'&&c.w==='C').length===2?3:1},
+  {id:'calm',   e:'🏞️', n:'잔잔한 호수',   r:2, t:'x',     d:'🥔·🥬 둘 다 ⛅면 ×3',                   f:(c,x)=>c.filter(c=>c.k==='wx'&&c.w==='C').length===2?3:1},
   {id:'scare',  e:'🎃', n:'허수아비',     r:1, t:'none',  d:'보스 디버프를 막아줌',                 f:()=>0},
   {id:'squirrel',e:'🐿️',n:'다람쥐',       r:1, t:'none',  d:'이자 상한 +3 · 보스 통과 도토리 +2',     f:()=>0},
   {id:'snail',  e:'🐌', n:'달팽이 저금통', r:0, t:'none',  d:'거래일마다 판매가 +1',                 f:()=>0},
@@ -2192,7 +2192,7 @@ function mountDeck(raw, S, opt){
       const a=D[i-1], b=D[i]; if(b.d<from || (to && b.d>=to)) continue;
       const ca=CL[a.d], cb=CL[b.d]; if(!ca||!cb||!ca[0]||!cb[0]||!ca[1]||!cb[1]) continue;
       const sow=[], harv=[];
-      [['lever_avg','🐂'],['kosdaq_avg','🐎']].forEach(([k,e])=>(b[k]||[]).forEach((y,j)=>{ const x=(a[k]||[])[j]||0;
+      [['lever_avg','🥔'],['kosdaq_avg','🥬']].forEach(([k,e])=>(b[k]||[]).forEach((y,j)=>{ const x=(a[k]||[])[j]||0;
         if(x>0&&!y) harv.push(e+(j+1)); else if(y>0&&(!x||Math.abs(y-x)>0.5)) sow.push(e+(j+1)); }));
       out.push({d:b.d, wd:wdOf(b.d), wk:Q.isoWeek(b.d), lr:+((cb[0]/ca[0]-1)*100).toFixed(2), qr:+((cb[1]/ca[1]-1)*100).toFixed(2), sow, harv,
         navr:+((b.nav/a.nav-1)*100).toFixed(2), kr:+(((1+b.kospi/100)/(1+a.kospi/100)-1)*100).toFixed(2)}); }
@@ -2408,7 +2408,7 @@ function mountDeck(raw, S, opt){
       ${r.boss?`<div class="banner info">${pre.boss.e} <b>${pre.boss.n}</b> 보스 판: ${pre.boss.d}${pre.jokers.includes('scare')?' → 🎃 허수아비가 막았어요!':''}</div>`:''}
       <div class="table">
         <div class="day-h"><h3>${md(r.day.d)} (${DOW[r.day.wd]}) 마감 · ${r.boss?'보스 판':'오늘의 판'}</h3>
-          <span class="real">🐂 ${sg(r.day.lr)} · 🐎 ${sg(r.day.qr)} · 기준가 ${sg(r.day.navr)} vs 코스피 ${sg(r.day.kr)}</span></div>
+          <span class="real">🥔 ${sg(r.day.lr)} · 🥬 ${sg(r.day.qr)} · 기준가 ${sg(r.day.navr)} vs 코스피 ${sg(r.day.kr)}</span></div>
         <div class="hand" id="hand"></div>
         <div class="calc"><div class="box c"><small>칩</small><span id="v-c">0</span></div><span class="op">×</span>
           <div class="box m"><small>배수</small><span id="v-m">1</span></div><span class="op">=</span>
@@ -2503,7 +2503,7 @@ function mountDeck(raw, S, opt){
     }
     $('tower').innerHTML=rows.join('');
     $('dex-sub').textContent=`${G.dexN} / 16장`;
-    $('dex').innerHTML=[['🐂','KODEX 레버리지'],['🐎','코스닥150레버리지']].map(([e,nm])=>`<div class="dex-lab">${e} ${nm}</div>`+
+    $('dex').innerHTML=[['🥔','KODEX 레버리지'],['🥬','코스닥150레버리지']].map(([e,nm])=>`<div class="dex-lab">${e} ${nm}</div>`+
       G.dex.filter(c=>c.e===e).map(c=>c.n?`<div class="cardx have t${c.rar}" title="${c.cell} 첫 수확 ${md(c.first)}"><span>${e}</span><span class="no">${c.no}</span><small>×${c.n}</small></div>`
         :`<div class="cardx lock t${c.rar}" title="${c.cell}"><span style="opacity:.4">${e}</span><span class="no">${c.no}</span><small>🔒</small></div>`).join('')).join('');
   }
@@ -2544,7 +2544,7 @@ function mountDeck(raw, S, opt){
       bb.className='bossbox '+(r.boss?(r.pass?'m-hurt':'m-smug'):'m-angry');
       $('rp-bn').textContent=`${w.boss.e} ${w.boss.n}`; $('rp-wk').textContent=`런 ${w.run} · ${w.ante}주차 · ${'❤️'.repeat(Math.max(0,r.boss&&!r.pass?w.hearts:w.hearts+(w.bossPass===false?1:0)))}`;
       $('rp-jk').innerHTML=w.jokers.map(j=>`<span title="${Q.JK[j].n}">${Q.JK[j].e}${(w.lv[j]||1)>1?`<small>${w.lv[j]}</small>`:''}</span>`).join('');
-      $('rp-dh').textContent=`${md(r.day.d)} (${DOW[r.day.wd]})${r.boss?' · 보스 판':''}`; $('rp-real').textContent=`🐂 ${sg(r.day.lr)} · 🐎 ${sg(r.day.qr)}`;
+      $('rp-dh').textContent=`${md(r.day.d)} (${DOW[r.day.wd]})${r.boss?' · 보스 판':''}`; $('rp-real').textContent=`🥔 ${sg(r.day.lr)} · 🥬 ${sg(r.day.qr)}`;
       $('rp-hand').innerHTML=r.cards.map(cardHTML).join(''); $('rp-c').textContent=r.chips; $('rp-m').textContent=fmtM(+r.mult.toFixed(2)); $('rp-t').textContent=r.target;
       countUp($('rp-s'), r.score, RM?0:Math.min(450,700/speed));
       $('rp-st').innerHTML=r.pass?'<span class="stamp ok">통과</span>':`<span class="stamp no">${r.boss?'보스 실패':'실패'}</span>`;
@@ -3486,8 +3486,8 @@ function farm(S, L, P, again){
     const grow = ()=>el.querySelectorAll('[data-w]').forEach(b=>b.style.width=b.dataset.w+'%');
     again ? grow() : requestAnimationFrame(grow);
   }
-  ladder($('lad-k'), 'k', 'KODEX 레버리지', '🐂', lk, cl[0], pcl[0]);
-  ladder($('lad-q'), 'q', 'KODEX 코스닥150레버리지', '🐎', lq, cl[1], pcl[1]);
+  ladder($('lad-k'), 'k', 'KODEX 레버리지', '🥔', lk, cl[0], pcl[0]);
+  ladder($('lad-q'), 'q', 'KODEX 코스닥150레버리지', '🥬', lq, cl[1], pcl[1]);
 
   /* 씨앗 창고: 운용한도 − 보유 매입원금 */
   const dk = deepOf(lk), dq = deepOf(lq);
@@ -3518,7 +3518,7 @@ function farm(S, L, P, again){
     <div class="sb-r">
       <div class="budget">${segs}${nexts}</div>
       <div class="bscale"><span>0</span><span>파종 중 ${won(planted)} (${(planted/budget*100).toFixed(0)}%)</span><span>${won(budget)}</span></div>
-      <div class="bsteps">${steps.slice(0,4).map((st,j)=>`<span class="bstep ${st.ok?'ok':'short'}"><i>${j+1}</i>${st.s==='K'?'🐂':'🐎'} ${SYS[st.s]} ${st.n}번${st.n>1?`+${st.n-1}번`:''} <b class="num">${won(st.amt)}</b> ${st.ok?'✅':'⚠️'}</span>`).join('')}</div>
+      <div class="bsteps">${steps.slice(0,4).map((st,j)=>`<span class="bstep ${st.ok?'ok':'short'}"><i>${j+1}</i>${st.s==='K'?'🥔':'🥬'} ${SYS[st.s]} ${st.n}번${st.n>1?`+${st.n-1}번`:''} <b class="num">${won(st.amt)}</b> ${st.ok?'✅':'⚠️'}</span>`).join('')}</div>
       <div class="muted" style="font-size:.78rem">n번 신규 + (n-1)번 추가를 같은 금액으로 계산 · 1·2번 300만 · 3·4번 400만 · 5·6번 500만 · 7·8번 600만 · 한도는 CONFIG '운용한도'</div>
     </div>`;
 
@@ -3535,7 +3535,7 @@ function farm(S, L, P, again){
     const best5 = Math.max(fk?fk[1]:-1, fq?fq[1]:-1);
     const sky = b<=0 || best5<0 ? ['calm','🌙'] : (()=>{ const w = wxOf(best5); return [w.i<=1?'sun':w.i<=3?'calm':'rain', w.ic]; })();
     const wxRow = (lab,p) => p ? `<div class="wxf"><span class="wxf-l">${lab}</span>${p.map(v=>{ const w = wxOf(v); return `<span class="wxc w${w.i}" title="${w.nm}"><i>${w.ic}</i><b>${wxPct(v)}</b></span>`; }).join('')}</div>` : '';
-    const wxBox = (fk||fq) ? `<div class="wxbox"><div class="wxt"><span>🌦️ 수확 예보</span></div><div class="wxf"><span></span><span class="wxf-h">내일</span><span class="wxf-h">5일</span><span class="wxf-h">10일</span><span class="wxf-h">20일</span></div>${wxRow('🐂',fk)}${wxRow('🐎',fq)}</div>` : '';
+    const wxBox = (fk||fq) ? `<div class="wxbox"><div class="wxt"><span>🌦️ 수확 예보</span></div><div class="wxf"><span></span><span class="wxf-h">내일</span><span class="wxf-h">5일</span><span class="wxf-h">10일</span><span class="wxf-h">20일</span></div>${wxRow('🥔',fk)}${wxRow('🥬',fq)}</div>` : '';
     const crops = b>0 ? Array.from({length:n},(_,k)=>`<span class="crop" style="animation-delay:${-(k*0.37+i*0.21).toFixed(2)}s;font-size:${18+Math.round(b/mx*8)}px">${crop(k)}</span>`).join('') : '<span style="position:relative;z-index:1;font-size:0.8571rem;color:var(--muted);padding-bottom:12px">휴경 중</span>';
     const tr = live ? [] : (S.TR[L.d]||[]).filter(e=>e.n===i+1);
     const emptied = !live && b===0 && (accPrev[i]||0)>0;
@@ -3598,7 +3598,7 @@ function harvestLog(S, D){
       <div><span class="num">${avgLen!=null?avgLen.toFixed(1):'-'}</span><small>⏱ 평균 보유일</small></div>
     </div>
     ${rank.slice(0,8).map((r,i)=>`<div class="rk">
-      <span class="rk-m">${medal[i]||'·'}</span><span class="rk-n">${r.s==='K'?'🐂':'🐎'} ${SYS[r.s]} ${r.n}번</span>
+      <span class="rk-m">${medal[i]||'·'}</span><span class="rk-n">${r.s==='K'?'🥔':'🥬'} ${SYS[r.s]} ${r.n}번</span>
       <div class="rk-b"><div data-w="${(r.cnt/top*100).toFixed(0)}"></div></div>
       <span class="num rk-c">${r.cnt}회</span><span class="muted num rk-d">${r.days.length?(r.days.reduce((a,b)=>a+b,0)/r.days.length).toFixed(1)+'일':''}</span>
     </div>`).join('')}
@@ -3624,7 +3624,7 @@ function harvestLog(S, D){
   $('hl-map').innerHTML = `<h3>🗺 작황 지도 <span class="muted" style="font-size:0.8571rem;font-family:var(--body)">계좌별 평단 대비 종가 수익률 · 금테 = 그날 수확</span></h3>
     <div class="hmap-scroll"><div class="hmap" style="--cols:${days.length}">
       <span class="hl"></span>${months}
-      ${rows.map(row=>`<span class="hl">${row.s==='K'?'🐂':'🐎'} ${row.n}</span>${days.map(r=>cell(r,row)).join('')}`).join('')}
+      ${rows.map(row=>`<span class="hl">${row.s==='K'?'🥔':'🥬'} ${row.n}</span>${days.map(r=>cell(r,row)).join('')}`).join('')}
     </div></div>
     <div class="legend">손실 <i style="background:var(--down)"></i><i style="background:rgba(79,157,255,.3)"></i><i style="background:rgba(255,255,255,.06)"></i><i style="background:rgba(255,95,95,.3)"></i><i style="background:var(--up)"></i> 수익 · ±5% 이상은 가장 진하게</div>
     ${still.length?`<div class="muted" style="font-size:0.8214rem;margin-top:6px">기간 내 매매 없이 계속 들고 있는 ${still.join(', ')}은 생략했어요</div>`:''}`;

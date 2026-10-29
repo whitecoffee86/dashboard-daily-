@@ -10,7 +10,7 @@ const BLOCK = 2 * CH + GY + 58;                  // 블록 하나(제목 + 2줄)
 const UP = '#ff7a6b', DN = '#6aa8ff', GOLD = '#e8c86a', GREEN = '#5fd69a';
 const crop = r => r == null ? '🌾' : r >= 0.3 ? '🌽' : r >= -10 ? '🌿' : '🌱';   // 익음 · 자라는 중 · 새싹(깊이 물림)
 const cells = [];
-[['K', '🐂 코스피 · KODEX 레버리지'], ['Q', '🐎 코스닥 · 코스닥150 레버리지']].forEach(([s, lab], b) => {
+[['K', '🥔 코스피 · KODEX 레버리지'], ['Q', '🥬 코스닥 · 코스닥150 레버리지']].forEach(([s, lab], b) => {
   const bx = V ? O.x : O.x + b * (4 * CW + 3 * GX + 60) * 0, by = O.y + b * (BLOCK + (V ? 22 : 10));
   const h = el('div', 'abs', lab); h.style.cssText += `left:${bx}px;top:${by}px;font-size:${V ? 32 : 30}px;font-weight:800;color:#dfe6f5;white-space:nowrap`;
   const cnt = (P[s] || []).filter(x => x.on).length;
