@@ -922,6 +922,8 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--gold-hi);outl
 .jk .art .e{font-size:3.1rem;line-height:1;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transition:transform .2s}
 .jk:hover .art .e{transform:scale(1.08) rotate(-4deg)}
 .jk .art .lv{position:absolute;top:8px;left:8px}
+.jk .d s.old{opacity:.5;font-weight:400}
+.jk .d b.upv{color:var(--gold-hi,var(--gold));font-weight:800}
 .jk .art .rar{position:absolute;top:8px;right:8px;background:var(--card)}
 .jk.r1 .art::after,.jk.r2 .art::after,.jk.r3 .art::after{content:"";position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.28) 50%,transparent 60%);animation:shine 3.6s ease-in-out infinite}
 .jk.r3 .art::after{animation-duration:2.4s}
@@ -2237,9 +2239,15 @@ function mountDeck(raw, S, opt){
   const TIER=[[10,'💎','다이아'],[5,'🥇','금'],[3,'🥈','은'],[1,'🥉','동']];
 
   /* ── 공통 그리기 ── */
+  /* ⬆️ 강화 레벨이 반영된 효과 숫자 (엔진 scoreDay와 같은 식: +값은 ×k, ×값은 1+(v−1)×k, k=1+0.5×(Lv−1)) */
+  const fmtN=v=>{ const r=Math.round(v*10)/10; return Number.isInteger(r)?String(r):r.toFixed(1); };
+  const effVal=(j,lv)=>{ const k=1+0.5*(lv-1), m=j.t==='x'?j.d.match(/×(\d+(?:\.\d+)?)/):(j.t==='chips'||j.t==='mult')?j.d.match(/\+(\d+(?:\.\d+)?)/):null;
+    if(!m) return null; const v=+m[1], w=j.t==='x'?1+(v-1)*k:v*k; return {tok:m[0], sym:j.t==='x'?'×':'+', base:v, now:j.t==='x'?+w.toFixed(2):w}; };
+  const effDesc=(j,lv)=>{ const e=lv>1&&effVal(j,lv); if(!e) return j.d;
+    return j.d.replace(e.tok, `<s class="old">${e.tok}</s> <b class="upv">${e.sym}${fmtN(e.now)}</b>`); };
   const jkCard=(id,o)=>{ o=o||{}; const j=Q.JK[id], lv=o.lv||1;
     return `<div class="jk r${j.r} ${o.cls||''}" data-j="${id}"><div class="art"><span class="e">${j.e}</span>${lv>1?`<span class="lv">Lv.${lv}</span>`:''}<span class="rar r${j.r}">${RAR[j.r]}</span></div>
-      <div class="body"><b>${j.n}</b><span class="d">${j.d}</span>${o.extra?`<div class="ft">${o.extra}</div>`:''}</div></div>`; };
+      <div class="body"><b>${j.n}</b><span class="d">${effDesc(j,lv)}</span>${o.extra?`<div class="ft">${o.extra}</div>`:''}</div></div>`; };
   /* 🎩 꾸미기: 해금·착용·칭호 (해금은 게임 기록으로 자동, 착용·칭호 선택은 이 기기에 저장) */
   const EKEY='wcg_equip', TKEY='wcg_title2';
   let unlocked={}, stars={}, kills={}, TITLES=[], equip={}, titleSel=''; try{ equip=JSON.parse(localStorage.getItem(EKEY)||'{}')||{}; titleSel=localStorage.getItem(TKEY)||''; }catch(e){}
@@ -2291,10 +2299,11 @@ function mountDeck(raw, S, opt){
       if(!id){ out.push('<div class="jk empty"><span>＋</span>빈 칸</div>'); continue; }
       const lv=(st.lv||{})[id]||1, j=Q.JK[id]; let extra='';
       if(o.shop){ const up=Q.UPCOST(lv), val=Math.floor(Q.PRICE[j.r]/2)+((st.sellBonus||{})[id]||0);
-        extra=`${lv<3?`<button class="btn sm" data-up="${id}" ${st.acorn<up||o.locked?'disabled':''}>⬆️ 강화 ${up}🌰</button>`:'<span class="note">최대 강화</span>'}<button class="btn sm" data-sell="${id}" ${o.locked?'disabled':''}>판매 +${val}🌰</button>`; }
+        const nx=lv<3&&effVal(j,lv+1);
+        extra=`${j.t==='none'?'<span class="note">강화 효과 없음</span>':lv<3?`<button class="btn sm" data-up="${id}" ${st.acorn<up||o.locked?'disabled':''} title="Lv.${lv+1}: ${nx?nx.sym+fmtN(nx.now):''}">⬆️ Lv.${lv+1}${nx?` ${nx.sym}${fmtN(nx.now)}`:''} · ${up}🌰</button>`:'<span class="note">최대 강화</span>'}<button class="btn sm" data-sell="${id}" ${o.locked?'disabled':''}>판매 +${val}🌰</button>`; }
       out.push(jkCard(id,{lv, extra, cls:o.seal&&i===0?'sealed':''})); }
     $('slots').innerHTML=out.join('');
-    $('slot-note').textContent=o.shop?'강화하면 효과 +50% · 칸이 꽉 차면 팔고 사세요':'';
+    $('slot-note').textContent=o.shop?'⬆️ 강화 1번마다 효과 +50% · 사고 강화한 건 다음 월요일 판부터 점수에 들어가요 · 칸이 꽉 차면 팔고 사세요':'';
   }
 
   /* ── 🛒 상점 ── */
