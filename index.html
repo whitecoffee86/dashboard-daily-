@@ -1810,7 +1810,7 @@ function play(days, picks, opt){
     let reroll=0, offer=shopOffer(wk,0,st.jokers); const shopLog={wk, offer0:offer.slice(), interest, allowance, acornIn:st.acorn, acts:[]};
     (picks[wk]||[]).forEach(a=>{
       if(a.reroll && st.acorn>=2){ st.acorn-=2; reroll++; offer=shopOffer(wk,reroll,st.jokers); shopLog.acts.push({reroll:reroll, offer:offer.slice()}); }
-      if(a.sell && st.jokers.includes(a.sell)){ const j=JK[a.sell]; const val=Math.floor(PRICE[j.r]/2)+(st.sellBonus[a.sell]||0); st.acorn+=val; st.jokers=st.jokers.filter(x=>x!==a.sell); delete st.mem[a.sell]; delete st.sellBonus[a.sell]; delete st.lv[a.sell]; shopLog.acts.push({sell:a.sell,val}); }
+      if(a.sell && st.jokers.includes(a.sell)){ const j=JK[a.sell]; const val=SELLVAL(j.r, st.lv[a.sell]||1, st.sellBonus[a.sell]||0); st.acorn+=val; st.jokers=st.jokers.filter(x=>x!==a.sell); delete st.mem[a.sell]; delete st.sellBonus[a.sell]; delete st.lv[a.sell]; shopLog.acts.push({sell:a.sell,val}); }
       if(a.up && st.jokers.includes(a.up)){ const L=st.lv[a.up]||1, c=API.UPCOST(L); if(L<3 && st.acorn>=c){ st.acorn-=c; st.lv[a.up]=L+1; shopLog.acts.push({up:a.up,lv:L+1,p:c}); } }
       if(a.buy && offer.includes(a.buy) && st.jokers.length<API.SLOTS){ const p=PRICE[JK[a.buy].r]; if(st.acorn>=p){ st.acorn-=p; st.jokers.push(a.buy); offer=offer.filter(x=>x!==a.buy); shopLog.acts.push({buy:a.buy,p}); } }
     });
@@ -1852,7 +1852,9 @@ function parseRows(rows){
   return picks;
 }
 
-const API = {SLOTS:3, ALLOW:2, DAYPAY:1, BOSSPAY:4, UPCOST:L=>4*L, isoWeek, nextMonday, parseRows, W, WN, wx, cardsOf, JOKERS, JK, PRICE, BOSSES, bossOf, shopOffer, scoreDay, TARGET, play, hash, rng, RW};
+// 판매가 = (구매가 + 강화에 쓴 도토리) ÷ 2 + 보너스  · 강화비 합계: Lv2 4, Lv3 12
+const SELLVAL = (r,L,bonus)=>Math.floor((PRICE[r]+2*L*(L-1))/2)+(bonus||0);
+const API = {SLOTS:3, SELLVAL, ALLOW:2, DAYPAY:1, BOSSPAY:4, UPCOST:L=>4*L, isoWeek, nextMonday, parseRows, W, WN, wx, cardsOf, JOKERS, JK, PRICE, BOSSES, bossOf, shopOffer, scoreDay, TARGET, play, hash, rng, RW};
 if(typeof module!=='undefined') module.exports=API; else root.QDeck=API;
 })(window);
 
@@ -2298,12 +2300,12 @@ function mountDeck(raw, S, opt){
     for(let i=0;i<Q.SLOTS;i++){ const id=st.jokers[i];
       if(!id){ out.push('<div class="jk empty"><span>＋</span>빈 칸</div>'); continue; }
       const lv=(st.lv||{})[id]||1, j=Q.JK[id]; let extra='';
-      if(o.shop){ const up=Q.UPCOST(lv), val=Math.floor(Q.PRICE[j.r]/2)+((st.sellBonus||{})[id]||0);
+      if(o.shop){ const up=Q.UPCOST(lv), val=Q.SELLVAL(j.r, lv, (st.sellBonus||{})[id]||0);
         const nx=lv<3&&effVal(j,lv+1);
         extra=`${j.t==='none'?'<span class="note">강화 효과 없음</span>':lv<3?`<button class="btn sm" data-up="${id}" ${st.acorn<up||o.locked?'disabled':''} title="Lv.${lv+1}: ${nx?nx.sym+fmtN(nx.now):''}">⬆️ Lv.${lv+1}${nx?` ${nx.sym}${fmtN(nx.now)}`:''} · ${up}🌰</button>`:'<span class="note">최대 강화</span>'}<button class="btn sm" data-sell="${id}" ${o.locked?'disabled':''}>판매 +${val}🌰</button>`; }
       out.push(jkCard(id,{lv, extra, cls:o.seal&&i===0?'sealed':''})); }
     $('slots').innerHTML=out.join('');
-    $('slot-note').textContent=o.shop?'⬆️ 강화 1번마다 효과 +50% · 사고 강화한 건 다음 월요일 판부터 점수에 들어가요 · 칸이 꽉 차면 팔고 사세요':'';
+    $('slot-note').textContent=o.shop?'⬆️ 강화 1번마다 효과 +50% · 팔 때 구매가+강화비의 절반을 돌려받아요 · 사고 강화한 건 다음 월요일 판부터 점수에 들어가요 · 칸이 꽉 차면 팔고 사세요':'';
   }
 
   /* ── 🛒 상점 ── */
