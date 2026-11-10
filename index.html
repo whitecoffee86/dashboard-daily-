@@ -366,10 +366,49 @@ body{background-image:none}
 
 
 /* ── 씨앗 창고 막대 ── */
-.budget{position:relative;height:30px;border-radius:9px;background:repeating-linear-gradient(90deg,rgba(127,127,127,.10) 0 8px,rgba(127,127,127,.04) 8px 16px);box-shadow:inset 0 1px 3px rgba(0,0,0,.45);overflow:hidden}
-.bseg{position:absolute;top:0;bottom:0;display:grid;place-items:center;border-right:2px solid var(--surf-lo);font-size:.72rem;color:#2a1d05;animation:bgrow .9s cubic-bezier(.2,.8,.2,1) both;transform-origin:left}
-.bseg b{font-weight:700}
+.budget{position:relative;height:38px;border-radius:9px;background:repeating-linear-gradient(90deg,rgba(127,127,127,.10) 0 8px,rgba(127,127,127,.04) 8px 16px);box-shadow:inset 0 1px 3px rgba(0,0,0,.45);overflow:hidden}
+.bseg{position:absolute;top:0;bottom:0;display:flex;border-right:3px solid var(--panel);animation:bgrow .9s cubic-bezier(.2,.8,.2,1) both;transform-origin:left}
+.bseg .pk{height:100%;background:var(--c)}
+.bseg .pq{height:100%;background:repeating-linear-gradient(135deg,var(--c) 0 6px,color-mix(in srgb,var(--c) 62%,#13161c) 6px 9px)}
+.sd-lb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.sd-lb em{font-style:normal;display:inline-flex;flex-direction:column;align-items:center;line-height:1.12;padding:2px 7px;border-radius:7px;background:rgba(255,250,236,.9);color:#2a1d05;font-size:.76rem;font-weight:700;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sd-lb small{font-family:var(--mono);font-size:.66rem;font-weight:600}
 .bnext{position:absolute;top:4px;bottom:4px;border:1.5px dashed var(--leaf);border-radius:6px;display:grid;place-items:center;font-size:.72rem;color:var(--leaf);background:rgba(99,208,126,.10);animation:bpulse 2s ease-in-out infinite}
+.sd-limit{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--fg);z-index:3;pointer-events:none}
+.sd-over{position:absolute;top:0;bottom:0;z-index:2;background:repeating-linear-gradient(45deg,rgba(255,107,112,0) 0 6px,rgba(255,107,112,.42) 6px 9px);box-shadow:inset 0 3px 0 var(--bad);pointer-events:none}
+.sd-top{position:relative;height:16px;margin-bottom:-6px}
+.sd-lab{position:absolute;bottom:0;white-space:nowrap;font-size:.76rem;font-weight:700;color:var(--fg);transform:translateX(-4px)}
+.sd-lab.r{transform:translateX(calc(-100% + 4px))}
+.sd-big{font-size:1.75rem;font-weight:600;line-height:1.2;margin:2px 0 4px}
+.sd-big.over,.sd-bad{color:var(--bad)}
+.sd-sub{font-size:.8571rem;color:var(--muted)}
+.sd-sub b{color:var(--fg);font-weight:600;font-family:var(--mono)}
+.sd-stat{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:10px;font-size:.84rem;font-weight:600;line-height:1.35}
+.sd-stat.ok{background:var(--ok-soft);color:var(--ok)}
+.sd-stat.warn{background:var(--mult-soft);color:var(--bad)}
+.sd-legend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:.8rem;color:var(--muted)}
+.sd-legend b{color:var(--fg);font-family:var(--mono);font-weight:600;margin-left:2px}
+.sd-sw{display:inline-block;width:16px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:6px}
+.sd-sw.k{background:var(--gold)}
+.sd-sw.q{background:repeating-linear-gradient(135deg,var(--gold) 0 3px,color-mix(in srgb,var(--gold) 62%,#13161c) 3px 5px)}
+.sd-sw.o{background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(255,107,112,.75) 3px 5px);box-shadow:inset 0 2px 0 var(--bad)}
+.sd-sw.n{border:1.5px dashed var(--leaf);background:rgba(99,208,126,.12)}
+.sd-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.sd-acc{position:relative;padding:6px 6px 6px 11px;border-radius:9px;background:rgba(255,255,255,.03);border:1px solid var(--line);min-width:0}
+.sd-acc::before{content:'';position:absolute;left:4px;top:7px;bottom:7px;width:3px;border-radius:2px;background:var(--c)}
+.sd-acc i{display:block;font-style:normal;font-size:.72rem;color:var(--muted);white-space:nowrap}
+.sd-acc b{display:block;font-family:var(--mono);font-size:.84rem;font-weight:600;white-space:nowrap}
+.sd-acc small{display:block;font-size:.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono)}
+.sd-acc small:first-of-type{margin-top:2px}
+.sd-acc.top{border-color:var(--edge-gold);background:var(--gold-soft)}
+.sd-acc.top i{color:var(--gold-hi)}
+.sd-acc.empty b{color:var(--dim);font-family:var(--body);font-weight:400}
+.sd-acc.empty::before{opacity:.3}
+.sd-steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sd-h{font-size:.78rem;color:var(--muted);margin-right:2px}
+.sd-foot{font-size:.76rem;color:var(--dim);line-height:1.5}
+.sd-steps .bstep{display:inline-block;line-height:1.5}
+@media (max-width:640px){ .sd-grid{grid-template-columns:repeat(4,minmax(0,1fr))} .sd-big{font-size:1.5rem} .bseg.sm .sd-lb{display:none} .bseg.md .sd-lb small{display:none} }
 @keyframes bgrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes bpulse{50%{background:rgba(99,208,126,.22)}}
 .bscale{display:flex;justify-content:space-between;font-size:.76rem;color:var(--muted);font-family:var(--mono)}
@@ -377,7 +416,9 @@ body{background-image:none}
 .bstep{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:10px;font-size:.8rem;border:1px solid var(--line2)}
 .bstep i{font-style:normal;width:1.3em;height:1.3em;border-radius:50%;display:grid;place-items:center;font-size:.7rem;background:rgba(127,127,127,.18)}
 .bstep.ok{border-color:rgba(99,208,126,.45);background:rgba(99,208,126,.08)}
-.bstep.short{border-color:rgba(79,157,255,.5);background:rgba(79,157,255,.08)}
+.bstep.part{border-color:rgba(242,199,95,.5);background:var(--gold-soft)}
+.bstep.short{border-color:rgba(255,107,112,.5);background:var(--mult-soft)}
+.bstep.idle{border-style:dashed;color:var(--muted)}
 .lv-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--up);margin-right:6px;vertical-align:middle;animation:ping 1.6s infinite}
 .big.plain{background:none!important;color:var(--fg)!important;-webkit-background-clip:border-box;background-clip:border-box}
 
@@ -1449,7 +1490,11 @@ function detectTrades(D){
 const SYS = {K:'코스피', Q:'코스닥'};
 const TICON = {seed:'🌱', add:'💧', harvest:'🧺', partial:'✂️', adj:'🔧'};
 const TNAME = {seed:'파종', add:'추가 파종', harvest:'수확', partial:'부분 수확', adj:'평단 조정'};
-const ALLOT = [3e6,3e6,4e6,4e6,5e6,5e6,6e6,6e6];
+/* 매매 규칙 (2026-11-02 개편): 칸당 고정 금액 · 수확선 — 🥔 레버 500만 +2% · 🥬 코닥 50만 +0.3% */
+const RULE = {K:{amt:5e6, h:0.02}, Q:{amt:5e5, h:0.003}};
+const ALLOT = s => RULE[s].amt;
+const HARV = s => RULE[s].h;
+const sysOf = k => (k==='k'||k==='K') ? 'K' : 'Q';
 function trText(e){ return e.t==='partial' ? '✂️ 부분 수확' : `${TICON[e.t]} ${SYS[e.s]} ${e.n}번 ${TNAME[e.t]}`; }
 
 function drawdowns(series){
@@ -3418,22 +3463,22 @@ function startLive(S, L, P){
       let deep = -1; avgs.forEach((v,i)=>{ if(v>0) deep = i; });
       const chg = (p/c-1)*100;
       if(deep>=0){
-        const a = avgs[deep], tgt = Math.ceil(a*1.003), r = (p/a-1)*100, n = (sh[deep]||{})[key]||0;
+        const a = avgs[deep], tgt = Math.ceil(a*(1+HARV(s))), r = (p/a-1)*100, n = (sh[deep]||{})[key]||0;
         if(p>=tgt && p>c){
-          let more = 0; for(let i=deep-1;i>=0;i--){ if(avgs[i]>0 && p>=Math.ceil(avgs[i]*1.003)) more++; else break; }
+          let more = 0; for(let i=deep-1;i>=0;i--){ if(avgs[i]>0 && p>=Math.ceil(avgs[i]*(1+HARV(s)))) more++; else break; }
           out.push(`<div class="al harvest">${qimg('mailbox')}<span><b>${SYS[s]} ${deep+1}번 지금 수확 조건</b> · 평단 ${pct(r,2)} · 약 <b class="num up">${won(n*(p-a)*(deep===0?0.5:1),true)}</b>${deep===0?' (절반 매도)':''}${more?` · 연쇄 후보 ${more}개 더`:''}</span><span class="when">종가 확정 전</span></div>`);
         } else if(p<c && deep+1<8){
-          out.push(`<div class="al seed">${qimg('watering')}<span><b>${SYS[s]} 전일 대비 ${pct(chg,2)}</b> · 이대로 마감하면 <b>${deep+2}번+${deep+1}번 각 ${won(ALLOT[deep+1])}</b> 파종</span><span class="when">종가 확정 전</span></div>`);
+          out.push(`<div class="al seed">${qimg('watering')}<span><b>${SYS[s]} 전일 대비 ${pct(chg,2)}</b> · 이대로 마감하면 <b>${deep+2}번+${deep+1}번 각 ${won(ALLOT(s))}</b> 파종</span><span class="when">종가 확정 전</span></div>`);
         } else {
           out.push(`<div class="al">${qimg('clipboard')}<span><b>${SYS[s]}</b> 전일 대비 ${pct(chg,2)} · ${deep+1}번 수확선까지 <b class="num">${pct((tgt/p-1)*100,2)}</b></span></div>`);
         }
         if(avgs[7]>0){
           const r8 = (p/avgs[7]-1)*100;
           if(r8<=-15) out.push(`<div class="al warn">${qimg('leak')}<span><b>${SYS[s]} 8번 청산선 도달</b> · 평단 ${pct(r8,1)}</span></div>`);
-          else if(r8<=-5) out.push(`<div class="al warn">${qimg('leak')}<span><b>${SYS[s]} 8번 추가 파종선</b> · 평단 ${pct(r8,1)}</span></div>`);
+          else if(r8<=-5) out.push(`<div class="al warn">${qimg('leak')}<span><b>${SYS[s]} 8번 추가 파종선</b> · 평단 ${pct(r8,1)} · 하락 마감이면 ${won(ALLOT(s))} 추가</span></div>`);
         }
       } else if(p<c){
-        out.push(`<div class="al seed">${qimg('watering')}<span><b>${SYS[s]} 하락 중 ${pct(chg,2)}</b> · 이대로 마감하면 1번 ${won(ALLOT[0])} 파종</span></div>`);
+        out.push(`<div class="al seed">${qimg('watering')}<span><b>${SYS[s]} 하락 중 ${pct(chg,2)}</b> · 이대로 마감하면 1번 ${won(ALLOT(s))} 파종</span></div>`);
       }
     });
     $('lb-alerts').innerHTML = out.join('');
@@ -3457,7 +3502,7 @@ function wxProb(sys, need){ // sys 'k'|'q', need = 필요 상승률(%) → [1일
 }
 function wxOf(p){ const i = WX.findIndex(w=>p>=w[0]); return {i, ic:WX[i][1], nm:WX[i][2]}; }
 function wxPct(p){ return p<0.1 ? '0%' : p<1 ? '<1%' : Math.round(p)+'%'; }
-function wxNeed(avg, price){ return (avg*1.003/price - 1)*100; }
+function wxNeed(avg, price, h=0.003){ return (avg*(1+h)/price - 1)*100; }  // h = 수확선(레버 2%, 코닥 0.3%)
 
 /* ════════ FARM ════════ */
 function farm(S, L, P, again){
@@ -3474,21 +3519,22 @@ function farm(S, L, P, again){
 
   function ladder(el, key, label, emoji, avgs, price, prev){
     const deep = deepOf(avgs), act = avgs.filter(v=>v>0).length;
+    const sy = sysOf(key), hv = HARV(sy);
     const maxAvg = Math.max(...avgs, 1);
     const dayChg = price && prev ? (price/prev-1)*100 : null;
     const rows = avgs.map((a,i)=>{
       if(!(a>0)) return `<div class="step empty"><span class="no">#${i+1}</span><div class="bar"></div><span class="val muted">${i===deep+1?'🌱 다음 파종 자리':'빈칸'}</span></div>`;
       const r = price? (price/a-1)*100 : null;
-      const col = r==null? 'var(--gold)' : (r>=0.3?'var(--up)':(r>=0?'rgba(255,95,95,.55)':'var(--down)'));
+      const col = r==null? 'var(--gold)' : (r>=hv*100?'var(--up)':(r>=0?'rgba(255,95,95,.55)':'var(--down)'));
       return `<div class="step ${i===deep?'next':''}"><span class="no">#${i+1}</span><div class="bar"><div data-w="${(a/maxAvg*100).toFixed(1)}" style="background:${col}"></div></div>
-        <span class="val">${(()=>{ if(!price) return ''; const p = wxProb(key, wxNeed(a,price)), w = wxOf(p[1]); return `<span class="wxi" title="5거래일 안 수확 확률 ${wxPct(p[1])} · ${w.nm} (내일 ${wxPct(p[0])} · 20일 ${wxPct(p[3])})">${w.ic}</span>`; })()}${a.toLocaleString()}${r==null?'':` <span class="${cls(r)}">${pct(r,1)}</span>`}</span></div>`;
+        <span class="val">${(()=>{ if(!price) return ''; const p = wxProb(key, wxNeed(a,price,hv)), w = wxOf(p[1]); return `<span class="wxi" title="5거래일 안 수확 확률 ${wxPct(p[1])} · ${w.nm} (내일 ${wxPct(p[0])} · 20일 ${wxPct(p[3])})">${w.ic}</span>`; })()}${a.toLocaleString()}${r==null?'':` <span class="${cls(r)}">${pct(r,1)}</span>`}</span></div>`;
     }).join('');
     let note = '';
     if(deep>=0){
-      const tgt = Math.ceil(avgs[deep]*1.003), ready = price && price>=tgt;
-      note = `<div>🧺 다음 수확 <b>${deep+1}번</b> · 수확선 <b class="num">${tgt.toLocaleString()}원</b> ${price ? (ready ? '<span class="up">✔ 수익 조건 충족 · 다음 날 상승 마감이면 수확</span>' : `<span class="muted">· 수확선까지 <b class="num" style="color:var(--fg)">${pct((tgt/price-1)*100,2)}</b> 더 올라야 함</span>`) : ''}</div>`;
-      if(deep+2<=8) note += `<div>🌱 다음 파종 <b>${deep+2}번</b> · 전일보다 내리면 <b class="num">${won(ALLOT[deep+1])}</b> 투입</div>`;
-      else note += `<div>⚠️ 8번까지 파종 완료 · -5%마다 추가, -15%면 8번만 청산</div>`;
+      const tgt = Math.ceil(avgs[deep]*(1+hv)), ready = price && price>=tgt;
+      note = `<div>🧺 다음 수확 <b>${deep+1}번</b> · 수확선(평단 +${+(hv*100).toFixed(1)}%) <b class="num">${tgt.toLocaleString()}원</b>${price ? (ready ? '<span class="up">✔ 수익 조건 충족 · 다음 날 상승 마감이면 수확</span>' : `<span class="muted">· 수확선까지 <b class="num" style="color:var(--fg)">${pct((tgt/price-1)*100,2)}</b> 더 올라야 함</span>`) : ''}</div>`;
+      if(deep+2<=8) note += `<div>🌱 다음 파종 <b>${deep+2}번${deep>=0?`+${deep+1}번`:''}</b> · 전일보다 내리면 각 <b class="num">${won(ALLOT(sy))}</b> 투입</div>`;
+      else note += `<div>⚠️ 8번까지 파종 완료 · -5%마다 ${won(ALLOT(sy))} 추가, -15%면 8번만 청산</div>`;
       note += `<div>🪜 파종 깊이 <b>${act}/8</b> · 1번↔${deep+1}번 평단 차 <b class="num">${pct((avgs[deep]/avgs[0]-1)*100,1)}</b></div>`;
     } else note = '<div>모든 칸이 비어 있어요. 1번 계좌부터 파종 대기.</div>';
     el.innerHTML = `<div class="lad-head"><h3>${emoji} ${label}</h3>
@@ -3500,37 +3546,63 @@ function farm(S, L, P, again){
   ladder($('lad-k'), 'k', 'KODEX 레버리지', '🥔', lk, cl[0], pcl[0]);
   ladder($('lad-q'), 'q', 'KODEX 코스닥150레버리지', '🥬', lq, cl[1], pcl[1]);
 
-  /* 씨앗 창고: 운용한도 − 보유 매입원금 */
+  /* 씨앗 창고: 운용한도 − 보유 매입원금 (칸별 🥔레버·🥬코닥 원금, 한도를 넘어도 8칸 모두 보이게 눈금을 늘림) */
   const dk = deepOf(lk), dq = deepOf(lq);
   const budget = Number(S.acc._budget) || 2e8;
-  const costOf = i => { const x = SH[i]||{}; return (x.k&&lk[i] ? x.k*lk[i] : 0) + (x.q&&lq[i] ? x.q*lq[i] : 0); };
-  const costs = Array.from({length:8}, (_,i)=>costOf(i));
-  const planted = costs.reduce((t,v)=>t+v,0), left = budget - planted;
-  // 하락이 이어진다고 가정한 파종 순서: n번 신규 + (n-1)번 추가(같은 금액)
-  const steps = []; let nk = dk+2, nq = dq+2;
-  for(let r=0; r<8; r++){
-    if(nk<=8){ steps.push({s:'K', n:nk, amt: nk>1 ? ALLOT[nk-1]*2 : ALLOT[0]}); nk++; }
-    if(nq<=8){ steps.push({s:'Q', n:nq, amt: nq>1 ? ALLOT[nq-1]*2 : ALLOT[0]}); nq++; }
-  }
-  let rem = left, afford = 0; steps.forEach(st=>{ st.ok = rem >= st.amt; st.before = rem; if(st.ok){ rem -= st.amt; afford++; } else rem = -1; });
-  const firstShort = steps.find(st=>!st.ok);
-  const pctOf = v => Math.max(0, Math.min(100, v/budget*100));
-  const segCol = i => `hsl(${38 + i*3} ${70 - i*4}% ${62 - i*4}%)`;
-  let acc = 0;
-  const segs = costs.map((c,i)=>{ if(!c) return ''; const l = pctOf(acc); acc += c; return `<span class="bseg" style="left:${l}%;width:${pctOf(c)}%;background:${segCol(i)}" title="${i+1}번 계좌 원금 ${won(c)}"><b>${pctOf(c)>5?(i+1):''}</b></span>`; }).join('');
+  const parts = Array.from({length:8}, (_,i)=>{ const x = SH[i]||{}; return {k: x.k&&lk[i] ? x.k*lk[i] : 0, q: x.q&&lq[i] ? x.q*lq[i] : 0}; });
+  const costs = parts.map(p=>p.k+p.q);
+  const planted = costs.reduce((t,v)=>t+v,0), left = budget - planted, over = left < 0;
+  const sumK = parts.reduce((t,p)=>t+p.k,0), sumQ = parts.reduce((t,p)=>t+p.q,0);
+  const usePct = Math.round(planted/budget*100);
+  // 다음 하락 마감 때 규칙상 필요한 씨앗: n번 새로 + (n-1)번 같은 금액 · 8번까지 찼으면 −5% 아래일 때 8번 추가
+  const need1 = (s, d) => d < 0 ? ALLOT(s) : d < 7 ? ALLOT(s)*2 : ALLOT(s);
+  const stepOf = (s, d, avgs, price) => {
+    const a = ALLOT(s), e = s==='K' ? '🥔' : '🥬';
+    if(d < 0) return {s, e, lab:'1번 새로 심기', amt:a, n:a};
+    if(d < 7) return {s, e, lab:`${d+2}번 새로 + ${d+1}번 추가`, amt:a*2, n:a};
+    const r8 = price && avgs[7] ? (price/avgs[7]-1)*100 : null;
+    return {s, e, lab:'8번 추가 (평단 −5% 아래일 때)', amt:a, n:a, idle: r8!=null && r8 > -5, note: r8==null ? '' : `지금 8번 ${pct(r8,1)}`};
+  };
+  const steps = [stepOf('Q', dq, lq, cl[1]), stepOf('K', dk, lk, cl[0])];   // 씨앗이 빠듯하면 코닥 먼저
+  let rem = left;
+  steps.forEach(st=>{ if(st.idle){ st.st='idle'; st.use=0; return; } st.st = rem >= st.amt ? 'ok' : (st.amt > st.n && rem >= st.n ? 'part' : 'short'); st.use = st.st==='ok' ? st.amt : st.st==='part' ? st.n : 0; rem -= st.use; });
+  let runway = 0; { let r = left, a = dq, b = dk; for(let day=0; day<60; day++){ const n = need1('Q',a) + need1('K',b); if(r < n) break; r -= n; runway++; a = Math.min(a+1,7); b = Math.min(b+1,7); } }
+  // 막대 눈금: 한도와 심은 원금 중 큰 쪽을 100%로
+  const ghostSum = over ? 0 : steps.reduce((t,st)=>t+st.use,0);
+  const scale = Math.max(budget, planted + ghostSum);
+  const pctOf = v => Math.max(0, Math.min(100, v/scale*100));
+  const segCol = i => `hsl(${38 + i*2} ${76 - i*2}% ${i%2 ? 50 : 66}%)`;
+  let x0 = 0;
+  const segs = costs.map((c,i)=>{ if(!c) return ''; const l = pctOf(x0), w = pctOf(c); x0 += c;
+    return `<span class="bseg ${w<9?'sm':w<20?'md':''}" style="left:${l}%;width:${w}%;--c:${segCol(i)}" title="${i+1}번 계좌 원금 ${won(c)} · 🥔 레버 ${won(parts[i].k)} · 🥬 코닥 ${won(parts[i].q)}">
+      <span class="pk" style="width:${(parts[i].k/c*100).toFixed(1)}%"></span><span class="pq" style="width:${(parts[i].q/c*100).toFixed(1)}%"></span>
+      <span class="sd-lb">${w>5?`<em>${i+1}번${w>12?`<small>${won(c)}</small>`:''}</em>`:''}</span></span>`; }).join('');
   let nx = planted;
-  const nexts = steps.slice(0,4).map((st,j)=>{ if(!st.ok) return ''; const l = pctOf(nx); nx += st.amt; return `<span class="bnext" style="left:${l}%;width:${pctOf(st.amt)}%" title="${SYS[st.s]} ${st.n}번 파종 ${won(st.amt)}">${j+1}</span>`; }).join('');
+  const nexts = over ? '' : steps.map(st=>{ if(!st.use) return ''; const l = pctOf(nx); nx += st.use; return `<span class="bnext" style="left:${l}%;width:${pctOf(st.use)}%" title="다음 하락 마감 때 ${SYS[st.s]} ${st.lab} ${won(st.use)}">${st.e}</span>`; }).join('');
+  const lp = budget/scale*100;
+  const limitMark = `<span class="sd-limit" style="left:${lp}%"></span>${over ? `<span class="sd-over" style="left:${lp}%;width:${100-lp}%"></span>` : ''}`;
+  const topLab = `<span class="sd-lab ${lp>50?'r':''}" style="left:${lp}%">${lp>50 ? `한도 ${won(budget)} ▾` : `▾ 한도 ${won(budget)}`}</span>`;
+  const big = planted ? parts.reduce((m,p,i)=>costs[i]>costs[m]?i:m, 0) : -1;
+  const chips = costs.map((c,i)=>`<div class="sd-acc ${c?'':'empty'} ${i===big?'top':''}" style="--c:${segCol(i)}"><i>${i+1}번${i===big?' · 가장 큼':''}</i><b>${c?won(c):'비어 있음'}</b>${c?`<small>🥔 ${won(parts[i].k)}</small><small>🥬 ${won(parts[i].q)}</small>`:''}</div>`).join('');
+  const stLab = st => st.st==='idle' ? '💤 지금은 해당 없음' : st.st==='ok' ? '✅' : st.st==='part' ? '🟡 n번만' : (over ? '⛔ 한도 초과' : '⛔ 씨앗 부족');
+  const stat = over ? `<span class="sd-stat warn">⛔ 한도 초과 · 추가로 심을 씨앗 없음</span>`
+    : runway>0 ? `<span class="sd-stat ok">🌱 하락 마감이 <b>${runway}일</b> 이어져도 규칙대로 파종 가능</span>`
+    : `<span class="sd-stat warn">⚠️ 다음 하락 땐 일부만 파종 가능</span>`;
   $('seedbox').innerHTML = `
     <div class="sb-l">${qimg('vault')}<div>
       <div class="eyebrow">Seed Barn · 운용한도 ${won(budget)}</div><h3>🌰 씨앗 창고</h3>
-      <div class="num ${left>=0?'gold':'dn'}" style="font-size:1.857rem;font-weight:600">${won(left)}</div>
-      <div class="muted" style="font-size:0.8929rem">남은 씨앗 · 하락이 이어지면 <b style="color:var(--fg)">${afford}번</b> 더 파종 가능${firstShort?` · ${SYS[firstShort.s]} ${firstShort.n}번에서 <span class="dn">${won(firstShort.amt - Math.max(0,firstShort.before))} 부족</span>`:''}</div>
+      <div class="sd-big num ${over?'over':'gold'}">${over ? `한도 ${won(-left)} 초과` : `${won(left)} 남음`}</div>
+      <div class="sd-sub">심어 둔 원금 <b>${won(planted)}</b> · 한도의 <b class="${over?'sd-bad':''}">${usePct}%</b></div>
+      ${stat}
     </div></div>
     <div class="sb-r">
-      <div class="budget">${segs}${nexts}</div>
-      <div class="bscale"><span>0</span><span>파종 중 ${won(planted)} (${(planted/budget*100).toFixed(0)}%)</span><span>${won(budget)}</span></div>
-      <div class="bsteps">${steps.slice(0,4).map((st,j)=>`<span class="bstep ${st.ok?'ok':'short'}"><i>${j+1}</i>${st.s==='K'?'🥔':'🥬'} ${SYS[st.s]} ${st.n}번${st.n>1?`+${st.n-1}번`:''} <b class="num">${won(st.amt)}</b> ${st.ok?'✅':'⚠️'}</span>`).join('')}</div>
-      <div class="muted" style="font-size:.78rem">n번 신규 + (n-1)번 추가를 같은 금액으로 계산 · 1·2번 300만 · 3·4번 400만 · 5·6번 500만 · 7·8번 600만 · 한도는 CONFIG '운용한도'</div>
+      <div class="sd-legend"><span><i class="sd-sw k"></i>🥔 레버 <b>${won(sumK)}</b></span><span><i class="sd-sw q"></i>🥬 코닥 <b>${won(sumQ)}</b></span>${over?'<span><i class="sd-sw o"></i>한도 넘은 부분</span>':''}${nexts?'<span><i class="sd-sw n"></i>다음 하락 때 심을 몫</span>':''}</div>
+      <div class="sd-top">${topLab}</div>
+      <div class="budget">${segs}${nexts}${limitMark}</div>
+      <div class="bscale"><span>0</span><span>심은 원금 ${won(planted)} · ${usePct}%</span></div>
+      <div class="sd-grid">${chips}</div>
+      <div class="sd-steps"><span class="sd-h">다음 하락 마감 때</span>${steps.map(st=>`<span class="bstep ${st.st}">${st.e} ${SYS[st.s]} ${st.lab} <b class="num">${won(st.amt)}</b>${st.note?` <span class="muted">· ${st.note}</span>`:''} ${stLab(st)}</span>`).join('')}</div>
+      <div class="sd-foot">하락 마감일 규칙: n번 새로 심기 + (n-1)번 같은 금액 추가 · 🥔 레버 칸당 ${won(ALLOT('K'))} · 🥬 코닥 칸당 ${won(ALLOT('Q'))} · 8번은 평단 −5%마다 추가 · 한도는 CONFIG '운용한도'</div>
     </div>`;
 
 
@@ -3540,9 +3612,10 @@ function farm(S, L, P, again){
     const d = b-(accPrev[i]||0), la=lk[i]||0, qa=lq[i]||0;
     const rets = [la&&cl[0]?(cl[0]/la-1)*100:null, qa&&cl[1]?(cl[1]/qa-1)*100:null].filter(v=>v!=null);
     const worst = rets.length ? Math.min(...rets) : null, bestR = rets.length ? Math.max(...rets) : null;
+    const ripe = (la&&cl[0] && cl[0]/la-1 >= HARV('K')) || (qa&&cl[1] && cl[1]/qa-1 >= HARV('Q'));
     const n = b>0 ? Math.max(1, Math.round(b/mx*6)) : 0;
-    const crop = k => bestR==null ? (k%3===2?'🌽':'🌾') : bestR>=0.3 ? (k%2?'🌽':'🌾') : worst<-3 ? (k%2?'🍂':'🌿') : (k%2?'🌱':'🌿');
-    const fk = la&&cl[0] ? wxProb('k', wxNeed(la,cl[0])) : null, fq = qa&&cl[1] ? wxProb('q', wxNeed(qa,cl[1])) : null;
+    const crop = k => bestR==null ? (k%3===2?'🌽':'🌾') : ripe ? (k%2?'🌽':'🌾') : worst<-3 ? (k%2?'🍂':'🌿') : (k%2?'🌱':'🌿');
+    const fk = la&&cl[0] ? wxProb('k', wxNeed(la,cl[0],HARV('K'))) : null, fq = qa&&cl[1] ? wxProb('q', wxNeed(qa,cl[1],HARV('Q'))) : null;
     const best5 = Math.max(fk?fk[1]:-1, fq?fq[1]:-1);
     const sky = b<=0 || best5<0 ? ['calm','🌙'] : (()=>{ const w = wxOf(best5); return [w.i<=1?'sun':w.i<=3?'calm':'rain', w.ic]; })();
     const wxRow = (lab,p) => p ? `<div class="wxf"><span class="wxf-l">${lab}</span>${p.map(v=>{ const w = wxOf(v); return `<span class="wxc w${w.i}" title="${w.nm}"><i>${w.ic}</i><b>${wxPct(v)}</b></span>`; }).join('')}</div>` : '';
