@@ -1,0 +1,1 @@
+{ "name": "wc-shorts-kit", "private": true, "description": "이벤트 쇼츠 물리 시뮬레이션", "dependencies": { "matter-js": "0.19.0" } }
