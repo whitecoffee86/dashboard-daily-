@@ -1490,8 +1490,8 @@ function detectTrades(D){
 const SYS = {K:'코스피', Q:'코스닥'};
 const TICON = {seed:'🌱', add:'💧', harvest:'🧺', partial:'✂️', adj:'🔧'};
 const TNAME = {seed:'파종', add:'추가 파종', harvest:'수확', partial:'부분 수확', adj:'평단 조정'};
-/* 매매 규칙 (2026-11-02 개편): 칸당 고정 금액 · 수확선 — 🥔 레버 500만 +2% · 🥬 코닥 50만 +0.3% */
-const RULE = {K:{amt:5e6, h:0.02}, Q:{amt:5e5, h:0.003}};
+/* 매매 규칙 (2026-11-02 개편, 11-18 레버 수확선 +0.3%로 복귀): 칸당 고정 금액 · 수확선 — 🥔 레버 500만 +0.3% · 🥬 코닥 50만 +0.3% */
+const RULE = {K:{amt:5e6, h:0.003}, Q:{amt:5e5, h:0.003}};
 const ALLOT = s => RULE[s].amt;
 const HARV = s => RULE[s].h;
 const sysOf = k => (k==='k'||k==='K') ? 'K' : 'Q';
@@ -3502,7 +3502,7 @@ function wxProb(sys, need){ // sys 'k'|'q', need = 필요 상승률(%) → [1일
 }
 function wxOf(p){ const i = WX.findIndex(w=>p>=w[0]); return {i, ic:WX[i][1], nm:WX[i][2]}; }
 function wxPct(p){ return p<0.1 ? '0%' : p<1 ? '<1%' : Math.round(p)+'%'; }
-function wxNeed(avg, price, h=0.003){ return (avg*(1+h)/price - 1)*100; }  // h = 수확선(레버 2%, 코닥 0.3%)
+function wxNeed(avg, price, h=0.003){ return (avg*(1+h)/price - 1)*100; }  // h = 수확선(RULE — 지금 레버·코닥 모두 0.3%)
 
 /* ════════ FARM ════════ */
 function farm(S, L, P, again){
