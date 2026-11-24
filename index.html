@@ -720,6 +720,104 @@ h2{display:flex;align-items:center;gap:.5em}
   --card:#1e232c;--card-edge:rgba(255,255,255,.12);--felt:#13241c}
 :root[data-theme="light"]{--chip:#2f7cf0;--chip-soft:rgba(47,124,240,.12);--mult:#ec3f4c;--mult-soft:rgba(236,63,76,.11);--ok:#1f9d57;--ok-soft:rgba(31,157,87,.12);--bad:#e0484f;
   --card:#ffffff;--card-edge:rgba(25,31,40,.14);--felt:#f4faf6}
+
+/* ════════ v2 정리 (2026-11-24): 장기포트식 차트 · 계좌별 표 탭 · 씨앗 창고 ════════ */
+/* 색 규칙 (2026-11-24 v3) — 장기포트 라이브 그래프 색 그대로: 잎 초록(leaf) · 금(gold) · 하늘(sky) · 보라(violet)
+   🏁 나=leaf, 코스피=sky(장기포트에서도 KOSPI=sky), 70·30=gold 점선
+   💰 총 손익=leaf(굵게), 거둔 돈=gold, 밭에 남은 돈=sky · 🌰 🥔 레버=sky(코스피), 🥬 코닥=violet
+   수익 빨강 / 손실 파랑은 숫자에만 */
+:root{--c-me:#63d07e;--c-kp:#5bb6e6;--c-mix:#f2c75f;--c-tot:#63d07e;--c-re:#f2c75f;--c-un:#5bb6e6;--c-k:#5bb6e6;--c-q:#8b7ae0;--c-row:rgba(255,255,255,.045)}
+:root[data-theme="light"]{--c-me:#20a95b;--c-kp:#2b8fd6;--c-mix:#b9801b;--c-tot:#20a95b;--c-re:#b9801b;--c-un:#2b8fd6;--c-k:#2b8fd6;--c-q:#7b61ff;--c-row:rgba(25,31,40,.045)}
+.lt-card{padding:clamp(14px,1.4vw,22px);display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.lt-card>*{min-width:0}
+.lt-ctl{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+.lt-seg{display:flex;gap:3px;background:var(--panel2);padding:3px;border-radius:999px;width:max-content;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.lt-seg::-webkit-scrollbar{display:none}
+.lt-seg button{border:0;background:none;padding:6px 13px;border-radius:999px;font-size:.88rem;font-weight:600;color:var(--muted);white-space:nowrap;min-height:34px;transition:background .2s,color .2s}
+.lt-seg button[aria-selected="true"]{background:var(--panel3);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+:root[data-theme="light"] .lt-seg button[aria-selected="true"]{background:#fff;box-shadow:0 1px 3px rgba(25,31,40,.12)}
+.lt-note{font-size:.82rem;color:var(--dim)}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pod{border-radius:12px;padding:10px 12px;background:var(--panel2);display:grid;grid-template-columns:minmax(0,1fr);gap:2px;min-width:0;border:2px solid transparent}
+.pod .rk{font-size:1.35rem;line-height:1}
+.pod .nm{font-size:.84rem;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pod b{font-size:1.25rem;white-space:nowrap}
+.pod.me{border-color:var(--c-me)}
+.pod.me .nm{color:var(--fg)}
+.pod .key,.lt-tip .key{display:inline-block;width:14px;height:0;border-top:3px solid var(--pc);border-radius:2px;margin-right:6px;vertical-align:4px}
+.pod .key.dash,.lt-tip .key.dash{border-top-style:dashed}
+.lt-fig{position:relative}
+.lt-chart{width:100%;display:block;overflow:visible;touch-action:pan-y}
+.lt-chart text{font-family:var(--body);font-size:11.5px;fill:var(--dim)}
+.lt-tip{position:absolute;left:0;top:0;pointer-events:none;background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:9px 12px;font-size:.84rem;box-shadow:0 10px 26px -10px rgba(0,0,0,.45);opacity:0;transition:opacity .12s;min-width:170px;z-index:3}
+.lt-tip.on{opacity:1}
+.lt-tip .d{font-weight:700;margin-bottom:4px;font-family:var(--mono)}
+.lt-tip .r{display:flex;justify-content:space-between;gap:12px;white-space:nowrap;line-height:1.7}
+.lt-tip .ev{margin-top:5px;padding-top:5px;border-top:1px solid var(--line2);color:var(--muted);font-size:.78rem;max-width:240px}
+.lt-lede{display:flex;flex-wrap:wrap;gap:6px}
+.lt-pill{display:inline-flex;gap:6px;align-items:center;font-size:.88rem;padding:6px 12px;border-radius:999px;background:var(--panel2)}
+.lt-pill.hl{background:var(--up-soft)}
+#pnlrace .lt-ctl .pr-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0}
+#pnlrace .pr-kpis{margin:0}
+.pm.sel{outline:2px solid var(--fg);outline-offset:-2px}
+/* KPI 카드: 색 띠를 왼쪽 → 위쪽으로 */
+#pnlrace .pr-k{padding:15px 14px 12px}
+#pnlrace .pr-k::before{left:0;right:0;top:0;bottom:auto;width:auto;height:3px;border-radius:0}
+#pnlrace .k-tot{--accent:var(--c-tot)} #pnlrace .k-re{--accent:var(--c-re)} #pnlrace .k-un,#pnlrace .k-un.up,#pnlrace .k-un.dn{--accent:var(--c-un)}
+#pnlrace .k-re b{color:var(--fg)} #pnlrace .k-re b.up{color:var(--up)} #pnlrace .k-re b.dn{color:var(--down)}
+#pnlrace .pm.now,#pnlrace .pm:hover,#pnlrace .pm:focus-visible{border-color:color-mix(in srgb,var(--fg) 30%,transparent)}
+@media (max-width:600px){#pnlrace .pr-k{padding:12px 8px 8px}#pnlrace .pr-k::before{width:auto;height:3px}}
+#farm [data-fv][hidden]{display:none!important}
+/* 📋 계좌별 표 */
+.ftabs{margin:0 0 12px}
+.ft-scroll{overflow-x:auto}
+table.ft{width:100%;border-collapse:collapse;font-size:.93rem}
+.ft th{font-size:.78rem;font-weight:500;color:var(--dim);text-align:right;padding:6px 8px;border-bottom:1px solid var(--line2);white-space:nowrap}
+.ft th:first-child,.ft td:first-child{text-align:left}
+.ft td{padding:8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.ft td.num,.ft .ft-no{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ft .ft-no{color:var(--muted)}
+.ft tr.ft-next td{background:var(--c-row)}
+.ft tr.ft-next td:first-child{border-radius:10px 0 0 10px}.ft tr.ft-next td:last-child{border-radius:0 10px 10px 0}
+.ft tr.ft-empty td{color:var(--dim)}
+.ft tr.ft-empty td:last-child{text-align:left}
+.ft-wx{font-family:var(--body);font-size:.78rem;color:var(--muted);margin-left:6px}
+/* 🌰 씨앗 창고 */
+.seedbox.sb2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:clamp(16px,2.4vw,36px);align-items:start;padding:clamp(16px,1.6vw,24px)}
+.sb2-h{display:flex;align-items:center;gap:10px}
+.sb2-h img{width:56px;height:56px;object-fit:contain}
+.sb2-h h3{font-family:var(--display);font-weight:400;font-size:1.429rem;margin:0}
+.sb2-h .muted{font-size:.84rem}
+.sb2-big{font-size:clamp(1.9rem,2.6vw,2.7rem);font-weight:600;color:var(--fg);line-height:1.1;margin-top:10px}
+.sb2-big.over{color:var(--up)}
+.sb2-sub{color:var(--muted);font-size:.9rem;margin-top:6px}
+.sb2-sub b{color:var(--fg)}
+.sb2-bar{position:relative;display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;background:var(--panel2);margin:14px 0 8px}
+.sb2-bar>span{height:100%;flex:none}
+.sb2-bar .sk{background:var(--c-k)}
+.sb2-bar .sq{background:var(--c-q)}
+.sb2-bar .sn{background:color-mix(in srgb,var(--fg) 8%,transparent);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--fg) 45%,transparent);border-radius:3px}
+.sb2-sw{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.sb2-sw.sk{background:var(--c-k)}.sb2-sw.sq{background:var(--c-q)}
+.sb2-sw.sn{background:color-mix(in srgb,var(--fg) 8%,transparent);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--fg) 45%,transparent)}
+.sb2-bar .lim{position:absolute;top:0;bottom:0;width:2px;background:var(--fg);opacity:.5}
+.sb2-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.84rem;color:var(--muted)}
+.sb2-leg b{color:var(--fg)}
+.sb2-steps{margin-top:12px}
+.sb2-r h4{font-size:.95rem;margin:4px 0 10px;font-weight:600}
+.sb2-row{display:grid;grid-template-columns:3em minmax(0,1fr) 6.5em;align-items:center;gap:10px;font-size:.88rem;padding:3px 0}
+.sb2-row .no{color:var(--muted)}
+.sb2-row .b{display:flex;gap:2px;height:10px}
+.sb2-row .b span{height:100%;border-radius:3px;padding:0;margin:0;min-height:0;flex:none}
+.sb2-row .b .sk{background:var(--c-k)}
+.sb2-row .b .sq{background:var(--c-q)}
+.sb2-row.top{background:var(--c-row);border-radius:8px;margin-inline:-6px;padding-inline:6px}
+.sb2-row b{text-align:right;font-weight:600}
+.sb2-row.top b{color:var(--fg)}
+.sb2-row.top .no{color:var(--fg);font-weight:600}
+.sb2-foot{margin-top:10px;font-size:.78rem;color:var(--dim)}
+@media (max-width:900px){.seedbox.sb2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){.podium{gap:6px}.pod{padding:8px}.pod .nm{font-size:.76rem}.pod b{font-size:1.05rem}.ft td,.ft th{padding-inline:5px}table.ft{font-size:.86rem}.lt-seg button{padding:6px 10px}}
 </style>
 </head>
 <body>
@@ -738,7 +836,7 @@ h2{display:flex;align-items:center;gap:.5em}
 <div class="top">
   <div class="top-row">
     <div class="brand"><div class="mono">WC</div><b>주식농사 라이브</b></div>
-    <nav class="topnav" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#harvest" data-sec="harvest"><span>🧺</span><b>수확</b></a><a href="#badges" data-sec="badges"><span>🃏</span><b>게임</b></a></nav>
+    <nav class="topnav" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>대결</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#harvest" data-sec="harvest"><span>🧺</span><b>수확</b></a><a href="#badges" data-sec="badges"><span>🃏</span><b>게임</b></a></nav>
     <div class="top-right"><span class="live"><i></i><span id="asof">불러오는 중</span></span><button class="theme-btn" id="theme-btn" type="button" aria-label="화면 테마 바꾸기"></button></div>
   </div>
   <div class="ticker" aria-label="오늘의 요약 전광판"><div class="ticker-track" id="ticker"></div></div>
@@ -792,69 +890,36 @@ h2{display:flex;align-items:center;gap:.5em}
     <div class="lb-alerts" id="lb-alerts"></div>
   </section>
 
-  <!-- REPLAY -->
+  <!-- RACE (장기포트식, 2026-11-24) -->
   <section id="replay">
     <div class="sec-head">
-      <div><span class="eyebrow">Replay</span><h2><span class="hi" aria-hidden="true">🏁</span>코스피와 달리기 다시보기</h2><p>2024년 첫 거래일부터 오늘까지 내 계좌와 코스피의 누적수익률 경주. 7/23 이후로는 바닥에 수확(금색)·파종(초록) 눈금이 찍히고 그날 매매가 떠요.</p></div>
+      <div><span class="eyebrow">Race</span><h2><span class="hi" aria-hidden="true">🏁</span>코스피와 대결</h2><p>같은 시작일을 0%로 맞춘 누적 수익률. 비교 상대는 코스피, 그리고 코스피 70%·현금 30%를 매달 되맞춘 포트예요.</p></div>
     </div>
-    <div class="panel stage">
-      <div class="stage-ctl">
-        <button class="play" id="rp-play" type="button">▶ 처음부터 재생</button>
-        <div class="ctl-group" role="group" aria-label="구간">
-          <button class="chip" data-mode="y26" aria-pressed="true" type="button">2026</button>
-          <button class="chip" data-mode="all" aria-pressed="false" type="button">2024~ 전체</button>
-        </div>
-        <div class="ctl-group" role="group" aria-label="속도">
-          <button class="chip" data-speed="1" aria-pressed="true" type="button">1x</button>
-          <button class="chip" data-speed="3" aria-pressed="false" type="button">3x</button>
-          <button class="chip" data-speed="8" aria-pressed="false" type="button">8x</button>
-        </div>
-      </div>
-      <div class="scoreboard">
-        <span class="date num" id="sb-date">-</span>
-        <span class="sb-item"><span class="sw" style="background:var(--gold-hi)"></span>나 <span class="num gold" id="sb-me">-</span></span>
-        <span class="sb-item"><span class="sw" style="background:var(--kospi)"></span>KOSPI <span class="num" style="color:var(--kospi)" id="sb-kp">-</span></span>
-        <span class="sb-item">격차 <span class="num" id="sb-gap">-</span></span>
-      </div>
-      <div class="diary" id="sb-diary" aria-live="polite"></div>
-      <div class="cv-wrap"><canvas id="rp" aria-label="누적수익률 리플레이 차트"></canvas></div>
-      <input type="range" id="scrub" min="0" max="1" value="1" aria-label="날짜 이동">
+    <div class="panel lt-card">
+      <div class="lt-ctl"><div class="lt-seg" role="tablist" aria-label="기간" id="rc-range"></div><span class="lt-note" id="rc-note"></span></div>
+      <div class="podium" id="rc-pod"></div>
+      <div class="lt-fig"><svg class="lt-chart" id="rc-chart" role="img" aria-label="나·코스피·코스피70현금30 누적 수익률 비교"></svg><div class="lt-tip" id="rc-tip"></div></div>
+      <div class="lt-lede" id="rc-lede"></div>
     </div>
   </section>
 
-  <!-- PNL RACE (실현 vs 평가, 2026-10-16) -->
+  <!-- PNL (실현 vs 평가, 정적 그래프 2026-11-24) -->
   <section id="pnlrace">
     <div class="sec-head">
-      <div><span class="eyebrow">Realized vs Unrealized</span><h2><span class="hi" aria-hidden="true">💰</span>거둔 돈 vs 밭에 남은 돈</h2><p>2026년 1월부터 누적 실현(거둔 돈)과 평가손익(아직 밭에 있는 작물)이 금액으로 어떻게 움직였는지 재생해요. 🧺 금색 = 거둔 돈, 🌱 빨강·파랑 = 밭에 남은 돈(0선 기준), 📊 굵은 초록 선 = 둘을 더한 총 손익.</p></div>
+      <div><span class="eyebrow">Realized vs Unrealized</span><h2><span class="hi" aria-hidden="true">💰</span>거둔 돈 vs 밭에 남은 돈</h2><p>2026년 누적 금액. 📊 총 손익 = 🧺 거둔 돈(실현) + 🌱 밭에 남은 돈(평가). 선을 짚으면 그날 값으로 바뀌어요.</p></div>
     </div>
-    <div class="panel stage">
-      <div class="stage-ctl">
-        <button class="play" id="pr-play" type="button">▶ 처음부터 재생</button>
-        <div class="ctl-group" role="group" aria-label="구간">
-          <button class="chip" data-prmode="all" aria-pressed="true" type="button">2026 전체</button>
-          <button class="chip" data-prmode="3m" aria-pressed="false" type="button">최근 3개월</button>
-          <button class="chip" data-prmode="1m" aria-pressed="false" type="button">최근 1개월</button>
-        </div>
-        <div class="ctl-group" role="group" aria-label="속도">
-          <button class="chip" data-prspeed="1" aria-pressed="true" type="button">1x</button>
-          <button class="chip" data-prspeed="3" aria-pressed="false" type="button">3x</button>
-          <button class="chip" data-prspeed="8" aria-pressed="false" type="button">8x</button>
-        </div>
-      </div>
-      <div class="pr-head">
-        <span class="pr-date num" id="pr-date">-</span>
-        <div class="diary" id="pr-diary" aria-live="polite"></div>
-      </div>
+    <div class="panel lt-card">
+      <div class="lt-ctl"><div class="lt-seg" role="tablist" aria-label="기간" id="pr-range"></div>
+        <div class="pr-head"><span class="pr-date num" id="pr-date">-</span><div class="diary" id="pr-diary" aria-live="polite"></div></div></div>
       <div class="pr-kpis">
         <div class="pr-k k-tot"><span class="lab">📊 총 손익</span><b class="num" id="pr-tot">-</b><small class="num" id="pr-tot-d"></small></div>
         <div class="pr-k k-re"><span class="lab">🧺 거둔 돈 <em>누적 실현</em></span><b class="num" id="pr-re">-</b><small class="num" id="pr-re-d"></small></div>
         <div class="pr-k k-un" id="pr-k-un"><span class="lab">🌱 밭에 남은 돈 <em>평가손익</em></span><b class="num" id="pr-un">-</b><small class="num" id="pr-un-d"></small></div>
       </div>
-      <div class="cv-wrap pr-cv"><canvas id="pr" aria-label="실현손익·평가손익·총 손익 누적 금액 리플레이 차트"></canvas></div>
-      <input type="range" id="pr-scrub" min="0" max="1" value="1" aria-label="날짜 이동">
-      <div class="pr-mh"><b>🗓 월별로 보면</b><span class="muted">막대: 🧺 실현 → 🌱 평가 변화 → ◆ 합계 · 누르면 그 달로 이동</span></div>
+      <div class="lt-fig"><svg class="lt-chart" id="pr-chart" role="img" aria-label="실현손익·평가손익·총 손익 누적 금액"></svg><div class="lt-tip" id="pr-tip"></div></div>
+      <div class="pr-mh"><b>🗓 월별로 보면</b><span class="muted">막대: 🧺 실현 → 🌱 평가 변화 → ◆ 합계 · 누르면 그 달만 보기</span></div>
       <div class="pr-months" id="pr-months"></div>
-      <p class="pr-note muted">평가손익 = 총 손익 − 누적 실현 (7/23 이후 평단으로 직접 계산한 값과 수수료·세금 정도만 차이). 장중엔 오늘 점이 실시간으로 움직여요(장중 매매는 반영 전).</p>
+      <p class="pr-note muted">평가손익 = 총 손익 − 누적 실현 (평단으로 직접 계산한 값과 수수료·세금 정도만 차이). 장중엔 오늘 점이 실시간으로 움직여요.</p>
     </div>
   </section>
 
@@ -864,13 +929,14 @@ h2{display:flex;align-items:center;gap:.5em}
       <div><span class="eyebrow">8 Accounts</span><h2><span class="hi" aria-hidden="true">🌾</span>오늘의 8칸 밭</h2><p>시트에 입력한 레버리지 종가로 계좌별 손익과 수확 신호를 자동 계산합니다.</p></div>
       <img class="sec-q" data-q="watering" alt="" aria-hidden="true">
     </div>
-    <div class="farm-top">
+    <div class="lt-seg ftabs" role="tablist" aria-label="밭 보기 방식" id="ftabs"></div>
+    <div class="farm-top" data-fv="table">
       <div class="panel ladder" id="lad-k"></div>
       <div class="panel ladder" id="lad-q"></div>
     </div>
-    <div class="panel seedbox" id="seedbox"></div>
-    <div class="plots" id="plots"></div>
-    <div class="wx-legend" id="wx-legend"></div>
+    <div class="plots" id="plots" data-fv="plots" hidden></div>
+    <div class="wx-legend" id="wx-legend" data-fv="plots" hidden></div>
+    <div class="panel seedbox sb2" id="seedbox"></div>
   </section>
 
   <!-- HARVEST LOG -->
@@ -1249,7 +1315,7 @@ details summary{cursor:pointer;font-family:var(--display);font-size:1.12rem}
     </div>
   </section>
 
-  <nav class="tabbar" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>리플레이</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#badges" data-sec="badges"><span>🃏</span><b>게임</b></a></nav>
+  <nav class="tabbar" aria-label="섹션 이동"><a href="#live" data-sec="live"><span>📡</span><b>시세</b></a><a href="#replay" data-sec="replay"><span>🏁</span><b>대결</b></a><a href="#farm" data-sec="farm"><span>🌾</span><b>밭</b></a><a href="#log" data-sec="log"><span>📒</span><b>기록부</b></a><a href="#cal" data-sec="cal"><span>📅</span><b>달력</b></a><a href="#badges" data-sec="badges"><span>🃏</span><b>게임</b></a></nav>
   <footer><span id="src"></span><span>수익률은 좌수법(NAV) 기준 · 상승 빨강 / 하락 파랑</span></footer>
 </div>
 
@@ -2749,8 +2815,8 @@ load().then(raw=>{
   }
 
   /* replay */
-  replay(S);
-  pnlRace(S);
+  raceLT(S);
+  pnlLT(S);
 
   /* farm */
   farm(S, L, P);
@@ -2807,561 +2873,197 @@ load().then(raw=>{
   }
 });
 
-/* ════════ 💰 거둔 돈 vs 밭에 남은 돈 (실현 vs 평가 리플레이, 2026-10-16) ════════ */
-/* chart-v2 (2026-10-29): 곡선 연결 + 긴 구간 주 단위 점 */
-const CHART_V = 'A';
-function wcCurve(ctx, P, cont){ // P=[[x,y],..] 단조 3차 곡선(점을 넘어 튀지 않음), 장기 대시보드와 같은 방식
-  const n=P.length; if(!n) return;
-  const go=(p,i)=> (i||cont)?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);
-  if(n<3){ P.forEach(go); return; }
-  const h=[], sl=[], m=new Array(n);
-  for(let i=0;i<n-1;i++){ h[i]=P[i+1][0]-P[i][0]; sl[i]=Math.abs(h[i])>1e-6?(P[i+1][1]-P[i][1])/h[i]:0; }
-  for(let i=1;i<n-1;i++){ const a=sl[i-1], b=sl[i]; if(a*b<=0||Math.abs(h[i-1])<1e-6||Math.abs(h[i])<1e-6){ m[i]=0; continue; }
+/* ════════ 📈 차트 (2026-11-24 개편) — 장기포트 라이브와 같은 모양 ════════
+   메달 카드 · 점선 격자 · 내 선 굵게 + 은은한 채움 · 끝값 알약 · 짚으면 그날 값
+   재생(리플레이)은 없앰. 처음부터 완성된 그림을 보여 줌. */
+function spath(pts,o={}){ const n=pts.length, f=p=>p[0].toFixed(1)+' '+p[1].toFixed(1);
+  if(n<3){ const q=o.rev?[...pts].reverse():pts; return q.map((p,i)=>(i||o.cont?'L':'M')+f(p)).join(''); }
+  const h=[], sl=[], m=[];
+  for(let i=0;i<n-1;i++){ h[i]=pts[i+1][0]-pts[i][0]; sl[i]=h[i]>1e-6?(pts[i+1][1]-pts[i][1])/h[i]:0; }
+  for(let i=1;i<n-1;i++){ const a=sl[i-1], b=sl[i]; if(a*b<=0||h[i-1]<1e-6||h[i]<1e-6){ m[i]=0; continue; }
     const pm=(a*h[i]+b*h[i-1])/(h[i-1]+h[i]); m[i]=Math.sign(a)*Math.min(Math.abs(a),Math.abs(b),.5*Math.abs(pm))*2; }
   m[0]=sl[0]; m[n-1]=sl[n-2];
-  go(P[0],0);
-  for(let i=0;i<n-1;i++){ const a=P[i], b=P[i+1], d=h[i]/3; if(Math.abs(h[i])<1e-6){ ctx.lineTo(b[0],b[1]); continue; }
-    ctx.bezierCurveTo(a[0]+d, a[1]+m[i]*d, b[0]-d, b[1]-m[i+1]*d, b[0], b[1]); }
+  const seg=[]; for(let i=0;i<n-1;i++){ const d=h[i]/3, a=pts[i], b=pts[i+1];
+    seg.push(h[i]<1e-6?{a,b,c1:a,c2:b}:{a,b,c1:[a[0]+d,a[1]+m[i]*d],c2:[b[0]-d,b[1]-m[i+1]*d]}); }
+  if(o.rev) return (o.cont?'L':'M')+f(pts[n-1])+seg.reverse().map(g=>'C'+f(g.c2)+' '+f(g.c1)+' '+f(g.a)).join('');
+  return (o.cont?'L':'M')+f(pts[0])+seg.map(g=>'C'+f(g.c1)+' '+f(g.c2)+' '+f(g.b)).join(''); }
+function ltTicks(lo, hi, n){ const span=(hi-lo)||1, raw=span/n, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p, st=(f<1.5?1:f<3?2:f<7?5:10)*p, out=[];
+  for(let v=Math.ceil(lo/st)*st; v<=hi+st*1e-6; v+=st) out.push(Math.abs(v)<st*1e-6?0:v); return out; }
+function ltSeg(el, items, cur, on){
+  el.innerHTML = items.map(([k,lab])=>`<button type="button" role="tab" data-k="${k}" aria-selected="${k===cur}">${lab}</button>`).join('');
+  el.onclick = e=>{ const b=e.target.closest('button'); if(!b) return; el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected', String(x===b))); on(b.dataset.k); };
 }
-function wcWeekEnds(data){ // 주(월~금) 마지막 거래일 인덱스 + 첫날
-  const wk = i => Math.floor((Date.parse(data[i].d.slice(0,10)+'T00:00:00Z')/864e5+3)/7), out=[0];
-  for(let i=0;i<data.length;i++){ if((i===data.length-1 || wk(i)!==wk(i+1)) && i!==0) out.push(i); }
+const ltYmd = d => d.slice(2,4)+'.'+d.slice(5,7)+'.'+d.slice(8,10);
+const ltStore = (k,v) => { try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } };
+/* 코스피 70 · 현금 30 — 매달 첫 거래일에 비중 되맞춤 (kp = 시작점 대비 누적 %, 이자·배당 제외) */
+function mix7030(rows){
+  const out=[]; let S0=.7, C0=.3, ref=1+rows[0].kp/100, pm=rows[0].d.slice(0,7), pv=1, pk=ref;
+  rows.forEach((r,i)=>{ const K=1+r.kp/100, m=r.d.slice(0,7);
+    if(i>0 && m!==pm){ S0=.7*pv; C0=.3*pv; ref=pk; pm=m; }
+    const V=C0+S0*K/ref; out.push((V-1)*100); pv=V; pk=K; });
   return out;
 }
-function wcRgba(hex,a){ const m=String(hex).trim().replace('#','').match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i); return m?`rgba(${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)},${a})`:hex; }
-function wcSnap(list,k){ let b=list[0]; list.forEach(i=>{ if(Math.abs(i-k)<Math.abs(b-k)) b=i; }); return b; }
-function pnlRace(S){
-  const cv = $('pr'); if(!cv) return;
-  const ctx = cv.getContext('2d');
-  // tot = 누적 손익, re = 누적 실현, un = tot - re (밭에 남은 평가손익)
-  const ALL = []; let cp = 0, cr = 0;
-  S.D.forEach((r,i)=>{
-    cp += r.pnl||0; cr += r.realized||0;
-    if(i===0 || isWd(r.d) || i===S.D.length-1) ALL.push({d:r.d, tot:cp, re:cr, un:cp-cr, day:r.pnl||0, dre:r.realized||0});
-  });
-  if(ALL.length<2) return;
-  const st = {mode:'all', data:ALL, i:ALL.length-1, playing:false, speed:1, hover:-1, pops:[]};
-  const C = {};
-  const colors = ()=>Object.assign(C,{gold:css('--gold-hi'), fg:css('--fg'), muted:css('--muted'), dim:css('--dim'), up:css('--up'), dn:css('--down'), panel:css('--panel'), light: document.documentElement.getAttribute('data-theme')==='light'});
-  colors();
-  let W=0, Hh=0, dpr=1, ev=[], yr={min:0,max:1}, narrow=false, WK=[0];
-  const weekly = ()=> CHART_V==='B' && st.mode==='all';
-  const pad = {l:10, r:120, t:22, b:26};
-  const padFit = ()=>{ const k=RS(); narrow = (cv.getBoundingClientRect().width||innerWidth) < 600; pad.r=Math.round((narrow?86:160)*k); pad.t=Math.round(22*k); pad.b=Math.round(26*k); pad.l=Math.round(10*k); };
-  const ax = v => { const a=Math.abs(v), s=v<0?'−':(v>0?'+':''); if(a===0) return '0'; if(a>=1e8) return s+(+(a/1e8).toFixed(2))+'억'; return s+Math.round(a/1e4).toLocaleString()+'만'; };
-  const short = v => { const a=Math.abs(v), s=v<0?'−':(v>0?'+':''); if(a>=1e8) return s+(a/1e8).toFixed(2)+'억'; return s+Math.round(a/1e4).toLocaleString()+'만'; };
-  const sgn = v => v>0?'up':(v<0?'dn':'');
-  const rgba = (hex,a) => { const m = hex.replace('#','').match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i); if(!m) return hex; return `rgba(${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)},${a})`; };
+/* 공통 선 그래프: o = {id, dates, series:[{k,nm,col,me,sign,fill0,pts}], fmtY, fmtEnd, fmtX, tip(i), hover(i), leave()} */
+function ltChart(svg, tipEl, o){
+  const W=Math.max(Math.round(svg.clientWidth||svg.parentNode.clientWidth||600),300), nar=W<520;
+  const n=o.dates.length, pwMax=Math.max(...o.series.map(s=>o.fmtEnd(s.pts[n-1]).length*7.3+14));
+  const Hh=Math.round(Math.min(Math.max(W*.42, nar?220:250), 360)), L=nar?44:58, R=Math.max(nar?60:80, Math.round(pwMax+12)), T=12, B=24;
+  svg.setAttribute('viewBox',`0 0 ${W} ${Hh}`); svg.style.height=Hh+'px';
+  const all=o.series.flatMap(s=>s.pts), lo0=Math.min(0,...all), hi0=Math.max(0,...all), pad=(hi0-lo0)*.1||1, y0=lo0-pad, y1=hi0+pad;
+  const X=i=>L+(n<2?0:i/(n-1))*(W-L-R), Y=v=>T+(1-(v-y0)/(y1-y0))*(Hh-T-B), PB=Hh-B, ZY=Y(0);
+  const me=o.series.find(s=>s.me)||o.series[0], PT=o.series.map(s=>s.pts.map((v,i)=>[X(i),Y(v)]));
+  let g=`<defs><linearGradient id="${o.id}F" x1="0" y1="${T}" x2="0" y2="${PB}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${me.col}" stop-opacity=".22"/><stop offset="1" stop-color="${me.col}" stop-opacity="0"/></linearGradient>
+    <clipPath id="${o.id}U"><rect x="0" y="0" width="${W}" height="${Math.max(0,ZY).toFixed(1)}"/></clipPath><clipPath id="${o.id}D"><rect x="0" y="${ZY.toFixed(1)}" width="${W}" height="${Math.max(0,Hh-ZY).toFixed(1)}"/></clipPath></defs>`;
+  ltTicks(y0,y1,nar?4:5).forEach(v=>{ const z=v===0, yy=Y(v).toFixed(1);
+    g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line2)" ${z?'stroke-width="1.6"':'stroke-dasharray="2 5"'}/><text x="${L-6}" y="${(+yy+4).toFixed(1)}" text-anchor="end" ${z?'style="fill:var(--muted);font-weight:600"':''}>${o.fmtY(v)}</text>`; });
+  const nt=nar?3:5, seen=new Set();
+  for(let k=0;k<nt;k++){ const i=Math.round((n-1)*k/(nt-1)); if(seen.has(i)) continue; seen.add(i);
+    g+=`<text x="${X(i).toFixed(1)}" y="${Hh-6}" text-anchor="${k===0?'start':k===nt-1?'end':'middle'}">${o.fmtX(o.dates[i], k===0||k===nt-1)}</text>`; }
+  // 채움: 내 선 아래 은은한 그라데이션 / 0선 기준 채움(평가손익)은 한 겹만
+  if(me.fillUnder!==false) g+=`<path d="${spath(PT[o.series.indexOf(me)])}L${X(n-1).toFixed(1)} ${PB}L${L} ${PB}Z" fill="url(#${o.id}F)"/>`;
+  o.series.forEach((s,k)=>{ if(!s.fill0) return; const d=spath(PT[k])+`L${X(n-1).toFixed(1)} ${ZY.toFixed(1)}L${L} ${ZY.toFixed(1)}Z`;
+    g+=`<path d="${d}" fill="var(--up)" fill-opacity=".07" clip-path="url(#${o.id}U)"/><path d="${d}" fill="var(--down)" fill-opacity=".08" clip-path="url(#${o.id}D)"/>`; });
+  o.series.map((s,k)=>[s,k]).sort((a,b)=>(a[0].me?1:0)-(b[0].me?1:0)).forEach(([s,k])=>{ const d=spath(PT[k]), w=s.me?3:2.2, op='';
+    if(s.sign){ g+=`<path d="${d}" fill="none" stroke="var(--up)" stroke-width="${w}" ${op} stroke-linejoin="round" stroke-linecap="round" clip-path="url(#${o.id}U)"/><path d="${d}" fill="none" stroke="var(--down)" stroke-width="${w}" ${op} stroke-linejoin="round" stroke-linecap="round" clip-path="url(#${o.id}D)"/>`; return; }
+    g+=`<path d="${d}" fill="none" stroke="${s.col}" stroke-width="${w}" ${op} ${s.dash?`stroke-dasharray="${s.dash}"`:''} stroke-linejoin="round" stroke-linecap="round"/>`; });
+  // 끝값 알약 (겹치면 아래로 벌림)
+  const ends=o.series.map(s=>({s, v:s.pts[n-1], y:Y(s.pts[n-1])})).sort((a,b)=>a.y-b.y);
+  for(let i=1;i<ends.length;i++) if(ends[i].y-ends[i-1].y<21) ends[i].y=ends[i-1].y+21;
+  const ex=X(n-1);
+  ends.forEach(({s,v,y})=>{ const col=s.sign?(v>=0?'var(--up)':'var(--down)'):s.col, ey=Y(v), tx=o.fmtEnd(v), pw=tx.length*7.3+14;
+    g+=`<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="${s.me?5:4}" fill="${col}" stroke="var(--panel)" stroke-width="2">${s.me&&!RM?'<animate attributeName="r" values="5;7.5;5" dur="2s" repeatCount="indefinite"/>':''}</circle>`;
+    g+=`<rect x="${(ex+8).toFixed(1)}" y="${(y-10).toFixed(1)}" width="${pw.toFixed(1)}" height="20" rx="10" fill="${col}" fill-opacity=".2"/><text x="${(ex+8+pw/2).toFixed(1)}" y="${(y+4.5).toFixed(1)}" text-anchor="middle" style="font:700 12px var(--mono);fill:var(--fg)">${tx}</text>`; });
+  g+=`<g class="lt-hv" style="display:none;pointer-events:none"><line y1="${T}" y2="${PB}" stroke="var(--muted)" stroke-dasharray="3 4"/>${o.series.map(s=>`<circle r="${s.me?5.5:4.5}" stroke="var(--panel)" stroke-width="2"/>`).join('')}</g>
+    <rect class="lt-hit" x="${L}" y="0" width="${W-L-R}" height="${Hh}" fill="transparent"/>`;
+  svg.innerHTML=g;
+  const hov=svg.querySelector('.lt-hv'), hl=hov.querySelector('line'), hc=hov.querySelectorAll('circle');
+  const at=e=>{ const bx=svg.getBoundingClientRect(), px=(e.clientX-bx.left)*W/bx.width; let bi=0; for(let i=1;i<n;i++) if(Math.abs(X(i)-px)<Math.abs(X(bi)-px)) bi=i; return {bi, bx}; };
+  svg.onpointermove=e=>{ const {bi,bx}=at(e), x=X(bi); hov.style.display=''; hl.setAttribute('x1',x); hl.setAttribute('x2',x);
+    o.series.forEach((s,k)=>{ const v=s.pts[bi]; hc[k].setAttribute('cx',x); hc[k].setAttribute('cy',Y(v)); hc[k].setAttribute('fill', s.sign?(v>=0?'var(--up)':'var(--down)'):s.col); });
+    if(tipEl){ tipEl.innerHTML=o.tip(bi); tipEl.classList.add('on'); const sc=bx.width/W, tw=tipEl.offsetWidth, th=tipEl.offsetHeight, xs=x*sc;
+      let left=xs+14; if(left+tw>bx.width-4) left=xs-14-tw; tipEl.style.left=Math.max(0,left)+'px';
+      const top=Y(me.pts[bi])*sc<(Hh*sc)/2 ? (PB*sc-th) : T*sc; tipEl.style.top=Math.max(0,top)+'px'; }
+    o.hover && o.hover(bi); };
+  svg.onpointerleave=()=>{ hov.style.display='none'; tipEl && tipEl.classList.remove('on'); o.leave && o.leave(); };
+}
 
-  function events(data){
-    const out = [];
-    let ti=0, bi=0, wi=0;
-    data.forEach((p,i)=>{ if(p.tot>data[ti].tot) ti=i; if(p.day>data[bi].day) bi=i; if(p.day<data[wi].day) wi=i; });
-    if(data[ti].tot>0) out.push({i:ti, k:'tot', ic:'🏔', t:'총 손익 최고 '+won(data[ti].tot,true), up:true});
-    if(data[bi].day>0) out.push({i:bi, k:'tot', ic:'💥', t:'최고의 날 '+won(data[bi].day,true), up:true});
-    if(data[wi].day<0) out.push({i:wi, k:'tot', ic:'🥶', t:'최악의 날 '+won(data[wi].day,true), up:false});
-    let ul=0; data.forEach((p,i)=>{ if(p.un<data[ul].un) ul=i; }); if(data[ul].un<0) out.push({i:ul, k:'un', ic:'🌧', t:'평가 최저 '+won(data[ul].un,true), up:false});
-    for(let i=data.length-1;i>0;i--){ if(data[i].tot<0 && data[i-1].tot>=0){ out.push({i, k:'tot', ic:'⚠️', t:'총 손익 마이너스 전환', up:true}); break; } }
-    return out.sort((a,b)=>a.i-b.i);
+/* ════════ 🏁 코스피와 대결 (예전 '달리기 다시보기' 자리) ════════ */
+function raceLT(S){
+  const el=$('rc-chart'); if(!el) return;
+  let R=ltStore('wcl_race')||'y26';
+  const RANGES=[['21','1개월'],['63','3개월'],['126','6개월'],['y26','2026'],['all','2024~ 전체']];
+  if(!RANGES.some(r=>r[0]===R)) R='y26';
+  const medals=['🥇','🥈','🥉'];
+  function rows(){
+    if(R==='y26') return S.Y26;
+    const F=S.FULL; if(R==='all') return F;
+    return F.slice(Math.max(0, F.length-1-(+R)));
   }
+  function draw(){
+    const H=rows(); if(H.length<2) return;
+    const b=H[0], rb=(v,v0)=>((1+v/100)/(1+v0/100)-1)*100;
+    const kp=H.map(r=>({d:r.d, kp:rb(r.kp,b.kp)}));
+    const ser=[
+      {k:'me', nm:'🌾 나', col:'var(--c-me)', me:true, pts:H.map(r=>rb(r.me,b.me))},
+      {k:'kp', nm:'🇰🇷 코스피', col:'var(--c-kp)', pts:kp.map(r=>r.kp)},
+      {k:'mx', nm:'⚖️ 코스피70·현금30', col:'var(--c-mix)', dash:'6 4', pts:mix7030(kp)}];
+    ser.forEach(s=>s.end=s.pts[s.pts.length-1]);
+    const rank=[...ser].sort((a,b)=>b.end-a.end);
+    $('rc-note').textContent=`${ltYmd(H[0].d)}~ · 시작일 0% 기준 · 좌수법`;
+    $('rc-pod').innerHTML=rank.map((s,i)=>`<div class="pod ${s.me?'me':''}" style="--pc:${s.col}"><span class="rk">${medals[i]}</span><span class="nm"><i class="key ${s.dash?'dash':''}"></i>${s.nm}</span><b class="num ${cls(s.end)}">${pct(s.end)}</b></div>`).join('');
+    const c=d=>`<b class="num ${d>=0?'up':'dn'}">${d>=0?'+':''}${d.toFixed(1)}%p</b>`, dK=ser[0].end-ser[1].end, dM=ser[0].end-ser[2].end;
+    $('rc-lede').innerHTML=`<span class="lt-pill ${dK>=0?'hl':''}">vs 코스피 ${c(dK)}</span><span class="lt-pill ${dM>=0?'hl':''}">vs 70·30 ${c(dM)}</span>`;
+    const days=(dObj(H[H.length-1].d)-dObj(H[0].d))/864e5;
+    ltChart(el, $('rc-tip'), {id:'rc', dates:H.map(r=>r.d), series:ser,
+      fmtY:v=>Math.round(v)+'%', fmtEnd:v=>pct(v),
+      fmtX:(d,edge)=>edge?ltYmd(d):days>200?d.slice(2,4)+'.'+d.slice(5,7):(+d.slice(5,7))+'/'+(+d.slice(8,10)),
+      tip:i=>`<div class="d">${ltYmd(H[i].d)}</div>`+[...ser].sort((a,b)=>b.pts[i]-a.pts[i]).map((s,k)=>`<div class="r"><span>${medals[k]} <i class="key ${s.dash?'dash':''}" style="--pc:${s.col}"></i>${s.nm}</span><b class="num ${cls(s.pts[i])}">${pct(s.pts[i])}</b></div>`).join('')+
+        ((S.TR[H[i].d]||[]).length?`<div class="ev">${S.TR[H[i].d].map(trText).join(' · ')}</div>`:'')});
+  }
+  ltSeg($('rc-range'), RANGES, R, k=>{ R=k; ltStore('wcl_race',k); draw(); });
+  draw();
+  RESIZE.push(draw);
+}
+
+/* ════════ 💰 거둔 돈 vs 밭에 남은 돈 (정적 그래프) ════════ */
+function pnlLT(S){
+  const el=$('pr-chart'); if(!el) return;
+  const sgn=v=>v>0?'up':(v<0?'dn':'');
+  const ALL=[{d:S.daily[0].d, tot:0, re:0, un:0, day:0, dre:0}]; let cp=0, cr=0;
+  S.D.forEach(r=>{ cp+=r.pnl||0; cr+=r.realized||0; ALL.push({d:r.d, tot:cp, re:cr, un:cp-cr, day:r.pnl||0, dre:r.realized||0}); });
+  let R=ltStore('wcl_pnlr')||'all', data=ALL;
+  const RANGES=[['21','1개월'],['63','3개월'],['126','6개월'],['all','2026 전체']];
+  if(!RANGES.some(r=>r[0]===R)) R='all';
   function setData(){
-    const n = ALL.length, cut = st.mode==='3m' ? 63 : st.mode==='1m' ? 21 : n;
-    st.data = ALL.slice(Math.max(0, n-cut));
-    ev = events(st.data);
-    let mn = 0, mx = 0;
-    st.data.forEach(p=>{ const vs = CHART_V==='B' ? [p.tot,p.re] : [p.tot,p.re,p.un]; mn=Math.min(mn,...vs); mx=Math.max(mx,...vs); });
-    const span = (mx-mn)||1; yr = {min:mn-span*0.08, max:mx+span*0.12};
-    WK = wcWeekEnds(st.data);
-    $('pr-scrub').max = st.data.length-1;
+    if(R.startsWith('m:')){ const m=R.slice(2), i0=ALL.findIndex(p=>p.d.slice(0,7)===m), i1=ALL.map(p=>p.d.slice(0,7)).lastIndexOf(m); data=ALL.slice(Math.max(0,i0-1), i1+1); }
+    else data = R==='all' ? ALL : ALL.slice(Math.max(0, ALL.length-1-(+R)));
   }
-  function size(){
-    const r = cv.getBoundingClientRect(); dpr = Math.min(3, devicePixelRatio||1);
-    W = r.width; Hh = r.height; cv.width = Math.round(W*dpr); cv.height = Math.round(Hh*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  const X = i => pad.l + (i/Math.max(1,st.data.length-1))*(W-pad.l-pad.r);
-  const Y = v => pad.t + (1-(v-yr.min)/(yr.max-yr.min))*(Hh-pad.t-pad.b);
-  const stride = () => Math.max(1, Math.round(st.data.length / ((W-pad.l-pad.r)/2.2)));
-  function niceStep(range,n){ const raw=range/n, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p; return (f<1.5?1:f<3?2:f<7?5:10)*p; }
-  const val = (k, key) => { const n=Math.floor(k), f=k-n, a=st.data[n], b=st.data[Math.min(n+1,st.data.length-1)]; return a[key]+(b[key]-a[key])*f; };
-  // 지금까지 그릴 점들 (재생 중이면 끝점 보간)
-  function pts(){
-    const n = Math.floor(st.i), out = [];
-    const IX = weekly() ? WK.filter(i=>i<=n) : (()=>{ const a=[]; for(let i=0;i<=n;i+=stride()) a.push(i); return a; })();
-    IX.forEach(i=> out.push({x:X(i), re:st.data[i].re, tot:st.data[i].tot, un:st.data[i].un}));
-    if(out[out.length-1].x !== X(n)) out.push({x:X(n), re:st.data[n].re, tot:st.data[n].tot, un:st.data[n].un});
-    if(st.i>n && n+1<st.data.length) out.push({x:X(st.i), re:val(st.i,'re'), tot:val(st.i,'tot'), un:val(st.i,'un')});
-    return out;
-  }
-
   function board(k){
-    const p = st.data[k]; if(!p) return;
-    const d = dObj(p.d);
-    $('pr-date').innerHTML = p.live ? `<span class="pr-live">${p.open?'⚡ 지금':'📌 오늘'}</span>` : d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
-    const gi = ALL.indexOf(p), prev = ALL[gi-1];
-    const dUn = prev ? p.un-prev.un : p.un;
-    $('pr-tot').textContent = won(p.tot,true); $('pr-tot').className = 'num '+sgn(p.tot);
-    $('pr-re').textContent = won(p.re,true);
-    $('pr-un').textContent = won(p.un,true); $('pr-un').className = 'num '+sgn(p.un);
-    $('pr-k-un').className = 'pr-k k-un '+(p.un>=0?'up':'dn');
-    const dd = (v,lab) => v ? `${lab} <span class="${sgn(v)}">${won(v,true)}</span>` : `${lab} 변화 없음`;
-    $('pr-tot-d').innerHTML = dd(p.day, p.live?'지금까지':'그날');
-    $('pr-re-d').innerHTML = p.live ? '장중엔 그대로' : dd(p.dre, '그날');
-    $('pr-un-d').innerHTML = dd(dUn, p.live?'지금까지':'그날');
-    const tr = S.TR[p.d];
+    const p=data[k]; if(!p) return;
+    $('pr-date').innerHTML = p.live ? `<span class="pr-live">${p.open?'⚡ 지금':'📌 오늘'}</span>` : ltYmd(p.d).replace(/^/, '20');
+    const gi=ALL.indexOf(p), prev=ALL[gi-1], dUn=prev?p.un-prev.un:p.un;
+    $('pr-tot').textContent=won(p.tot,true); $('pr-tot').className='num '+sgn(p.tot);
+    $('pr-re').textContent=won(p.re,true); $('pr-re').className='num '+sgn(p.re);
+    $('pr-un').textContent=won(p.un,true); $('pr-un').className='num '+sgn(p.un);
+    const dd=(v,lab)=>v?`${lab} <span class="${sgn(v)}">${won(v,true)}</span>`:`${lab} 변화 없음`;
+    $('pr-tot-d').innerHTML=dd(p.day, p.live?'지금까지':'그날');
+    $('pr-re-d').innerHTML=p.live?'장중엔 그대로':dd(p.dre,'그날');
+    $('pr-un-d').innerHTML=dd(dUn, p.live?'지금까지':'그날');
+    const tr=S.TR[p.d];
     $('pr-diary').innerHTML = p.live ? `<span class="muted">${p.open?'장중 실시간 추정':'시트 입력 전 · 종가로 추정'}</span>`
       : (tr ? '<span class="muted">농사일지</span> '+tr.map(e=>`<span class="tchip t-${e.t}">${trText(e)}</span>`).join('') : '');
   }
-
-  function pill(x, y, txt, bg, fg, align){
-    ctx.font = `700 ${Math.round((narrow?10.5:12)*RS())}px "IBM Plex Mono", monospace`;
-    const tw = ctx.measureText(txt).width, h = Math.round((narrow?18:22)*RS()), w = tw + (narrow?10:14);
-    const x0 = align==='right' ? x-w : x;
-    ctx.fillStyle = bg; rr(x0, y-h/2, w, h, h/2); ctx.fill();
-    ctx.fillStyle = fg; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(txt, x0+(w-tw)/2, y+0.5);
-    return {y0:y-h/2, y1:y+h/2};
+  function draw(){
+    setData(); if(data.length<2) return;
+    const ser=[
+      {k:'re', nm:'🧺 거둔 돈', col:'var(--c-re)', pts:data.map(p=>p.re)},
+      {k:'un', nm:'🌱 밭에 남은 돈', col:'var(--c-un)', pts:data.map(p=>p.un)},
+      {k:'tot', nm:'📊 총 손익', col:'var(--c-tot)', me:true, fillUnder:false, pts:data.map(p=>p.tot)}];
+    const days=(dObj(data[data.length-1].d)-dObj(data[0].d))/864e5;
+    ltChart(el, $('pr-tip'), {id:'pr', dates:data.map(p=>p.d), series:ser,
+      fmtY:v=>{ const a=Math.abs(v); return v===0?'0':a>=1e8?(v<0?'-':'')+(+(a/1e8).toFixed(2))+'억':won(v); }, fmtEnd:v=>won(v,true),
+      fmtX:(d,edge)=>edge?ltYmd(d):days>200?(+d.slice(5,7))+'월':(+d.slice(5,7))+'/'+(+d.slice(8,10)),
+      tip:i=>{ const p=data[i]; return `<div class="d">${p.live?'⚡ 지금':ltYmd(p.d)}</div>`+
+        [...ser].reverse().map(s=>`<div class="r"><span><i class="key" style="--pc:${s.col}"></i>${s.nm}</span><b class="num ${sgn(p[s.k])}">${won(p[s.k],true)}</b></div>`).join('')+
+        `<div class="r"><span>그날 손익</span><b class="num ${sgn(p.day)}">${won(p.day,true)}</b></div>`+
+        ((S.TR[p.d]||[]).length?`<div class="ev">${S.TR[p.d].map(trText).join(' · ')}</div>`:''); },
+      hover:i=>board(i), leave:()=>board(data.length-1)});
+    board(data.length-1);
+    document.querySelectorAll('#pr-months .pm').forEach(b=>b.classList.toggle('sel', R==='m:'+b.dataset.m));
   }
-
-  function draw(now){ /* pr-v3 */
-    ctx.clearRect(0,0,W,Hh);
-    if(!W) return;
-    const n = Math.floor(st.i), P = pts(), y0 = Y(0), k = RS();
-    const xe = P[P.length-1].x, pe = {tot:val(st.i,'tot'), re:val(st.i,'re')}; pe.un = pe.tot-pe.re;
-    const unC = pe.un>=0?C.up:C.dn;
-    const mid = p => (p.re+p.tot)/2;
-    const gridC = C.light ? 'rgba(20,30,60,.07)' : 'rgba(150,175,230,.08)';
-    const SS = {tot:3.2, totM:2.6, halo:9, sub:2, subM:1.6, subA:.75, fillA:C.light?.16:.22, fillGrad:true, totC:css('--leaf')}; /* chart-style v1: 수익금 ④ */
-    const W_TOT = narrow?(SS.totM??2.5):(SS.tot??3), W_SUB = narrow?(SS.subM??2):(SS.sub??2.5);
-    const cTot = SS.totC||C.fg, aSub = SS.subA??1, halo = SS.halo||0;
-
-    // 끝값 알약 위치 (3개, 겹치면 위아래로 벌림)
-    const tags = [{k:'tot', v:pe.tot, y:Y(pe.tot)}, {k:'re', v:pe.re, y:Y(pe.re)}, {k:'un', v:pe.un, y:Y(CHART_V==='B'? mid(pe) : pe.un)}].sort((a,b)=>a.y-b.y);
-    const gapMin = (narrow?20:25)*k;
-    for(let it=0; it<3; it++){ for(let j=1;j<tags.length;j++){ if(tags[j].y - tags[j-1].y < gapMin){ const m=(tags[j].y+tags[j-1].y)/2; tags[j-1].y=m-gapMin/2; tags[j].y=m+gapMin/2; } } }
-    tags.forEach(t=>{ t.y = Math.max(pad.t+10, Math.min(Hh-pad.b-10, t.y)); });
-
-    // 격자: 실선 헤어라인, 0선만 조금 진하게
-    const step = niceStep(yr.max-yr.min, narrow?4:5);
-    ctx.font = `500 ${Math.round((narrow?10:11)*k)}px "IBM Plex Mono", monospace`; ctx.textBaseline='middle'; ctx.textAlign='left';
-    const atEnd = xe > W-pad.r-40*k;
-    for(let v=Math.ceil(yr.min/step)*step; v<=yr.max; v+=step){
-      const y = Math.round(Y(v))+.5, zero = Math.abs(v)<step*1e-6;
-      ctx.strokeStyle = zero ? (C.light?'rgba(20,30,60,.30)':'rgba(170,190,235,.30)') : gridC; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r+4,y); ctx.stroke();
-      if(atEnd && tags.some(t=>Math.abs(t.y-y)<(narrow?22:18)*k)) continue;
-      ctx.fillStyle = zero ? C.muted : C.dim; ctx.fillText(ax(zero?0:v), W-pad.r+(narrow?12:16)*k, y);
-    }
-    // 월 라벨
-    ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.font = `500 ${Math.round((narrow?10:11)*k)}px "IBM Plex Sans KR", sans-serif`;
-    let lastM = '', lastX = -99;
-    st.data.forEach((p,i)=>{ const m=p.d.slice(5,7); if(m===lastM) return; lastM=m; const x=X(i); if(x-lastX < (narrow?34:40)*k) return; lastX=x;
-      ctx.fillStyle=C.dim; ctx.fillText(+m+'월', x+2, Hh-7*k); });
-    // 수확한 날 눈금
-    if(CHART_V!=='B' || st.playing || st.hover>=0) for(let i=0;i<=n;i++){ const p=st.data[i]; if(!(p.dre>0)) continue; ctx.fillStyle=rgba(C.gold,.6); ctx.fillRect(Math.round(X(i))-0.5, Hh-pad.b-5*k, 1.5, 4*k); }
-
-    const path = key => { ctx.beginPath(); wcCurve(ctx, P.map(q=>[q.x,Y(q[key])])); };
-    // ① 평가 아래 옅은 색 (한 겹만)
-    if(CHART_V==='B'){
-      // B: 실현 선과 총 손익 선 사이 = 밭에 남은 돈 (총 손익이 아래면 파랑, 위면 빨강)
-      const wa = C.light ? .14 : .17;
-      const band = ()=>{ ctx.beginPath(); wcCurve(ctx, P.map(q=>[q.x,Y(q.re)])); wcCurve(ctx, P.slice().reverse().map(q=>[q.x,Y(q.tot)]), true); ctx.closePath(); };
-      const reUp = ()=>{ ctx.beginPath(); wcCurve(ctx, P.map(q=>[q.x,Y(q.re)])); ctx.lineTo(xe,0); ctx.lineTo(P[0].x,0); ctx.closePath(); };
-      const reDn = ()=>{ ctx.beginPath(); wcCurve(ctx, P.map(q=>[q.x,Y(q.re)])); ctx.lineTo(xe,Hh); ctx.lineTo(P[0].x,Hh); ctx.closePath(); };
-      ctx.save(); reDn(); ctx.clip(); band(); ctx.fillStyle = rgba(C.dn, wa); ctx.fill(); ctx.restore();
-      ctx.save(); reUp(); ctx.clip(); band(); ctx.fillStyle = rgba(C.up, wa); ctx.fill(); ctx.restore();
-      ctx.lineJoin='round'; ctx.lineCap='round';
-      path('re'); ctx.strokeStyle=C.gold; ctx.lineWidth=W_SUB; ctx.stroke();
-      path('tot'); ctx.strokeStyle=C.fg; ctx.lineWidth=W_TOT; ctx.stroke();
-      // 끝: 실현~총 손익 사이 세로 괄호
-      const ya=Y(pe.re), yb=Y(pe.tot); ctx.strokeStyle=unC; ctx.lineWidth=2; ctx.globalAlpha=.75;
-      ctx.beginPath(); ctx.moveTo(xe, ya); ctx.lineTo(xe, yb); ctx.stroke(); ctx.globalAlpha=1;
-    } else {
-    path('un'); ctx.lineTo(xe, y0); ctx.lineTo(P[0].x, y0); ctx.closePath();
-    ctx.save(); ctx.clip();
-    const wa = SS.fillA ?? (C.light ? .08 : .10);
-    if(SS.fillGrad){
-      const gu = ctx.createLinearGradient(0, pad.t, 0, y0); gu.addColorStop(0, rgba(C.up, wa)); gu.addColorStop(1, rgba(C.up, 0));
-      const gd = ctx.createLinearGradient(0, y0, 0, Hh-pad.b); gd.addColorStop(0, rgba(C.dn, 0)); gd.addColorStop(1, rgba(C.dn, wa));
-      ctx.fillStyle = gu; ctx.fillRect(0, 0, W, y0); ctx.fillStyle = gd; ctx.fillRect(0, y0, W, Hh-y0);
-    } else {
-    ctx.fillStyle = rgba(C.up, wa); ctx.fillRect(0, 0, W, y0);
-    ctx.fillStyle = rgba(C.dn, wa); ctx.fillRect(0, y0, W, Hh-y0);
-    }
-    ctx.restore();
-    // ② 선: 테두리·빛번짐 없이 얇게
-    ctx.lineJoin='round'; ctx.lineCap='round';
-    ctx.globalAlpha = aSub;
-    ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,y0); ctx.clip(); path('un'); ctx.strokeStyle=C.up; ctx.lineWidth=W_SUB; ctx.stroke(); ctx.restore();
-    ctx.save(); ctx.beginPath(); ctx.rect(0,y0,W,Hh-y0); ctx.clip(); path('un'); ctx.strokeStyle=C.dn; ctx.lineWidth=W_SUB; ctx.stroke(); ctx.restore();
-    path('re'); ctx.strokeStyle=C.gold; ctx.lineWidth=W_SUB; ctx.stroke();
-    ctx.globalAlpha = 1;
-    if(halo){ path('tot'); ctx.save(); ctx.globalAlpha=.16; ctx.strokeStyle=cTot; ctx.lineWidth=narrow?halo*.7:halo; ctx.stroke(); ctx.restore(); }
-    path('tot'); ctx.strokeStyle=cTot; ctx.lineWidth=W_TOT; ctx.stroke();
-    }
-
-    // ③ 끝점 (표면색 링) + 알약
-    const ends = CHART_V==='B' ? [['re',C.gold],['tot',C.fg]] : [['un',unC],['re',C.gold],['tot',cTot]];
-    ends.forEach(([key,c])=>{ ctx.beginPath(); ctx.arc(xe,Y(pe[key]),narrow?3.4:4,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=C.panel; ctx.stroke(); });
-    if(st.playing){ ctx.font=`${Math.round(15*k)}px serif`; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('🧺', xe, Y(pe.re)-7); }
-    tags.forEach(t=>{
-      const col = t.k==='re' ? C.gold : t.k==='tot' ? cTot : unC;
-      const ic = t.k==='re' ? '🧺' : t.k==='tot' ? '📊' : '🌱';
-      const txt = narrow ? short(t.v) : won(t.v,true);
-      const x = xe + (narrow?9:12)*k, fs = Math.round((narrow?10.5:12)*k), h = Math.round((narrow?19:23)*k);
-      ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`; const tw = ctx.measureText(txt).width;
-      ctx.font = `${fs}px serif`; const iw = narrow ? 0 : ctx.measureText(ic).width + 4;
-      const w = tw + iw + (narrow?12:16);
-      // 끝점과 알약 사이 짧은 연결선 (벌어졌을 때)
-      const ly = (CHART_V==='B' && t.k==='un') ? Y(mid(pe)) : Y(pe[t.k]); if(Math.abs(ly - t.y) > 3){ ctx.strokeStyle = col; ctx.globalAlpha=.5; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(xe+4, ly); ctx.lineTo(x, t.y); ctx.stroke(); ctx.globalAlpha=1; }
-      ctx.fillStyle = C.panel; rr(x, t.y-h/2, w, h, h/2); ctx.fill();
-      ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.stroke();
-      ctx.textBaseline='middle'; ctx.textAlign='left';
-      let tx = x + (narrow?6:8);
-      if(!narrow){ ctx.font = `${fs}px serif`; ctx.fillText(ic, tx, t.y+0.5); tx += iw; }
-      ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`; ctx.fillStyle = C.fg; ctx.fillText(txt, tx, t.y+0.5);
-    });
-
-    // ④ 이벤트
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ev.forEach(e=>{ if(e.i>n) return; if(narrow && (e.ic==='💥' || e.ic==='🌧')) return;
-      const ei = weekly() ? wcSnap(WK.filter(i=>i<=n).concat(n), e.i) : e.i, ek = (CHART_V==='B' && e.k==='un') ? 'tot' : e.k;
-      const x=X(ei), y=Y(st.data[ei][ek]); ctx.font=`${Math.round(13*k)}px serif`;
-      ctx.fillText(e.ic, x, e.up ? y-12*k : y+12*k); });
-    st.pops = st.pops.filter(q=>now-q.t0<2200);
-    st.pops.forEach(q=>{
-      const age=(now-q.t0)/2200, al = age<.15? age/.15 : 1-Math.max(0,(age-.6)/.4);
-      const x = Math.min(W-pad.r-80, Math.max(pad.l+80, X(q.i))), yb = Y(st.data[q.i][q.k]);
-      const y = q.up ? Math.max(pad.t+14, yb - 34*k - age*14) : Math.min(Hh-pad.b-14, yb + 34*k + age*14);
-      ctx.globalAlpha = Math.max(0,al);
-      ctx.font = `600 ${Math.round(12.5*k)}px "IBM Plex Sans KR", sans-serif`;
-      const txt = q.ic+' '+q.t, tw = ctx.measureText(txt).width+18;
-      ctx.fillStyle = C.light ? 'rgba(255,255,255,.97)' : 'rgba(7,16,34,.93)'; ctx.strokeStyle = C.light?'rgba(20,30,60,.16)':'rgba(150,175,230,.25)'; ctx.lineWidth=1;
-      rr(x-tw/2, y-14, tw, 28, 14); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = C.fg; ctx.textAlign='center'; ctx.fillText(txt, x, y+0.5); ctx.globalAlpha=1;
-    });
-
-    // ⑤ 호버: 세로선 + 점 3개 + 툴팁 카드
-    if(st.hover>=0 && !st.playing){
-      const h=st.data[st.hover], x=X(st.hover);
-      ctx.strokeStyle = C.light ? 'rgba(20,30,60,.22)' : 'rgba(234,240,252,.25)'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(Math.round(x)+.5,pad.t); ctx.lineTo(Math.round(x)+.5,Hh-pad.b); ctx.stroke();
-      (CHART_V==='B' ? [[h.re,C.gold],[h.tot,C.fg]] : [[h.un,h.un>=0?C.up:C.dn],[h.re,C.gold],[h.tot,cTot]]).forEach(([v,c])=>{ ctx.beginPath(); ctx.arc(x,Y(v),4,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=C.panel; ctx.stroke(); });
-      const rows = [['📊 총 손익', h.tot, C.fg], ['🧺 실현', h.re, C.gold], ['🌱 평가', h.un, h.un>=0?C.up:C.dn]];
-      const fs = Math.round((narrow?11:12)*k), lh = fs+8;
-      ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`;
-      const wl = Math.max(...rows.map(r=>ctx.measureText(r[0]).width));
-      ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`;
-      const wv = Math.max(...rows.map(r=>ctx.measureText(won(r[1],true)).width));
-      const bw = wl+wv+44, bh = lh*4+10;
-      let bx = x+14; if(bx+bw > W-pad.r) bx = x-14-bw; bx = Math.max(pad.l, bx);
-      const by = Math.max(pad.t, Math.min(Hh-pad.b-bh, Y(h.tot)-bh/2));
-      ctx.fillStyle = C.light ? 'rgba(255,255,255,.97)' : 'rgba(12,18,32,.95)'; ctx.strokeStyle = C.light?'rgba(20,30,60,.14)':'rgba(150,175,230,.22)'; ctx.lineWidth=1;
-      rr(bx,by,bw,bh,10); ctx.fill(); ctx.stroke();
-      ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`; ctx.fillStyle = C.muted;
-      ctx.fillText(md(h.d), bx+12, by+5+lh/2);
-      rows.forEach((r,j)=>{ const yy = by+5+lh*(j+1)+lh/2;
-        ctx.fillStyle = r[2]; ctx.beginPath(); ctx.arc(bx+15, yy, 3.5, 0, 7); ctx.fill();
-        ctx.font = `600 ${fs}px "IBM Plex Sans KR", sans-serif`; ctx.fillStyle = C.muted; ctx.textAlign='left'; ctx.fillText(r[0], bx+24, yy);
-        ctx.font = `700 ${fs}px "IBM Plex Mono", monospace`; ctx.fillStyle = C.fg; ctx.textAlign='right'; ctx.fillText(won(r[1],true), bx+bw-12, yy); });
-    }
-  }
-  function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-
-  // 월별 카드: 미니 워터폴(실현 → 평가 변화 → 합계)
   function months(){
-    const M = {}; let prevUn = 0;
-    ALL.forEach(p=>{ if(p.live) return; const m=p.d.slice(0,7); M[m] = M[m] || {re:0, tot:0, un0:prevUn}; M[m].re += p.dre; M[m].tot += p.day; M[m].un1 = p.un; prevUn = p.un; });
-    const keys = Object.keys(M).sort(), cur = ALL[ALL.length-1].d.slice(0,7);
-    $('pr-months').innerHTML = keys.map(m=>{ const o=M[m], du=o.un1-o.un0, mx=Math.max(1,Math.abs(o.re),Math.abs(o.re+du),Math.abs(du)), sx=v=>50+v/mx*46, x0=sx(0), x1=sx(o.re), x2=sx(o.re+du);
-      return `<button type="button" class="pm ${m===cur?'now':''}" data-m="${m}" aria-label="${+m.slice(5)}월로 이동">
+    const M={}; let prevUn=0;
+    ALL.forEach(p=>{ if(p.live || !p.d.startsWith('2026')) return; const m=p.d.slice(0,7); M[m]=M[m]||{re:0, tot:0, un0:prevUn}; M[m].re+=p.dre; M[m].tot+=p.day; M[m].un1=p.un; prevUn=p.un; });
+    const keys=Object.keys(M).sort(), cur=ALL[ALL.length-1].d.slice(0,7);
+    $('pr-months').innerHTML=keys.map(m=>{ const o=M[m], du=o.un1-o.un0, mx=Math.max(1,Math.abs(o.re),Math.abs(o.re+du),Math.abs(du)), sx=v=>50+v/mx*46, x0=sx(0), x1=sx(o.re), x2=sx(o.re+du);
+      return `<button type="button" class="pm ${m===cur?'now':''}" data-m="${m}" aria-label="${+m.slice(5)}월만 보기">
         <span class="mt"><b>${+m.slice(5)}월</b><span class="num ${sgn(o.tot)}">${won(o.tot,true)}</span></span>
         <svg viewBox="0 0 100 22" preserveAspectRatio="none" aria-hidden="true">
           <line x1="${x0}" y1="1" x2="${x0}" y2="21" stroke="currentColor" stroke-opacity=".25" stroke-width="1" vector-effect="non-scaling-stroke"/>
-          <rect x="${Math.min(x0,x1)}" y="3" width="${Math.max(.6,Math.abs(x1-x0))}" height="7" rx="1.5" fill="var(--gold-hi)"/>
-          <rect x="${Math.min(x1,x2)}" y="12" width="${Math.max(.6,Math.abs(x2-x1))}" height="7" rx="1.5" fill="${du>=0?'var(--up)':'var(--down)'}" fill-opacity=".85"/>
+          <rect x="${Math.min(x0,x1)}" y="3" width="${Math.max(.6,Math.abs(x1-x0))}" height="7" rx="1.5" fill="var(--c-re)"/>
+          <rect x="${Math.min(x1,x2)}" y="12" width="${Math.max(.6,Math.abs(x2-x1))}" height="7" rx="1.5" fill="var(--c-un)"/>
           <path d="M${x2} 8 L${x2+2.4} 11 L${x2} 14 L${x2-2.4} 11 Z" fill="var(--fg)"/>
         </svg>
-        <span class="r">🧺 실현 <span class="num gold">${won(o.re,true)}</span></span>
+        <span class="r">🧺 실현 <span class="num ${sgn(o.re)}">${won(o.re,true)}</span></span>
         <span class="r">🌱 평가 <span class="num ${sgn(du)}">${won(du,true)}</span></span></button>`; }).join('');
-    const box = $('pr-months'); box.scrollLeft = box.scrollWidth;
-    box.querySelectorAll('.pm').forEach(el=>el.addEventListener('click',()=>{
-      if(st.mode!=='all'){ document.querySelectorAll('[data-prmode]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.prmode==='all')); st.mode='all'; setData(); }
-      let k=-1; st.data.forEach((p,i)=>{ if(p.d.slice(0,7)===el.dataset.m) k=i; });
-      if(k<0) return; if(st.playing) stop(false); st.i=k; st.hover=-1; $('pr-scrub').value=k; board(k); draw(performance.now());
-      cv.scrollIntoView({behavior:RM?'auto':'smooth', block:'center'});
-    }));
+    const box=$('pr-months'); box.scrollLeft=box.scrollWidth;
+    box.querySelectorAll('.pm').forEach(b=>b.addEventListener('click',()=>{
+      const m=b.dataset.m; R = R==='m:'+m ? 'all' : 'm:'+m;
+      $('pr-range').querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected', String(x.dataset.k===R)));
+      draw(); }));
   }
-
-  let last = 0;
-  function frame(t){
-    if(!st.playing) return;
-    const dt = Math.min(64, t-(last||t)); last = t;
-    const prev = Math.floor(st.i);
-    st.i = Math.min(st.data.length-1, st.i + dt/1000*(st.mode==='all'?45:st.mode==='3m'?22:10)*st.speed);
-    const now = Math.floor(st.i);
-    ev.forEach(e=>{ if(e.i>prev && e.i<=now) st.pops.push({...e, t0:t}); });
-    board(now); $('pr-scrub').value = now;
-    draw(t);
-    if(st.i>=st.data.length-1){ stop(true); return; }
-    requestAnimationFrame(frame);
-  }
-  function play(){
-    if(st.i>=st.data.length-1) st.i = 0;
-    st.playing = true; st.pops=[]; last=0; st.hover=-1;
-    $('pr-play').classList.add('on'); $('pr-play').textContent='⏸ 일시정지';
-    if(RM){ st.i = st.data.length-1; stop(true); return; }
-    requestAnimationFrame(frame);
-  }
-  function stop(end){
-    st.playing = false;
-    $('pr-play').classList.remove('on');
-    $('pr-play').textContent = end ? '↻ 다시 재생' : '▶ 이어서 재생';
-    st.i = Math.floor(st.i); board(st.i); draw(performance.now());
-  }
-  $('pr-play').addEventListener('click', ()=> st.playing ? stop(false) : play());
-  document.querySelectorAll('[data-prmode]').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('[data-prmode]').forEach(x=>x.setAttribute('aria-pressed', x===b));
-    st.mode = b.dataset.prmode; st.playing=false; setData(); st.i = st.data.length-1; st.hover=-1;
-    $('pr-play').classList.remove('on'); $('pr-play').textContent='▶ 처음부터 재생';
-    $('pr-scrub').value = st.i; board(st.i); draw(performance.now());
-  }));
-  document.querySelectorAll('[data-prspeed]').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('[data-prspeed]').forEach(x=>x.setAttribute('aria-pressed', x===b));
-    st.speed = +b.dataset.prspeed;
-  }));
-  $('pr-scrub').addEventListener('input', e=>{ if(st.playing) stop(false); st.i = +e.target.value; st.hover=-1; board(st.i); draw(performance.now()); });
-  cv.addEventListener('pointermove', e=>{
-    if(st.playing) return;
-    const r = cv.getBoundingClientRect(), x = e.clientX-r.left;
-    const k = Math.round((x-pad.l)/(W-pad.l-pad.r)*(st.data.length-1));
-    if(k<0||k>st.i){ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); return; }
-    st.hover = weekly() ? wcSnap(WK.filter(i=>i<=st.i), k) : k; board(st.hover); draw(performance.now());
-  });
-  cv.addEventListener('pointerleave', ()=>{ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); });
-  RESIZE.push(()=>{ colors(); padFit(); size(); draw(performance.now()); });
-  new MutationObserver(()=>{ colors(); draw(performance.now()); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
-
+  ltSeg($('pr-range'), RANGES, R, k=>{ R=k; ltStore('wcl_pnlr',k); draw(); });
+  months(); draw();
+  RESIZE.push(draw);
   // 장중 실시간: 오늘 행이 아직 없을 때 오늘 점을 붙여 움직임 (실현은 그대로, 평가·총 손익만 td만큼)
-  S.pnlLive = (td, open) => {
-    const base = ALL[ALL.length-1].live ? ALL[ALL.length-2] : ALL[ALL.length-1];
-    const kn = kstNow(), today = kn.getFullYear()+'-'+String(kn.getMonth()+1).padStart(2,'0')+'-'+String(kn.getDate()).padStart(2,'0');
-    if(!(today > base.d)) return;
-    const pt = {d:today, tot:base.tot+td, re:base.re, un:base.un+td, day:td, dre:0, live:true, open:!!open};
-    const atEnd = Math.floor(st.i) >= st.data.length-1;
-    if(ALL[ALL.length-1].live) ALL[ALL.length-1] = pt; else ALL.push(pt);
-    if(st.playing) return;
-    setData(); if(atEnd){ st.i = st.data.length-1; $('pr-scrub').value = st.i; }
-    if(st.hover<0) board(Math.floor(st.i)); draw(performance.now());
+  S.pnlLive=(td, open)=>{
+    const base=ALL[ALL.length-1].live?ALL[ALL.length-2]:ALL[ALL.length-1];
+    const kn=kstNow(), today=kn.getFullYear()+'-'+String(kn.getMonth()+1).padStart(2,'0')+'-'+String(kn.getDate()).padStart(2,'0');
+    if(!(today>base.d)) return;
+    const pt={d:today, tot:base.tot+td, re:base.re, un:base.un+td, day:td, dre:0, live:true, open:!!open};
+    if(ALL[ALL.length-1].live) ALL[ALL.length-1]=pt; else ALL.push(pt);
+    if(!R.startsWith('m:')) draw();
   };
-
-  padFit();
-  setData(); size(); st.i = st.data.length-1; $('pr-scrub').value = st.i; board(st.i); months(); draw(performance.now());
-}
-
-/* ════════ REPLAY ════════ */
-function replay(S){
-  const cv = $('rp'), ctx = cv.getContext('2d');
-  const st = {mode:'y26', data:S.Y26, i:S.Y26.length-1, playing:false, speed:1, hover:-1, pops:[], acc:0};
-  const C = {leaf:css('--leaf'), gold:css('--gold-hi'), kospi:css('--kospi'), muted:css('--muted'), dim:css('--dim'), line:'rgba(150,175,230,.13)', fg:css('--fg'), up:css('--up'), dn:css('--down')};
-  let W=0, Hh=0, dpr=1, ev=[], yr={min:0,max:1}, WK=[0];
-  const weekly = ()=> CHART_V==='B';
-  const pad = {l:8, r:58, t:18, b:24};
-  const padFit = ()=>{ const k=RS(); pad.r=Math.round(58*k); pad.t=Math.round(18*k); pad.b=Math.round(24*k); };
-
-  function events(data){
-    const out = [], dd = drawdowns(data);
-    let mi = 0; dd.forEach((v,i)=>{ if(v<dd[mi]) mi=i; });
-    let pi = 0; data.forEach((p,i)=>{ if(p.me>data[pi].me) pi=i; });
-    out.push({i:pi, ic:'🏔', t:'최고점 '+pct(data[pi].me,0)});
-    out.push({i:mi, ic:'🌧', t:'최대낙폭 '+pct(dd[mi])});
-    const c100 = data.findIndex(p=>p.me>=100); if(c100>0) out.push({i:c100, ic:'🚀', t:'+100% 돌파'});
-    // 2026 최고/최악의 날
-    const map = {}; S.D.forEach(r=>map[r.d]=r);
-    let bi=-1, wi=-1;
-    data.forEach((p,i)=>{ const r=map[p.d]; if(!r) return; if(bi<0||r.pnl>map[data[bi].d].pnl) bi=i; if(wi<0||r.pnl<map[data[wi].d].pnl) wi=i; });
-    if(bi>=0) out.push({i:bi, ic:'💥', t:'최고의 날 '+won(map[data[bi].d].pnl,true)});
-    if(wi>=0) out.push({i:wi, ic:'🥶', t:'최악의 날 '+won(map[data[wi].d].pnl,true)});
-    // 코스피 첫 역전
-    for(let i=20;i<data.length;i++){ if(data[i].me>data[i].kp && data[i-1].me<=data[i-1].kp && data.slice(i).every(p=>p.me>p.kp)){ out.push({i, ic:'⚔️', t:'코스피 역전'}); break; } }
-    return out.sort((a,b)=>a.i-b.i);
-  }
-  function setData(){
-    st.data = st.mode==='all'? S.FULL : S.Y26;
-    ev = events(st.data);
-    let mn = Infinity, mx = -Infinity;
-    st.data.forEach(p=>{ mn=Math.min(mn,p.me,p.kp); mx=Math.max(mx,p.me,p.kp); });
-    const span = mx-mn; yr = {min:mn-span*0.06, max:mx+span*0.1};
-    WK = wcWeekEnds(st.data);
-    $('scrub').max = st.data.length-1;
-  }
-  function size(){
-    const r = cv.getBoundingClientRect(); dpr = Math.min(2, devicePixelRatio||1);
-    W = r.width; Hh = r.height; cv.width = W*dpr; cv.height = Hh*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  const X = i => pad.l + (i/(st.data.length-1))*(W-pad.l-pad.r);
-  const stride = () => Math.max(1, Math.round(st.data.length / ((W-pad.l-pad.r)/2.6)));
-  const Y = v => pad.t + (1-(v-yr.min)/(yr.max-yr.min))*(Hh-pad.t-pad.b);
-  function niceStep(range,n){ const raw=range/n, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p; return (f<1.5?1:f<3?2:f<7?5:10)*p; }
-
-  function board(k){
-    const p = st.data[k]; if(!p) return;
-    const d = dObj(p.d);
-    $('sb-date').textContent = d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
-    $('sb-me').textContent = pct(p.me); $('sb-kp').textContent = pct(p.kp);
-    const g = p.me-p.kp; $('sb-gap').textContent = pp(g); $('sb-gap').className = 'num '+cls(g);
-    const tr = S.TR[p.d];
-    $('sb-diary').innerHTML = tr ? '<span class="muted">농사일지</span> '+tr.map(e=>`<span class="tchip t-${e.t}">${trText(e)}</span>`).join('') : '';
-  }
-
-  function draw(now){
-    const n = Math.floor(st.i);
-    const LT = document.documentElement.getAttribute('data-theme')==='light', ga = a => wcRgba(C.gold, a);
-    const SR = {me:3.2, meM:2.6, border:false, kp:2, kpM:1.6, kpA:.8, halo:9, area:[ga(LT?.16:.24), ga(LT?.04:.06), ga(0)]}, meC = C.gold; /* chart-style v1: 달리기 ③ */
-    ctx.clearRect(0,0,W,Hh);
-    // grid
-    const step = niceStep(yr.max-yr.min,5);
-    ctx.font = `500 ${Math.round(11*RS())}px "IBM Plex Mono", monospace`; ctx.textBaseline='middle'; ctx.textAlign='left';
-    for(let v=Math.ceil(yr.min/step)*step; v<=yr.max; v+=step){
-      const y = Y(v);
-      ctx.strokeStyle = Math.abs(v)<1e-9 ? 'rgba(150,175,230,.38)' : C.line; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r+4,y); ctx.stroke();
-      ctx.fillStyle = C.dim; ctx.fillText((v>0?'+':'')+Math.round(v)+'%', W-pad.r+8, y);
-    }
-    // year markers
-    ctx.textAlign='center'; ctx.textBaseline='alphabetic';
-    let lastY = '';
-    st.data.forEach((p,i)=>{ const y=p.d.slice(0,4); const m=p.d.slice(5,7);
-      if(st.mode==='all'){ if(y!==lastY){ lastY=y; const x=X(i); if(i>0){ctx.strokeStyle='rgba(150,175,230,.22)';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,Hh-pad.b);ctx.stroke();ctx.setLineDash([]);} ctx.fillStyle=C.muted; ctx.fillText(y, Math.max(pad.l+14,x+(i>0?18:0)), Hh-6); } }
-      else { if(m!==lastY){ lastY=m; if(+m%2===1){ ctx.fillStyle=C.dim; ctx.fillText(+m+'월', Math.max(pad.l+12,X(i)+10), Hh-6); } } }
-    });
-    // 매매 틱 (7/23~): 수확 금색, 파종 초록 (B: 재생·호버 때만)
-    if(CHART_V!=='B' || st.playing || st.hover>=0) for(let i=0;i<=n;i++){
-      const tr = S.TR[st.data[i].d]; if(!tr) continue;
-      const hv = tr.some(e=>e.t==='harvest'||e.t==='partial'), sd = tr.some(e=>e.t==='seed'||e.t==='add');
-      const x = X(i);
-      const tw = W<600 ? 1 : 2;
-      if(hv){ ctx.fillStyle = C.gold; ctx.fillRect(x-tw/2, Hh-pad.b-8, tw, 5); }
-      if(sd){ ctx.fillStyle = C.leaf; ctx.fillRect(x-tw/2, Hh-pad.b-2, tw, 5); }
-    }
-    // lines
-    const IX = weekly() ? WK.filter(i=>i<n) : (()=>{ const a=[]; for(let i=0;i<n;i+=stride()) a.push(i); return a; })();
-    const ptsOf = key => { const P = IX.map(i=>[X(i), Y(st.data[i][key])]); P.push([X(n), Y(st.data[n][key])]);
-      if(st.i>n && n+1<st.data.length){ const f=st.i-n, a=st.data[n], b=st.data[n+1]; P.push([X(n+f), Y(a[key]+(b[key]-a[key])*f)]); } return P; };
-    function line(key, col, w, glow){
-      ctx.beginPath(); wcCurve(ctx, ptsOf(key));
-      /* rp-crisp */ ctx.lineJoin='round'; ctx.lineCap='round';
-      if(glow){ ctx.save(); ctx.strokeStyle = css('--panel'); ctx.globalAlpha = .9; ctx.lineWidth = w+3.5; ctx.stroke(); ctx.restore(); }
-      ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke();
-    }
-    // area under mine
-    { const P = ptsOf('me'), xe0 = P[P.length-1][0];
-    ctx.beginPath(); ctx.moveTo(X(0),Y(Math.max(yr.min,0)));
-    wcCurve(ctx, P, true);
-    ctx.lineTo(xe0,Y(Math.max(yr.min,0))); ctx.closePath(); }
-    const g = ctx.createLinearGradient(0,pad.t,0,Hh-pad.b); const AR = SR.area || ['rgba(242,199,95,.10)','rgba(242,199,95,.03)','rgba(242,199,95,0)']; g.addColorStop(0,AR[0]); g.addColorStop(.55,AR[1]); g.addColorStop(1,AR[2]);
-    ctx.fillStyle = g; ctx.fill();
-    const narrow = W < 600;
-    ctx.globalAlpha = SR.kpA ?? .85; line('kp', C.kospi, narrow ? (SR.kpM??1.1) : (SR.kp??1.5), false); ctx.globalAlpha = 1;
-    if(SR.halo){ ctx.save(); ctx.globalAlpha=.16; line('me', meC, narrow ? SR.halo*.7 : SR.halo, false); ctx.restore(); }
-    line('me', meC, narrow ? (SR.meM??1.9) : (SR.me??2.4), SR.border ?? true);
-    // endpoints + labels
-    const e = st.data[n];
-    const ym = Y(e.me), yk = Y(e.kp), xe = X(n);
-    [[yk,C.kospi],[ym,meC]].forEach(([y,c])=>{ ctx.beginPath(); ctx.arc(xe,y,4.5,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=css('--panel'); ctx.stroke(); });
-    if(st.playing){ // runner emoji
-      ctx.font=`${Math.round(18*RS())}px serif`; ctx.textAlign='center'; ctx.textBaseline='bottom';
-      ctx.fillText('🧑‍🌾', xe, ym-6); ctx.fillText('🐢', xe, yk-6);
-    }
-    // events
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ev.forEach(evn=>{
-      if(evn.i>n) return;
-      if(W<600 && !['🏔','🌧','🚀'].includes(evn.ic)) return;
-      const ei = weekly() ? wcSnap(WK.filter(i=>i<=n).concat(n), evn.i) : evn.i;
-      const x = X(ei), y = Y(st.data[ei].me);
-      ctx.font=`${Math.round(15*RS())}px serif`; ctx.fillText(evn.ic, x, evn.ic==='🌧'||evn.ic==='🥶' ? y+14 : y-14);
-    });
-    // pops (during play)
-    st.pops = st.pops.filter(pp=> now-pp.t0 < 2200);
-    st.pops.forEach(pp=>{
-      const age=(now-pp.t0)/2200, a = age<.15? age/.15 : 1-Math.max(0,(age-.6)/.4);
-      const x = Math.min(W-pad.r-70, Math.max(pad.l+70, X(pp.i))), y = Y(st.data[pp.i].me) - 34 - age*14;
-      ctx.globalAlpha = Math.max(0,a);
-      ctx.font = `600 ${Math.round(13*RS())}px "IBM Plex Sans KR", sans-serif`;
-      const txt = pp.ic+' '+pp.t, tw = ctx.measureText(txt).width+18;
-      ctx.fillStyle = 'rgba(7,16,34,.92)'; ctx.strokeStyle='rgba(242,199,95,.6)'; ctx.lineWidth=1;
-      roundRect(x-tw/2, y-14, tw, 28, 14); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#eef1f6'; ctx.fillText(txt, x, y);
-      ctx.globalAlpha = 1;
-    });
-    // hover crosshair
-    if(st.hover>=0 && !st.playing){
-      const h = st.data[st.hover], x = X(st.hover);
-      ctx.strokeStyle='rgba(234,240,252,.35)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,Hh-pad.b); ctx.stroke();
-      [[h.kp,C.kospi],[h.me,meC]].forEach(([v,c])=>{ ctx.beginPath(); ctx.arc(x,Y(v),4,0,7); ctx.fillStyle=c; ctx.fill(); });
-    }
-    // direct labels at end (when not hovering)
-    if(st.hover<0 || st.playing){
-      ctx.font=`600 ${Math.round(12*RS())}px "IBM Plex Sans KR", sans-serif`; ctx.textAlign='right'; ctx.textBaseline='middle';
-      const lx = Math.max(pad.l+50, xe-10), meUp = ym <= yk;
-      const top = Math.min(ym,yk), bot = Math.max(ym,yk);
-      let ty = top-13, by = bot+15; if(ty < pad.t+4) ty = pad.t+4; if(by > Hh-pad.b-12) by = Hh-pad.b-12; if(by-ty < 18) by = ty+18;
-      ctx.fillStyle=meC; ctx.fillText('나', lx, meUp ? ty : by);
-      ctx.fillStyle=C.kospi; ctx.fillText('KOSPI', lx, meUp ? by : ty);
-    }
-  }
-  function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-
-  let last = 0;
-  function frame(t){
-    if(!st.playing) return;
-    const dt = Math.min(64, t-(last||t)); last = t;
-    const prev = Math.floor(st.i);
-    st.i = Math.min(st.data.length-1, st.i + dt/1000*55*st.speed);
-    const now = Math.floor(st.i);
-    ev.forEach(e=>{ if(e.i>prev && e.i<=now) st.pops.push({...e, t0:t}); });
-    board(now); $('scrub').value = now;
-    draw(t);
-    if(st.i>=st.data.length-1){ stop(true); return; }
-    requestAnimationFrame(frame);
-  }
-  function play(){
-    if(st.i>=st.data.length-1) st.i = 0;
-    st.playing = true; st.pops=[]; last=0; st.hover=-1;
-    $('rp-play').classList.add('on'); $('rp-play').textContent='⏸ 일시정지';
-    if(RM){ st.i = st.data.length-1; stop(true); return; }
-    requestAnimationFrame(frame);
-  }
-  function stop(end){
-    st.playing = false;
-    $('rp-play').classList.remove('on');
-    $('rp-play').textContent = end ? '↻ 다시 재생' : '▶ 이어서 재생';
-    st.i = Math.floor(st.i); board(st.i); draw(performance.now());
-    if(end) confetti(st.data[st.data.length-1].me > st.data[st.data.length-1].kp, 60);
-  }
-  $('rp-play').addEventListener('click', ()=> st.playing ? stop(false) : play());
-  document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed', x===b));
-    st.mode = b.dataset.mode; st.playing=false; setData(); st.i = st.data.length-1; st.hover=-1;
-    $('rp-play').classList.remove('on'); $('rp-play').textContent='▶ 처음부터 재생';
-    $('scrub').value = st.i; board(st.i); draw(performance.now());
-  }));
-  document.querySelectorAll('[data-speed]').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('[data-speed]').forEach(x=>x.setAttribute('aria-pressed', x===b));
-    st.speed = +b.dataset.speed;
-  }));
-  $('scrub').addEventListener('input', e=>{ if(st.playing) stop(false); st.i = +e.target.value; st.hover=-1; board(st.i); draw(performance.now()); });
-  cv.addEventListener('pointermove', e=>{
-    if(st.playing) return;
-    const r = cv.getBoundingClientRect(), x = e.clientX-r.left;
-    const k = Math.round((x-pad.l)/(W-pad.l-pad.r)*(st.data.length-1));
-    if(k<0||k>st.i){ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); return; }
-    st.hover = weekly() ? wcSnap(WK.filter(i=>i<=st.i), k) : k; board(st.hover); draw(performance.now());
-  });
-  cv.addEventListener('pointerleave', ()=>{ st.hover=-1; board(Math.floor(st.i)); draw(performance.now()); });
-  RESIZE.push(()=>{ Object.assign(C,{leaf:css('--leaf'), gold:css('--gold-hi'), kospi:css('--kospi'), muted:css('--muted'), dim:css('--dim'), fg:css('--fg'), up:css('--up'), dn:css('--down')}); padFit(); size(); draw(performance.now()); });
-  new MutationObserver(()=>{ Object.assign(C,{leaf:css('--leaf'), gold:css('--gold-hi'), kospi:css('--kospi'), muted:css('--muted'), dim:css('--dim'), fg:css('--fg'), up:css('--up'), dn:css('--down')}); draw(performance.now()); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
-  padFit();
-  setData(); size(); st.i = st.data.length-1; $('scrub').value = st.i; board(st.i); draw(performance.now());
 }
 
 /* ════════ LIVE ════════ */
@@ -3517,31 +3219,42 @@ function farm(S, L, P, again){
   const lk = L.lever_avg||[], lq = L.kosdaq_avg||[];
   const deepOf = avgs => { let d=-1; avgs.forEach((v,i)=>{ if(v>0) d=i; }); return d; };
 
+  /* 📋 계좌별 표 (2026-11-24, 예전 사다리 막대 자리) — 칸 · 평단 · 손익률 · 수확까지 · 평가손익 */
   function ladder(el, key, label, emoji, avgs, price, prev){
     const deep = deepOf(avgs), act = avgs.filter(v=>v>0).length;
     const sy = sysOf(key), hv = HARV(sy);
-    const maxAvg = Math.max(...avgs, 1);
     const dayChg = price && prev ? (price/prev-1)*100 : null;
     const rows = avgs.map((a,i)=>{
-      if(!(a>0)) return `<div class="step empty"><span class="no">#${i+1}</span><div class="bar"></div><span class="val muted">${i===deep+1?'🌱 다음 파종 자리':'빈칸'}</span></div>`;
-      const r = price? (price/a-1)*100 : null;
-      const col = r==null? 'var(--gold)' : (r>=hv*100?'var(--up)':(r>=0?'rgba(255,95,95,.55)':'var(--down)'));
-      return `<div class="step ${i===deep?'next':''}"><span class="no">#${i+1}</span><div class="bar"><div data-w="${(a/maxAvg*100).toFixed(1)}" style="background:${col}"></div></div>
-        <span class="val">${(()=>{ if(!price) return ''; const p = wxProb(key, wxNeed(a,price,hv)), w = wxOf(p[1]); return `<span class="wxi" title="5거래일 안 수확 확률 ${wxPct(p[1])} · ${w.nm} (내일 ${wxPct(p[0])} · 20일 ${wxPct(p[3])})">${w.ic}</span>`; })()}${a.toLocaleString()}${r==null?'':` <span class="${cls(r)}">${pct(r,1)}</span>`}</span></div>`;
+      if(!(a>0)) return `<tr class="ft-empty"><td class="ft-no">${i+1}</td><td colspan="4">${i===deep+1?'🌱 다음 파종 자리':'빈칸'}</td></tr>`;
+      const q = (SH[i]||{})[key]||0;
+      if(!price) return `<tr><td class="ft-no">${i+1}</td><td class="num">${a.toLocaleString()}</td><td colspan="3" class="muted">종가 입력 전</td></tr>`;
+      const r = (price/a-1)*100, need = wxNeed(a, price, hv), p = wxProb(key, need), w = wxOf(p[3]), un = q*(price-a);
+      return `<tr class="${i===deep?'ft-next':''}" title="수확선 ${Math.ceil(a*(1+hv)).toLocaleString()}원 · 보유 ${q.toLocaleString()}주 · 20거래일 안 수확 확률 ${wxPct(p[3])}">
+        <td class="ft-no">${i+1}</td>
+        <td class="num">${a.toLocaleString()}</td>
+        <td class="num ${cls(r)}">${pct(r,1)}</td>
+        <td class="num">${need<=0?'<b class="up">수확선 위</b>':pct(need,1)}${p[3]>=1?`<span class="ft-wx" title="20거래일 안 ${w.nm}">${w.ic} ${wxPct(p[3])}</span>`:''}</td>
+        <td class="num ${cls(un)}">${q?won(un,true):'-'}</td></tr>`;
     }).join('');
     let note = '';
     if(deep>=0){
       const tgt = Math.ceil(avgs[deep]*(1+hv)), ready = price && price>=tgt;
-      note = `<div>🧺 다음 수확 <b>${deep+1}번</b> · 수확선(평단 +${+(hv*100).toFixed(1)}%) <b class="num">${tgt.toLocaleString()}원</b>${price ? (ready ? '<span class="up">✔ 수익 조건 충족 · 다음 날 상승 마감이면 수확</span>' : `<span class="muted">· 수확선까지 <b class="num" style="color:var(--fg)">${pct((tgt/price-1)*100,2)}</b> 더 올라야 함</span>`) : ''}</div>`;
-      if(deep+2<=8) note += `<div>🌱 다음 파종 <b>${deep+2}번${deep>=0?`+${deep+1}번`:''}</b> · 전일보다 내리면 각 <b class="num">${won(ALLOT(sy))}</b> 투입</div>`;
-      else note += `<div>⚠️ 8번까지 파종 완료 · -5%마다 ${won(ALLOT(sy))} 추가, -15%면 8번만 청산</div>`;
+      note = `<div>🧺 다음 수확 <b>${deep+1}번</b> · 수확선 <b class="num">${tgt.toLocaleString()}원</b>${price ? (ready ? ' <span class="up">✔ 수익 조건 충족 · 상승 마감이면 수확</span>' : ` <span class="muted">· ${pct((tgt/price-1)*100,2)} 더 올라야 함</span>`) : ''}</div>`;
+      if(deep+2<=8) note += `<div>🌱 다음 파종 <b>${deep+2}번${deep>=0?`+${deep+1}번`:''}</b> · 전일보다 내리면 각 <b class="num">${won(ALLOT(sy))}</b></div>`;
+      else note += `<div>⚠️ 8번까지 파종 완료 · −5%마다 ${won(ALLOT(sy))} 추가, −15%면 8번만 청산</div>`;
       note += `<div>🪜 파종 깊이 <b>${act}/8</b> · 1번↔${deep+1}번 평단 차 <b class="num">${pct((avgs[deep]/avgs[0]-1)*100,1)}</b></div>`;
     } else note = '<div>모든 칸이 비어 있어요. 1번 계좌부터 파종 대기.</div>';
     el.innerHTML = `<div class="lad-head"><h3>${emoji} ${label}</h3>
       ${price?`<span class="close-chip ${live?'is-live':''}">${live?'⚡ 실시간':md(L.d)+' 종가'} <b class="num">${price.toLocaleString()}</b>${dayChg!=null?` <span class="num ${cls(dayChg)}">${pct(dayChg,2)}</span>`:''}</span>`:''}</div>
-      ${rows}<div class="lad-note">${note}</div>`;
-    const grow = ()=>el.querySelectorAll('[data-w]').forEach(b=>b.style.width=b.dataset.w+'%');
-    again ? grow() : requestAnimationFrame(grow);
+      <div class="ft-scroll"><table class="ft"><thead><tr><th>칸</th><th>평단</th><th>손익률</th><th>수확까지</th><th>평가손익</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="lad-note">${note}</div>`;
+  }
+  // 탭: 📋 계좌별 표 | 🌾 밭별로 보기 (고른 탭은 이 기기에 기억)
+  if(!again){
+    const setFv = v => document.querySelectorAll('#farm [data-fv]').forEach(x=>{ x.hidden = x.dataset.fv!==v; });
+    let fv = ltStore('wcl_farmtab') || 'table'; if(fv!=='table' && fv!=='plots') fv = 'table';
+    ltSeg($('ftabs'), [['table','📋 계좌별 표'],['plots','🌾 밭별로 보기']], fv, k=>{ ltStore('wcl_farmtab',k); setFv(k); });
+    setFv(fv);
   }
   ladder($('lad-k'), 'k', 'KODEX 레버리지', '🥔', lk, cl[0], pcl[0]);
   ladder($('lad-q'), 'q', 'KODEX 코스닥150레버리지', '🥬', lq, cl[1], pcl[1]);
@@ -3588,21 +3301,26 @@ function farm(S, L, P, again){
   const stat = over ? `<span class="sd-stat warn">⛔ 한도 초과 · 추가로 심을 씨앗 없음</span>`
     : runway>0 ? `<span class="sd-stat ok">🌱 하락 마감이 <b>${runway}일</b> 이어져도 규칙대로 파종 가능</span>`
     : `<span class="sd-stat warn">⚠️ 다음 하락 땐 일부만 파종 가능</span>`;
+  /* 🌰 씨앗 창고 (2026-11-24): 남은 씨앗 크게 · 막대 하나 · 칸별로 묶인 원금 */
+  const nextUse = over ? 0 : steps.reduce((t,st)=>t+(st.use||0),0);
+  const sc2 = Math.max(budget, planted + nextUse), w2 = v => Math.max(0, v/sc2*100).toFixed(2)+'%';
+  const cMax = Math.max(...costs, 1), cTop = planted ? costs.indexOf(Math.max(...costs)) : -1;
   $('seedbox').innerHTML = `
-    <div class="sb-l">${qimg('vault')}<div>
-      <div class="eyebrow">Seed Barn · 운용한도 ${won(budget)}</div><h3>🌰 씨앗 창고</h3>
-      <div class="sd-big num ${over?'over':'gold'}">${over ? `한도 ${won(-left)} 초과` : `${won(left)} 남음`}</div>
-      <div class="sd-sub">심어 둔 원금 <b>${won(planted)}</b> · 한도의 <b class="${over?'sd-bad':''}">${usePct}%</b></div>
+    <div class="sb2-l">
+      <div class="sb2-h">${qimg('vault')}<div><h3>🌰 씨앗 창고</h3><span class="muted">운용한도 ${won(budget)}</span></div></div>
+      <div class="sb2-big num ${over?'over':''}">${over ? `한도 ${won(-left)} 초과` : `${won(left)} 남음`}</div>
+      <div class="sb2-sub">심어 둔 원금 <b class="num">${won(planted)}</b> · 한도의 <b class="${over?'sd-bad':''}">${usePct}%</b></div>
+      <div class="sb2-bar" role="img" aria-label="레버 ${won(sumK)}, 코닥 ${won(sumQ)}, 남은 씨앗 ${won(Math.max(0,left))}">
+        <span class="sk" style="width:${w2(sumK)}"></span><span class="sq" style="width:${w2(sumQ)}"></span>${nextUse?`<span class="sn" style="width:${w2(nextUse)}"></span>`:''}
+        <i class="lim" style="left:${(budget/sc2*100).toFixed(2)}%"></i></div>
+      <div class="sb2-leg"><span><i class="sb2-sw sk"></i>🥔 레버 <b class="num">${won(sumK)}</b></span><span><i class="sb2-sw sq"></i>🥬 코닥 <b class="num">${won(sumQ)}</b></span>${nextUse?`<span><i class="sb2-sw sn"></i>다음 하락 때 <b class="num">${won(nextUse)}</b></span>`:''}</div>
       ${stat}
-    </div></div>
-    <div class="sb-r">
-      <div class="sd-legend"><span><i class="sd-sw k"></i>🥔 레버 <b>${won(sumK)}</b></span><span><i class="sd-sw q"></i>🥬 코닥 <b>${won(sumQ)}</b></span>${over?'<span><i class="sd-sw o"></i>한도 넘은 부분</span>':''}${nexts?'<span><i class="sd-sw n"></i>다음 하락 때 심을 몫</span>':''}</div>
-      <div class="sd-top">${topLab}</div>
-      <div class="budget">${segs}${nexts}${limitMark}</div>
-      <div class="bscale"><span>0</span><span>심은 원금 ${won(planted)} · ${usePct}%</span></div>
-      <div class="sd-grid">${chips}</div>
-      <div class="sd-steps"><span class="sd-h">다음 하락 마감 때</span>${steps.map(st=>`<span class="bstep ${st.st}">${st.e} ${SYS[st.s]} ${st.lab} <b class="num">${won(st.amt)}</b>${st.note?` <span class="muted">· ${st.note}</span>`:''} ${stLab(st)}</span>`).join('')}</div>
-      <div class="sd-foot">하락 마감일 규칙: n번 새로 심기 + (n-1)번 같은 금액 추가 · 🥔 레버 칸당 ${won(ALLOT('K'))} · 🥬 코닥 칸당 ${won(ALLOT('Q'))} · 8번은 평단 −5%마다 추가 · 한도는 CONFIG '운용한도'</div>
+      <div class="sd-steps sb2-steps"><span class="sd-h">다음 하락 마감 때</span>${steps.map(st=>`<span class="bstep ${st.st}">${st.e} ${SYS[st.s]} ${st.lab} <b class="num">${won(st.amt)}</b>${st.note?` <span class="muted">· ${st.note}</span>`:''} ${stLab(st)}</span>`).join('')}</div>
+    </div>
+    <div class="sb2-r">
+      <h4>칸별로 묶인 원금</h4>
+      ${costs.map((c,i)=>`<div class="sb2-row ${i===cTop?'top':''}"><span class="no">${i+1}번</span><span class="b">${parts[i].k?`<span class="sk" style="width:${(parts[i].k/cMax*100).toFixed(1)}%"></span>`:''}${parts[i].q?`<span class="sq" style="width:${(parts[i].q/cMax*100).toFixed(1)}%"></span>`:''}</span><b class="num">${c?won(c):'비어 있음'}</b></div>`).join('')}
+      <div class="sb2-foot">🥔 레버 칸당 ${won(ALLOT('K'))} · 🥬 코닥 칸당 ${won(ALLOT('Q'))} · 8번은 평단 −5%마다 추가 · 한도는 CONFIG '운용한도'</div>
     </div>`;
 
 
@@ -3691,7 +3409,7 @@ function harvestLog(S, D){
   const recent = ds.slice().reverse().filter(d=>S.TR[d]).slice(0,7);
   $('hl-log').innerHTML = `<h3>📒 최근 농사일지</h3>
     <div class="muted" style="font-size:0.8929rem;margin-bottom:8px">이번 주 🌱 ${wk.filter(e=>e.t==='seed'||e.t==='add').length}번 심고 🧺 ${wk.filter(e=>e.t==='harvest'||e.t==='partial').length}번 거뒀어요</div>
-    <ol class="tl">${recent.map(d=>{ const r = D.find(x=>x.d===d); return `<li><span class="tl-d num">${md(d)}</span><div class="tl-e">${S.TR[d].map(e=>`<span class="tchip t-${e.t}">${trText(e)}</span>`).join('')}${r&&r.realized?`<span class="num gold" style="font-size:0.8571rem">+${won(r.realized)} 실현</span>`:''}</div></li>`; }).join('')}</ol>`;
+    <ol class="tl">${recent.map(d=>{ const r = D.find(x=>x.d===d); return `<li><span class="tl-d num">${md(d)}</span><div class="tl-e">${S.TR[d].map(e=>`<span class="tchip t-${e.t}">${trText(e)}</span>`).join('')}${r&&r.realized?`<span class="num ${r.realized>0?'gold':'dn'}" style="font-size:0.8571rem">${won(r.realized,true)} 실현</span>`:''}</div></li>`; }).join('')}</ol>`;
   // 작황 지도
   const rows = [], still = [];
   ['K','Q'].forEach(s=>{ for(let n=1;n<=8;n++){ const k = s==='K'?'lever_avg':'kosdaq_avg'; if(days.some(r=>(r[k]||[])[n-1]>0) && Object.values(S.TR).flat().some(e=>e.s===s&&e.n===n)) rows.push({s,n,k}); else if(days.some(r=>(r[k]||[])[n-1]>0)) still.push(SYS[s]+' '+n+'번'); } });
