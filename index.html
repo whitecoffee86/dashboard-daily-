@@ -723,11 +723,11 @@ h2{display:flex;align-items:center;gap:.5em}
 
 /* ════════ v2 정리 (2026-11-24): 장기포트식 차트 · 계좌별 표 탭 · 씨앗 창고 ════════ */
 /* 색 규칙 (2026-11-24 v3) — 장기포트 라이브 그래프 색 그대로: 잎 초록(leaf) · 금(gold) · 하늘(sky) · 보라(violet)
-   🏁 나=leaf, 코스피=sky(장기포트에서도 KOSPI=sky), 70·30=gold 점선
+   🏁 나=leaf, 코스피=sky(장기포트에서도 KOSPI=sky)
    💰 총 손익=leaf(굵게), 거둔 돈=gold, 밭에 남은 돈=sky · 🌰 🥔 레버=sky(코스피), 🥬 코닥=violet
    수익 빨강 / 손실 파랑은 숫자에만 */
-:root{--c-me:#63d07e;--c-kp:#5bb6e6;--c-mix:#f2c75f;--c-tot:#63d07e;--c-re:#f2c75f;--c-un:#5bb6e6;--c-k:#5bb6e6;--c-q:#8b7ae0;--c-row:rgba(255,255,255,.045)}
-:root[data-theme="light"]{--c-me:#20a95b;--c-kp:#2b8fd6;--c-mix:#b9801b;--c-tot:#20a95b;--c-re:#b9801b;--c-un:#2b8fd6;--c-k:#2b8fd6;--c-q:#7b61ff;--c-row:rgba(25,31,40,.045)}
+:root{--c-me:#63d07e;--c-kp:#5bb6e6;--c-tot:#63d07e;--c-re:#f2c75f;--c-un:#5bb6e6;--c-k:#5bb6e6;--c-q:#8b7ae0;--c-row:rgba(255,255,255,.045)}
+:root[data-theme="light"]{--c-me:#20a95b;--c-kp:#2b8fd6;--c-tot:#20a95b;--c-re:#b9801b;--c-un:#2b8fd6;--c-k:#2b8fd6;--c-q:#7b61ff;--c-row:rgba(25,31,40,.045)}
 .lt-card{padding:clamp(14px,1.4vw,22px);display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
 .lt-card>*{min-width:0}
 .lt-ctl{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center}
@@ -737,7 +737,7 @@ h2{display:flex;align-items:center;gap:.5em}
 .lt-seg button[aria-selected="true"]{background:var(--panel3);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 :root[data-theme="light"] .lt-seg button[aria-selected="true"]{background:#fff;box-shadow:0 1px 3px rgba(25,31,40,.12)}
 .lt-note{font-size:.82rem;color:var(--dim)}
-.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.podium{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .pod{border-radius:12px;padding:10px 12px;background:var(--panel2);display:grid;grid-template-columns:minmax(0,1fr);gap:2px;min-width:0;border:2px solid transparent}
 .pod .rk{font-size:1.35rem;line-height:1}
 .pod .nm{font-size:.84rem;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -893,12 +893,12 @@ table.ft{width:100%;border-collapse:collapse;font-size:.93rem}
   <!-- RACE (장기포트식, 2026-11-24) -->
   <section id="replay">
     <div class="sec-head">
-      <div><span class="eyebrow">Race</span><h2><span class="hi" aria-hidden="true">🏁</span>코스피와 대결</h2><p>같은 시작일을 0%로 맞춘 누적 수익률. 비교 상대는 코스피, 그리고 코스피 70%·현금 30%를 매달 되맞춘 포트예요.</p></div>
+      <div><span class="eyebrow">Race</span><h2><span class="hi" aria-hidden="true">🏁</span>코스피와 대결</h2><p>같은 시작일을 0%로 맞춘 내 계좌와 코스피의 누적 수익률(좌수법). 선을 짚으면 그날 성적이 떠요.</p></div>
     </div>
     <div class="panel lt-card">
       <div class="lt-ctl"><div class="lt-seg" role="tablist" aria-label="기간" id="rc-range"></div><span class="lt-note" id="rc-note"></span></div>
       <div class="podium" id="rc-pod"></div>
-      <div class="lt-fig"><svg class="lt-chart" id="rc-chart" role="img" aria-label="나·코스피·코스피70현금30 누적 수익률 비교"></svg><div class="lt-tip" id="rc-tip"></div></div>
+      <div class="lt-fig"><svg class="lt-chart" id="rc-chart" role="img" aria-label="나와 코스피 누적 수익률 비교"></svg><div class="lt-tip" id="rc-tip"></div></div>
       <div class="lt-lede" id="rc-lede"></div>
     </div>
   </section>
@@ -2895,14 +2895,6 @@ function ltSeg(el, items, cur, on){
 }
 const ltYmd = d => d.slice(2,4)+'.'+d.slice(5,7)+'.'+d.slice(8,10);
 const ltStore = (k,v) => { try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } };
-/* 코스피 70 · 현금 30 — 매달 첫 거래일에 비중 되맞춤 (kp = 시작점 대비 누적 %, 이자·배당 제외) */
-function mix7030(rows){
-  const out=[]; let S0=.7, C0=.3, ref=1+rows[0].kp/100, pm=rows[0].d.slice(0,7), pv=1, pk=ref;
-  rows.forEach((r,i)=>{ const K=1+r.kp/100, m=r.d.slice(0,7);
-    if(i>0 && m!==pm){ S0=.7*pv; C0=.3*pv; ref=pk; pm=m; }
-    const V=C0+S0*K/ref; out.push((V-1)*100); pv=V; pk=K; });
-  return out;
-}
 /* 공통 선 그래프: o = {id, dates, series:[{k,nm,col,me,sign,fill0,pts}], fmtY, fmtEnd, fmtX, tip(i), hover(i), leave()} */
 function ltChart(svg, tipEl, o){
   const W=Math.max(Math.round(svg.clientWidth||svg.parentNode.clientWidth||600),300), nar=W<520;
@@ -2965,14 +2957,13 @@ function raceLT(S){
     const kp=H.map(r=>({d:r.d, kp:rb(r.kp,b.kp)}));
     const ser=[
       {k:'me', nm:'🌾 나', col:'var(--c-me)', me:true, pts:H.map(r=>rb(r.me,b.me))},
-      {k:'kp', nm:'🇰🇷 코스피', col:'var(--c-kp)', pts:kp.map(r=>r.kp)},
-      {k:'mx', nm:'⚖️ 코스피70·현금30', col:'var(--c-mix)', dash:'6 4', pts:mix7030(kp)}];
+      {k:'kp', nm:'🇰🇷 코스피', col:'var(--c-kp)', pts:kp.map(r=>r.kp)}];
     ser.forEach(s=>s.end=s.pts[s.pts.length-1]);
     const rank=[...ser].sort((a,b)=>b.end-a.end);
     $('rc-note').textContent=`${ltYmd(H[0].d)}~ · 시작일 0% 기준 · 좌수법`;
     $('rc-pod').innerHTML=rank.map((s,i)=>`<div class="pod ${s.me?'me':''}" style="--pc:${s.col}"><span class="rk">${medals[i]}</span><span class="nm"><i class="key ${s.dash?'dash':''}"></i>${s.nm}</span><b class="num ${cls(s.end)}">${pct(s.end)}</b></div>`).join('');
-    const c=d=>`<b class="num ${d>=0?'up':'dn'}">${d>=0?'+':''}${d.toFixed(1)}%p</b>`, dK=ser[0].end-ser[1].end, dM=ser[0].end-ser[2].end;
-    $('rc-lede').innerHTML=`<span class="lt-pill ${dK>=0?'hl':''}">vs 코스피 ${c(dK)}</span><span class="lt-pill ${dM>=0?'hl':''}">vs 70·30 ${c(dM)}</span>`;
+    const c=d=>`<b class="num ${d>=0?'up':'dn'}">${d>=0?'+':''}${d.toFixed(1)}%p</b>`, dK=ser[0].end-ser[1].end;
+    $('rc-lede').innerHTML=`<span class="lt-pill ${dK>=0?'hl':''}">코스피와 격차 ${c(dK)}</span><span class="lt-pill">${dK>=0?'🐢 코스피를 앞서는 중':'🐢 코스피를 추격 중'}</span>`;
     const days=(dObj(H[H.length-1].d)-dObj(H[0].d))/864e5;
     ltChart(el, $('rc-tip'), {id:'rc', dates:H.map(r=>r.d), series:ser,
       fmtY:v=>Math.round(v)+'%', fmtEnd:v=>pct(v),
