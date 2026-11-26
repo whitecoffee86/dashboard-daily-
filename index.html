@@ -2956,19 +2956,38 @@ function ltChart(svg, tipEl, o){
 }
 
 /* ════════ 🏁 코스피와 대결 (예전 '달리기 다시보기' 자리) ════════ */
+/* 주간 압축 (2026-11-26): 그 주 마지막 거래일 값만 남김(평균 아님). 첫날·마지막 날, 구간 최고·최저(나·코스피)는 그날 그대로 넣어 고점이 안 깎이게.
+   각 점에 i0~i1(원래 행 번호 범위)을 달아 툴팁이 그 주 기간·매매를 모아 보여 줌 */
+function ltWeekly(H, keys){
+  const n=H.length; if(n<3) return H.map((r,i)=>Object.assign({}, r, {i0:i, i1:i}));
+  const wk=d=>{ const t=dObj(d); t.setDate(t.getDate()-(t.getDay()+6)%7); return t.getFullYear()*1e4+(t.getMonth()+1)*100+t.getDate(); };
+  const keep=new Set([0, n-1]);
+  for(let i=1;i<n-1;i++) if(wk(H[i].d)!==wk(H[i+1].d)) keep.add(i);
+  keys.forEach(k=>{ let a=1, b=1; for(let i=1;i<n;i++){ if(H[i][k]>H[a][k]) a=i; if(H[i][k]<H[b][k]) b=i; } keep.add(a); keep.add(b); });
+  const idx=[...keep].sort((a,b)=>a-b);
+  return idx.map((i,k)=>Object.assign({}, H[i], {i0: k ? idx[k-1]+1 : i, i1: i}));
+}
 function raceLT(S){
   const el=$('rc-chart'); if(!el) return;
   let R=ltStore('wcl_race')||'y26';
   const RANGES=[['21','1개월'],['63','3개월'],['126','6개월'],['y26','2026'],['all','2024~ 전체']];
   if(!RANGES.some(r=>r[0]===R)) R='y26';
   const medals=['🥇','🥈','🥉'];
+  const WEEKLY=new Set(['all']);   // 주간으로 그릴 기간 (2026도 주간으로 하려면 'y26' 추가)
   function rows(){
     if(R==='y26') return S.Y26;
     const F=S.FULL; if(R==='all') return F;
     return F.slice(Math.max(0, F.length-1-(+R)));
   }
   function draw(){
-    const H=rows(); if(H.length<2) return;
+    const H0=rows(); if(H0.length<2) return;
+    const wkly=WEEKLY.has(R), H=wkly ? ltWeekly(H0, ['me','kp']) : H0;
+    const span=i=>{ const r=H[i]; return wkly ? H0.slice(r.i0, r.i1+1) : [r]; };
+    const tipD=i=>{ const sp=span(i), a=sp[0].d, z=sp[sp.length-1].d; return a===z ? ltYmd(z) : `${ltYmd(a)}~${z.slice(5,7)}.${z.slice(8,10)}`; };
+    const tipEv=i=>{ const ev=span(i).flatMap(r=>S.TR[r.d]||[]); if(!ev.length) return '';
+      if(!wkly || span(i).length===1) return `<div class="ev">${ev.map(trText).join(' · ')}</div>`;
+      const cnt={}; ev.forEach(e=>cnt[e.t]=(cnt[e.t]||0)+1);
+      return `<div class="ev">그 주 ${['harvest','partial','seed','add','adj'].filter(t=>cnt[t]).map(t=>`${TICON[t]} ${TNAME[t]} ${cnt[t]}`).join(' · ')}</div>`; };
     const b=H[0], rb=(v,v0)=>((1+v/100)/(1+v0/100)-1)*100;
     const kp=H.map(r=>({d:r.d, kp:rb(r.kp,b.kp)}));
     const ser=[
@@ -2976,7 +2995,7 @@ function raceLT(S){
       {k:'kp', nm:'🇰🇷 코스피', col:'var(--c-kp)', pts:kp.map(r=>r.kp)}];
     ser.forEach(s=>s.end=s.pts[s.pts.length-1]);
     const rank=[...ser].sort((a,b)=>b.end-a.end);
-    $('rc-note').textContent=`${ltYmd(H[0].d)}~ · 시작일 0% 기준 · 좌수법`;
+    $('rc-note').textContent=`${ltYmd(H[0].d)}~ · 시작일 0% 기준 · 좌수법${wkly?' · 주간(주 마지막 거래일)':''}`;
     $('rc-pod').innerHTML=rank.map((s,i)=>`<div class="pod ${s.me?'me':''}" style="--pc:${s.col}"><span class="rk">${medals[i]}</span><span class="nm"><i class="key ${s.dash?'dash':''}"></i>${s.nm}</span><b class="num ${cls(s.end)}">${pct(s.end)}</b></div>`).join('');
     const c=d=>`<b class="num ${d>=0?'up':'dn'}">${d>=0?'+':''}${d.toFixed(1)}%p</b>`, dK=ser[0].end-ser[1].end;
     $('rc-lede').innerHTML=`<span class="lt-pill ${dK>=0?'hl':''}">코스피와 격차 ${c(dK)}</span><span class="lt-pill">${dK>=0?'🐢 코스피를 앞서는 중':'🐢 코스피를 추격 중'}</span>`;
@@ -2984,8 +3003,7 @@ function raceLT(S){
     ltChart(el, $('rc-tip'), {id:'rc', dates:H.map(r=>r.d), series:ser,
       fmtY:v=>Math.round(v)+'%', fmtEnd:v=>pct(v),
       fmtX:(d,edge)=>edge?ltYmd(d):days>200?d.slice(2,4)+'.'+d.slice(5,7):(+d.slice(5,7))+'/'+(+d.slice(8,10)),
-      tip:i=>`<div class="d">${ltYmd(H[i].d)}</div>`+[...ser].sort((a,b)=>b.pts[i]-a.pts[i]).map((s,k)=>`<div class="r"><span>${medals[k]} <i class="key ${s.dash?'dash':''}" style="--pc:${s.col}"></i>${s.nm}</span><b class="num ${cls(s.pts[i])}">${pct(s.pts[i])}</b></div>`).join('')+
-        ((S.TR[H[i].d]||[]).length?`<div class="ev">${S.TR[H[i].d].map(trText).join(' · ')}</div>`:'')});
+      tip:i=>`<div class="d">${tipD(i)}</div>`+[...ser].sort((a,b)=>b.pts[i]-a.pts[i]).map((s,k)=>`<div class="r"><span>${medals[k]} <i class="key ${s.dash?'dash':''}" style="--pc:${s.col}"></i>${s.nm}</span><b class="num ${cls(s.pts[i])}">${pct(s.pts[i])}</b></div>`).join('')+tipEv(i)});
   }
   ltSeg($('rc-range'), RANGES, R, k=>{ R=k; ltStore('wcl_race',k); draw(); });
   draw();
