@@ -1513,8 +1513,24 @@ function deriveShares(D, CL){
       if(!exact.length && useCash) exact = exactFor(y-cash);
       if(exact.length){
         const dist = o => (pv.k!=null?Math.abs(o.k-pv.k)*pk:0) + (pv.q!=null?Math.abs(o.q-pv.q)*pq:0);
-        exact.sort((a,b)=>dist(a)-dist(b));
-        return exact[0];
+        if(exact.length===1) return exact[0];
+        // 해가 여럿이면(두 종가의 최대공약수가 커서 해가 촘촘할 때) 두 종목을 모두 산 날엔 '전날과의 금액 거리'가 해마다 똑같이 나와
+        // 첫 해(레버 수량 최소)로 쏠림 → ① 평단 변화와 맞는 해 ② 칸당 금액(RULE)에 가까운 해 ③ 전날과 가까운 해 순으로 고름
+        // (2026-11-26 수정: 11/25 7·8번 레버↔코닥 수량이 뒤바뀌어 보이던 문제)
+        const pa = [((pr&&pr.lever_avg)||[])[i]||0, ((pr&&pr.kosdaq_avg)||[])[i]||0];
+        const side = (n, pn, pA, a, p) => {
+          if(pn==null || !pA) return 0;                     // 전날 정보 없음 · 새로 심은 칸(평단=매수가)은 수량을 가려 주지 못함
+          if(a===pA) return n===pn ? 0 : n<pn ? 0.001 : 1;  // 평단 그대로 = 매매 없음(또는 일부 매도)
+          if(n<=pn) return 1;                               // 평단이 내려갔는데 수량이 안 늘면 맞지 않음
+          return Math.abs((pn*pA + (n-pn)*p)/n - a)/a;      // 물타기 평단 재계산과 기록된 평단 차이
+        };
+        const avgErr = o => side(o.k, pv.k, pa[0], ak, pk) + side(o.q, pv.q, pa[1], aq, pq);
+        const R = (typeof RULE!=='undefined' && r.d>='2026-11-02') ? RULE : null;
+        const ruleErr = o => !R ? 0 : [[o.k,pv.k,pk,'K'],[o.q,pv.q,pq,'Q']].reduce((s,[n,pn,p,key])=>{ const b=(n-(pn||0))*p; return b>0 ? s+Math.abs(b-R[key].amt)/R[key].amt : s; }, 0);
+        const keep = (arr, f, tol) => { const m = Math.min(...arr.map(f)); return arr.filter(o=>f(o)<=m+tol); };
+        const pick = keep(keep(exact, avgErr, 0.002), ruleErr, 0.05);
+        pick.sort((a,b)=>dist(a)-dist(b));
+        return pick[0];
       }
       if(pv.k!=null){ const q=(y-pv.k*pk)/pq; if(q>=0) cand.push({k:pv.k,q,e:frac(q)}); }
       if(pv.q!=null){ const k=(y-pv.q*pq)/pk; if(k>=0) cand.push({k,q:pv.q,e:frac(k)}); }
