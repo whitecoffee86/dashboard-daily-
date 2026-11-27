@@ -1498,6 +1498,16 @@ function deriveShares(D, CL){
     prev = prev.map((pv,i)=>{
       const ak = (r.lever_avg||[])[i]||0, aq = (r.kosdaq_avg||[])[i]||0, y = (r.acc||[])[i]||0;
       if(!y || (!ak && !aq)) return {k:0,q:0};
+      // 매매 없는 날(두 종목 평단이 전날과 같음)은 전날 수량을 그대로 씀 — 잔고를 시간외(NXT) 가격처럼 종가와
+      // 한두 호가 다른 값으로 적은 날에도 수량이 엉뚱한 정수 해로 튀지 않게 (2026-11-27 수정: 3~7번 수량이 뒤틀려 보이던 문제)
+      // 1번 칸은 평단 그대로 반만 파는 부분 수확이 있어, 실현손익이 생긴 날엔 이 지름길을 쓰지 않음
+      if(pv.k!=null && pv.q!=null && pr){
+        const pak = (pr.lever_avg||[])[i]||0, paq = (pr.kosdaq_avg||[])[i]||0;
+        const same = ak===pak && aq===paq && (ak>0)===(pv.k>0) && (aq>0)===(pv.q>0);
+        const partial = i===0 && (r.realized||0)!==0;
+        const tol = (pv.k+pv.q)*5*2;   // 한 주당 두 호가(5원×2)까지 허용
+        if(same && !partial && Math.abs(pv.k*pk + pv.q*pq - y) <= tol) return {k:pv.k, q:pv.q};
+      }
       // 계좌 잔고에 매도 대금(예수금)이 남아 있으면 잔고 ≠ 주식 평가액 → 행의 cash를 빼고 다시 맞춰 봄 (2026-10-14)
       const cash = r.cash||0, useCash = cash>0 && y>cash;
       const one = p => { const a=y/p; if(frac(a)<0.001) return Math.round(a);
